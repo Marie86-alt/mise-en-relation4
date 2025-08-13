@@ -15,7 +15,6 @@ export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const router = useRouter();
 
-  // 🎯 FONCTION DÉCONNEXION
   const handleLogout = (): void => {
     Alert.alert(
       'Déconnexion',
@@ -28,7 +27,7 @@ export default function ProfileScreen() {
           onPress: async () => {
             try {
               await logout();
-              router.replace('/login');
+            
             } catch (error) {
               console.error('Erreur déconnexion:', error);
               Alert.alert('Erreur', 'Impossible de se déconnecter');
@@ -39,21 +38,21 @@ export default function ProfileScreen() {
     );
   };
 
-  // 🎯 NAVIGATION VERS ADMIN (pour développement)
   const goToAdmin = (): void => {
     router.push('/admin-seed');
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollContainer}>
-        {/* 🎯 HEADER */}
+      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        
+        {/* 🧡 HEADER ORANGE CAROTTE */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>👤 Mon Profil</Text>
-          <Text style={styles.headerSubtitle}>Gérez votre compte</Text>
+          <Text style={styles.headerTitle}>🧡 Mon Profil</Text>
+          <Text style={styles.headerSubtitle}>Plateforme d&apos;accompagnement seniors</Text>
         </View>
 
-        {/* 🎯 INFORMATIONS UTILISATEUR */}
+        {/* 👤 INFORMATIONS UTILISATEUR */}
         <View style={styles.userContainer}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
@@ -62,95 +61,83 @@ export default function ProfileScreen() {
           </View>
           
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>
-              {user?.userType === 'client' ? 'Client' : 'Aidant'}
-            </Text>
+            <Text style={styles.userName}>Utilisateur</Text>
             <Text style={styles.userEmail}>{user?.email || 'Non défini'}</Text>
-            <Text style={styles.userType}>
-              Type: {user?.userType || 'Non défini'}
+            <Text style={styles.userDescription}>
+              Membre de la plateforme seniors
             </Text>
           </View>
         </View>
 
-        {/* 🎯 SECTIONS DU PROFIL */}
+        {/* 📋 SECTIONS SPÉCIALISÉES SENIORS */}
         <View style={styles.sectionsContainer}>
           
-          {/* Section Mes informations */}
           <TouchableOpacity style={styles.sectionItem}>
             <Text style={styles.sectionIcon}>📝</Text>
             <View style={styles.sectionContent}>
               <Text style={styles.sectionTitle}>Mes informations</Text>
-              <Text style={styles.sectionDescription}>Modifier mes données personnelles</Text>
+              <Text style={styles.sectionDescription}>Données personnelles</Text>
             </View>
             <Text style={styles.arrow}>→</Text>
           </TouchableOpacity>
 
-          {/* Section Mes évaluations */}
+          <TouchableOpacity style={styles.sectionItem}>
+            <Text style={styles.sectionIcon}>🤝</Text>
+            <View style={styles.sectionContent}>
+              <Text style={styles.sectionTitle}>Mes services</Text>
+              <Text style={styles.sectionDescription}>Services reçus et proposés</Text>
+            </View>
+            <Text style={styles.arrow}>→</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.sectionItem}>
             <Text style={styles.sectionIcon}>⭐</Text>
             <View style={styles.sectionContent}>
               <Text style={styles.sectionTitle}>Mes évaluations</Text>
-              <Text style={styles.sectionDescription}>Voir mes notes et avis</Text>
+              <Text style={styles.sectionDescription}>Notes et avis</Text>
             </View>
             <Text style={styles.arrow}>→</Text>
           </TouchableOpacity>
 
-          {/* Section Historique */}
           <TouchableOpacity style={styles.sectionItem}>
             <Text style={styles.sectionIcon}>📊</Text>
             <View style={styles.sectionContent}>
               <Text style={styles.sectionTitle}>Historique</Text>
-              <Text style={styles.sectionDescription}>Tous mes services terminés</Text>
+              <Text style={styles.sectionDescription}>Services terminés</Text>
             </View>
             <Text style={styles.arrow}>→</Text>
           </TouchableOpacity>
 
-          {/* Section Paramètres */}
           <TouchableOpacity style={styles.sectionItem}>
-            <Text style={styles.sectionIcon}>⚙️</Text>
+            <Text style={styles.sectionIcon}>🆘</Text>
             <View style={styles.sectionContent}>
-              <Text style={styles.sectionTitle}>Paramètres</Text>
-              <Text style={styles.sectionDescription}>Notifications, confidentialité</Text>
-            </View>
-            <Text style={styles.arrow}>→</Text>
-          </TouchableOpacity>
-
-          {/* Section Aide */}
-          <TouchableOpacity style={styles.sectionItem}>
-            <Text style={styles.sectionIcon}>❓</Text>
-            <View style={styles.sectionContent}>
-              <Text style={styles.sectionTitle}>Aide & Support</Text>
-              <Text style={styles.sectionDescription}>FAQ, nous contacter</Text>
+              <Text style={styles.sectionTitle}>Aide Seniors</Text>
+              <Text style={styles.sectionDescription}>Support spécialisé</Text>
             </View>
             <Text style={styles.arrow}>→</Text>
           </TouchableOpacity>
         </View>
 
-        {/* 🎯 BOUTONS D'ACTION */}
+        {/* 🧡 INFORMATIONS SPÉCIALISÉES */}
+        <View style={styles.infoSection}>
+          <Text style={styles.infoTitle}>🧡 Accompagnement Seniors</Text>
+          <Text style={styles.infoText}>
+            Plateforme spécialisée dans l&apos;aide à domicile pour personnes âgées
+          </Text>
+        </View>
+
+        {/* 🎯 BOUTONS ORANGE CAROTTE */}
         <View style={styles.actionsContainer}>
-          
-          {/* Bouton Admin (développement) */}
-          <TouchableOpacity 
-            style={styles.adminButton}
-            onPress={goToAdmin}
-          >
+          <TouchableOpacity style={styles.adminButton} onPress={goToAdmin}>
             <Text style={styles.adminButtonText}>🔧 Administration</Text>
           </TouchableOpacity>
 
-          {/* Bouton Déconnexion */}
-          <TouchableOpacity 
-            style={styles.logoutButton}
-            onPress={handleLogout}
-          >
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Text style={styles.logoutButtonText}>🚪 Se déconnecter</Text>
           </TouchableOpacity>
         </View>
 
-        {/* 🎯 FOOTER */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Version 1.0.0</Text>
-          <Text style={styles.footerText}>Plateforme de mise en relation</Text>
-        </View>
+        <View style={styles.bottomSpace} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -159,146 +146,194 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FFFFFF',
   },
+  
   scrollContainer: {
     flex: 1,
   },
+
   header: {
-    backgroundColor: '#2c3e50',
-    padding: 20,
-    paddingTop: 10,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    alignItems: 'center',
   },
+
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#FF6B35',
+    letterSpacing: 0.5,
   },
+
   headerSubtitle: {
-    fontSize: 14,
-    color: '#bdc3c7',
-    marginTop: 5,
+    fontSize: 16,
+    color: '#757575',
+    marginTop: 8,
   },
+
   userContainer: {
-    backgroundColor: '#ffffff',
-    margin: 15,
-    padding: 20,
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    margin: 20,
+    padding: 24,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    elevation: 0,
+    shadowOpacity: 0,
   },
+
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#3498db',
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#FF6B35',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: 20,
   },
+
   avatarText: {
-    color: '#ffffff',
-    fontSize: 24,
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '600',
   },
+
   userInfo: {
     flex: 1,
   },
+
   userName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#212121',
   },
+
   userEmail: {
-    fontSize: 14,
-    color: '#7f8c8d',
-    marginTop: 2,
+    fontSize: 16,
+    color: '#757575',
+    marginTop: 4,
   },
-  userType: {
-    fontSize: 12,
-    color: '#3498db',
-    marginTop: 2,
+
+  userDescription: {
+    fontSize: 14,
+    color: '#FF6B35',
+    marginTop: 4,
     fontWeight: '500',
   },
+
   sectionsContainer: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 15,
-    borderRadius: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    elevation: 0,
+    shadowOpacity: 0,
   },
+
   sectionItem: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#ecf0f1',
+    borderBottomColor: '#F5F5F5',
   },
+
   sectionIcon: {
-    fontSize: 20,
-    marginRight: 15,
-    width: 30,
+    fontSize: 24,
+    marginRight: 16,
+    width: 32,
     textAlign: 'center',
   },
+
   sectionContent: {
     flex: 1,
   },
+
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#2c3e50',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#212121',
   },
+
   sectionDescription: {
     fontSize: 14,
-    color: '#7f8c8d',
-    marginTop: 2,
+    color: '#757575',
+    marginTop: 4,
   },
+
   arrow: {
-    fontSize: 16,
-    color: '#bdc3c7',
+    fontSize: 18,
+    color: '#E0E0E0',
   },
-  actionsContainer: {
-    margin: 15,
-    gap: 10,
-  },
-  adminButton: {
-    backgroundColor: '#f39c12',
-    padding: 15,
-    borderRadius: 8,
+
+  infoSection: {
+    backgroundColor: '#FFF8F5',
+    margin: 20,
+    padding: 24,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#FFE5D6',
     alignItems: 'center',
   },
-  adminButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  logoutButton: {
-    backgroundColor: '#e74c3c',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  logoutButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  footer: {
-    alignItems: 'center',
-    padding: 20,
-    marginBottom: 20,
-  },
-  footerText: {
-    fontSize: 12,
-    color: '#bdc3c7',
+
+  infoTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#FF6B35',
+    marginBottom: 12,
     textAlign: 'center',
+  },
+
+  infoText: {
+    fontSize: 16,
+    color: '#757575',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+
+  actionsContainer: {
+    marginHorizontal: 20,
+    gap: 12,
+  },
+
+  adminButton: {
+    backgroundColor: '#FF6B35',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+
+  adminButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  logoutButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#FF6B35',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+
+  logoutButtonText: {
+    color: '#FF6B35',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  bottomSpace: {
+    height: 20,
   },
 });

@@ -1,123 +1,82 @@
+// Fichier: app/_layout.tsx
+
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import '../firebase.config';
-import { AuthProvider, useAuth } from '../src/contexts/AuthContext';
+import { AuthProvider, useAuth } from '@/src/contexts/AuthContext';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { useEffect } from 'react';
 
-// 🎯 CONFIGURATION - Changez selon vos besoins
-const CONFIG = {
-  SHOW_ADMIN_SEED: true,
-  DEFAULT_ROUTE: 'login' as const
-};
-
-// 🎯 COMPOSANT NAVIGATION INTELLIGENTE
-function AppNavigator() {
+// 🎯 NOUVELLE LOGIQUE DE NAVIGATION PLUS ROBUSTE
+function RootLayoutNav() {
   const { user, loading } = useAuth();
+  const router = useRouter();
+  const segments = useSegments();
 
+  useEffect(() => {
+    // On n'agit pas tant que l'authentification n'est pas vérifiée
+    if (loading) {
+      return;
+    }
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    // Si l'utilisateur N'EST PAS connecté ET qu'il n'est PAS sur un écran d'authentification...
+    if (!user && !inAuthGroup) {
+      // ... on le redirige de force vers la page de connexion.
+      router.replace('/(auth)/login');
+    }
+    
+    // Si l'utilisateur EST connecté ET qu'il se retrouve sur un écran d'authentification...
+    else if (user && inAuthGroup) {
+      // ... on le redirige vers l'accueil de l'application.
+      router.replace('/(tabs)');
+    }
+
+  }, [user, loading, segments, router]);
+
+  // Affiche un écran de chargement global pendant la vérification initiale
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3498db" />
+        <ActivityIndicator size="large" color="#e67e22" />
       </View>
     );
   }
 
-  const getInitialRoute = (): string => {
-    if (CONFIG.SHOW_ADMIN_SEED) {
-      return 'admin-seed';
-    }
-    
-    if (user) {
-      return '(tabs)';
-    }
-    
-    return CONFIG.DEFAULT_ROUTE;
-  };
-
-  console.log('🚀 Navigation initialisée:', {
-    userConnected: !!user,
-    userType: user?.userType,
-    initialRoute: getInitialRoute()
-  });
-
+  // Affiche la pile de navigation une fois le chargement terminé
   return (
-    <Stack initialRouteName={getInitialRoute()}>
-      {/* 🔧 ÉCRANS D'ADMINISTRATION */}
-      {CONFIG.SHOW_ADMIN_SEED && (
-        <Stack.Screen 
-          name="admin-seed" 
-          options={{ headerShown: false }} 
-        />
-      )}
-      
-      {/* 🔐 ÉCRANS D'AUTHENTIFICATION */}
-      <Stack.Screen 
-        name="login" 
-        options={{ headerShown: false }} 
-      />
-      <Stack.Screen 
-        name="signup" 
-        options={{ headerShown: false }} 
-      />
-      
-      {/* 📱 APPLICATION PRINCIPALE */}
-      <Stack.Screen 
-        name="(tabs)" 
-        options={{ headerShown: false }} 
-      />
-      
-      {/* 💬 PAGES HORS TABS - Accessibles depuis toute l'app */}
-      <Stack.Screen 
-        name="conversation" 
-        options={{ 
-          headerShown: false,
-          presentation: 'card'
-        }} 
-      />
-      
-      <Stack.Screen 
-        name="paiement" 
-        options={{ 
-          headerShown: false,
-          presentation: 'modal'
-        }} 
-      />
-      
-      {/* ❌ PAGE NON TROUVÉE */}
-      <Stack.Screen 
-        name="+not-found" 
-        options={{ title: 'Page non trouvée' }}
-      />
+    <Stack>
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="paiement" options={{ presentation: 'modal', headerShown: false }} />
+      <Stack.Screen name="conversation" options={{ headerShown: false }} />
+      <Stack.Screen name="admin-seed" options={{ headerShown: false }} />
+      <Stack.Screen name="profile-detail" options={{ headerShown: false }} />
+      <Stack.Screen name="+not-found" />
     </Stack>
   );
 }
 
-// 🎯 COMPOSANT RACINE PRINCIPAL
+// Le composant racine ne change pas
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
   if (!loaded) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3498db" />
-      </View>
-    );
+    return null;
   }
-
-  console.log('🚀 setLoading(false) dans onAuthStateChanged');
 
   return (
     <AuthProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <AppNavigator />
+        <RootLayoutNav />
         <StatusBar style="auto" />
       </ThemeProvider>
     </AuthProvider>

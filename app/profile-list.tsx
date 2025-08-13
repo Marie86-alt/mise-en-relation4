@@ -10,9 +10,9 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { profilesService } from '../src/services/firebase/profile';
+import { profilesService } from '@/src/services/firebase/profile';
+import { Colors } from '@/constants/Colors';
 
-// Type pour un profil, aligné avec la structure de Firestore
 type Profile = {
   id: string;
   nom: string;
@@ -42,38 +42,27 @@ export default function ProfileListScreen() {
   const router = useRouter();
 
   const params = useLocalSearchParams();
-  // CORRECTION : On récupère "etatCivilPersonne" au lieu de "etatCivil"
   const { 
     secteur, jour, heureDebut, heureFin, etatCivilPersonne, preferenceAidant 
   } = params;
 
-  // Fonction pour charger les profils depuis Firebase
   const loadProfiles = useCallback(async () => {
     try {
-      console.log('🔄 Chargement des profils depuis Firebase...');
       setLoading(true);
       setError(null);
-
-      // CORRECTION : On utilise "etatCivilPersonne" pour construire les critères
       const searchCriteria = {
         secteur: secteur as string,
         jour: jour as string,
         heureDebut: heureDebut as string,
         heureFin: heureFin as string,
-        etatCivil: etatCivilPersonne as string, // On assigne la bonne variable
+        etatCivil: etatCivilPersonne as string,
         preferenceAidant: preferenceAidant as string
       };
-
-      console.log('🔍 Critères de recherche envoyés à Firebase (corrigés):', searchCriteria);
-
       const firebaseProfiles = await profilesService.searchProfiles(searchCriteria);
-      
       setProfiles(firebaseProfiles as Profile[]);
-      console.log(`✅ ${firebaseProfiles.length} profils chargés depuis Firebase`);
-      
     } catch (err: any) {
       console.error('❌ Erreur chargement profils:', err);
-      setError('Erreur lors du chargement. Avez-vous créé l\'index dans Firebase ?');
+      setError(`Erreur lors du chargement : ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -102,7 +91,7 @@ export default function ProfileListScreen() {
         jour: jour as string,
         heureDebut: heureDebut as string,
         heureFin: heureFin as string,
-        etatCivil: etatCivilPersonne as string, // On passe le bon paramètre
+        etatCivil: etatCivilPersonne as string,
         preferenceAidant: preferenceAidant as string
       }
     });
@@ -147,7 +136,7 @@ export default function ProfileListScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2c3e50" />
+          <ActivityIndicator size="large" color={Colors.light.primary} />
           <Text style={styles.loadingText}>🔍 Recherche des profils...</Text>
         </View>
       </SafeAreaView>
@@ -202,14 +191,14 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f0f2f5' },
   header: { backgroundColor: '#ffffff', paddingHorizontal: 20, paddingTop: 15, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: '#e0e0e0' },
   backButton: { marginBottom: 10 },
-  backButtonText: { color: '#3498db', fontSize: 16 },
+  backButtonText: { color: Colors.light.primary, fontSize: 16 },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#2c3e50' },
   resultCount: { color: '#6c757d', fontSize: 14, marginTop: 4 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { fontSize: 18, color: '#6c757d', marginTop: 10 },
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  errorText: { fontSize: 16, color: '#e74c3c', textAlign: 'center', marginBottom: 20 },
-  retryButton: { backgroundColor: '#3498db', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8 },
+  errorText: { fontSize: 16, color: Colors.light.danger, textAlign: 'center', marginBottom: 20 },
+  retryButton: { backgroundColor: Colors.light.primary, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8 },
   retryButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '500' },
   listContainer: { padding: 15 },
   profileCard: { backgroundColor: '#ffffff', borderRadius: 12, padding: 15, marginBottom: 15, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3 },
@@ -217,7 +206,7 @@ const styles = StyleSheet.create({
   profilePhoto: { width: 60, height: 60, borderRadius: 30, marginRight: 15 },
   profileInfo: { flex: 1, justifyContent: 'center' },
   profileName: { fontSize: 18, fontWeight: 'bold', color: '#2c3e50' },
-  profileSector: { fontSize: 14, color: '#3498db', fontWeight: '500' },
+  profileSector: { fontSize: 14, color: Colors.light.primary, fontWeight: '500' },
   profileExperience: { fontSize: 12, color: '#6c757d', marginTop: 2 },
   profileSchedule: { fontSize: 12, color: '#6c757d', fontWeight: '500', marginTop: 2 },
   profileRight: { alignItems: 'flex-end', justifyContent: 'space-between' },
@@ -226,7 +215,7 @@ const styles = StyleSheet.create({
   star: { color: '#f39c12', fontSize: 14 },
   emptyStar: { color: '#dee2e6', fontSize: 14 },
   ratingText: { fontSize: 12, color: '#6c757d', marginTop: 2 },
-  profileTarif: { fontSize: 16, fontWeight: 'bold', color: '#27ae60' },
+  profileTarif: { fontSize: 16, fontWeight: 'bold', color: Colors.light.success },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20 },
   disponible: { backgroundColor: '#d4edda' },
   indisponible: { backgroundColor: '#f8d7da' },
@@ -237,6 +226,6 @@ const styles = StyleSheet.create({
   emptyContainer: { alignItems: 'center', marginTop: 50, paddingHorizontal: 20 },
   emptyTitle: { fontSize: 20, fontWeight: 'bold', color: '#6c757d', marginBottom: 10 },
   emptyText: { fontSize: 16, color: '#6c757d', textAlign: 'center', marginBottom: 20, lineHeight: 22 },
-  newSearchButton: { backgroundColor: '#3498db', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8 },
+  newSearchButton: { backgroundColor: Colors.light.primary, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8 },
   newSearchButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '500' },
 });

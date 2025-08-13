@@ -1,16 +1,20 @@
+// Fichier: app/(tabs)/_layout.tsx
+
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '@/constants/Colors'; // Import des couleurs depuis le fichier constants
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#3498db',
-        tabBarInactiveTintColor: '#7f8c8d',
+        // 🎯 MODIFICATION : On applique la nouvelle couleur "orange carotte"
+        tabBarActiveTintColor: Colors.light.primary,
+        tabBarInactiveTintColor: Colors.light.grey,
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#ffffff',
+          backgroundColor: Colors.light.background, // Fond blanc, comme demandé
           borderTopWidth: 1,
           borderTopColor: '#ecf0f1',
           height: 65,

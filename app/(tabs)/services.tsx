@@ -6,11 +6,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView
+  
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
-// 🎯 TYPES TYPESCRIPT
-interface Service {
+// 🎯 TYPES POUR SERVICES SENIORS
+interface ServiceSenior {
   id: string;
   profileId: string;
   profileName: string;
@@ -18,13 +19,14 @@ interface Service {
   jour: string;
   heureDebut: string;
   heureFin: string;
-  statut: StatutType;
+  statut: StatutServiceType;
   dernierMessage: string;
   avatar: string;
   couleur: string;
+  typeService: 'recu' | 'propose'; // Double rôle selon demandes client
 }
 
-type StatutType = 'conversation' | 'service_confirme' | 'en_cours' | 'termine' | 'evaluation';
+type StatutServiceType = 'conversation' | 'service_confirme' | 'en_cours' | 'termine' | 'evaluation';
 
 interface StatutInfo {
   label: string;
@@ -32,65 +34,71 @@ interface StatutInfo {
   icon: string;
 }
 
-// 🎯 STATUTS POSSIBLES
-const STATUTS: Record<StatutType, StatutInfo> = {
-  conversation: { label: 'En discussion', couleur: '#f39c12', icon: '💬' },
-  service_confirme: { label: 'Service confirmé', couleur: '#3498db', icon: '✅' },
-  en_cours: { label: 'En cours', couleur: '#27ae60', icon: '🔄' },
-  termine: { label: 'Terminé', couleur: '#95a5a6', icon: '✅' },
-  evaluation: { label: 'À évaluer', couleur: '#e67e22', icon: '⭐' }
+// 🎯 STATUTS ORANGE CAROTTE
+const STATUTS: Record<StatutServiceType, StatutInfo> = {
+  conversation: { label: 'En discussion', couleur: '#FF6B35', icon: '💬' },
+  service_confirme: { label: 'Service confirmé', couleur: '#FF6B35', icon: '✅' },
+  en_cours: { label: 'En cours', couleur: '#FF6B35', icon: '🔄' },
+  termine: { label: 'Terminé', couleur: '#757575', icon: '✅' },
+  evaluation: { label: 'À évaluer', couleur: '#FF6B35', icon: '⭐' }
 };
 
-// 🎯 DONNÉES MOCK - Services/Conversations actives
-const servicesActifs: Service[] = [
+// 🎯 DONNÉES MOCK - SERVICES SENIORS (Double rôle)
+const servicesSeniors: ServiceSenior[] = [
+  // Services reçus (je suis aidé)
   {
     id: '1',
     profileId: 'profile_1',
     profileName: 'Maria Garcia',
-    secteur: 'Ménage',
+    secteur: 'Aide aux repas',
     jour: '15/08',
-    heureDebut: '14:00',
-    heureFin: '16:00',
+    heureDebut: '12:00',
+    heureFin: '14:00',
     statut: 'conversation',
-    dernierMessage: 'Parfait ! Quand souhaitez-vous confirmer le service ?',
+    dernierMessage: 'Je peux préparer des repas adaptés aux seniors',
     avatar: 'MG',
-    couleur: '#e74c3c'
+    couleur: '#FF6B35',
+    typeService: 'recu'
   },
   {
     id: '2',  
     profileId: 'profile_2',
     profileName: 'Sophie Martin',
-    secteur: 'Garde d\'enfants',
+    secteur: 'Accompagnement médical',
     jour: '16/08',
-    heureDebut: '16:00', 
-    heureFin: '20:00',
+    heureDebut: '09:00', 
+    heureFin: '11:00',
     statut: 'service_confirme',
-    dernierMessage: 'Service confirmé - Acompte payé',
+    dernierMessage: 'RDV confirmé pour accompagnement médical',
     avatar: 'SM',
-    couleur: '#3498db'
+    couleur: '#FF6B35',
+    typeService: 'recu'
   },
+  // Services proposés (je suis aidant)
   {
     id: '3',
     profileId: 'profile_3', 
-    profileName: 'Julien Dubois',
-    secteur: 'Aide à domicile',
-    jour: '14/08',
-    heureDebut: '09:00',
+    profileName: 'Claude Dupuis',
+    secteur: 'Compagnie',
+    jour: '17/08',
+    heureDebut: '14:00',
     heureFin: '17:00',
     statut: 'termine',
-    dernierMessage: 'Service terminé - Merci !',
-    avatar: 'JD',
-    couleur: '#27ae60'
+    dernierMessage: 'Service de compagnie terminé avec succès',
+    avatar: 'CD',
+    couleur: '#757575',
+    typeService: 'propose'
   }
 ];
 
 export default function MesServicesScreen() {
-  const [services] = useState<Service[]>(servicesActifs);
+  const [services] = useState<ServiceSenior[]>(servicesSeniors);
   const [filtreActif, setFiltreActif] = useState<string>('tous');
+  const [typeFiltre, setTypeFiltre] = useState<'tous' | 'recu' | 'propose'>('tous');
   const router = useRouter();
 
   // 🎯 NAVIGATION VERS CONVERSATION
-  const ouvrirConversation = (service: Service): void => {
+  const ouvrirConversation = (service: ServiceSenior): void => {
     router.push({
       pathname: '/conversation',
       params: {
@@ -100,20 +108,22 @@ export default function MesServicesScreen() {
         jour: service.jour,
         heureDebut: service.heureDebut,
         heureFin: service.heureFin,
-        // Reprendre la conversation où elle était
         etapeInitiale: service.statut
       }
     });
   };
 
   // 🎯 FILTRAGE DES SERVICES
-  const servicesFiltres = filtreActif === 'tous' 
-    ? services 
-    : services.filter(service => service.statut === filtreActif);
+  const servicesFiltres = services.filter(service => {
+    const matchStatut = filtreActif === 'tous' || service.statut === filtreActif;
+    const matchType = typeFiltre === 'tous' || service.typeService === typeFiltre;
+    return matchStatut && matchType;
+  });
 
-  // 🎯 RENDU ITEM SERVICE
-  const renderService = ({ item }: { item: Service }) => {
+  // 🎯 RENDU ITEM SERVICE SENIOR
+  const renderService = ({ item }: { item: ServiceSenior }) => {
     const statutInfo = STATUTS[item.statut];
+    const isServiceRecu = item.typeService === 'recu';
     
     return (
       <TouchableOpacity 
@@ -129,6 +139,9 @@ export default function MesServicesScreen() {
             <Text style={styles.profileName}>{item.profileName}</Text>
             <Text style={styles.serviceSecteur}>{item.secteur}</Text>
             <Text style={styles.serviceDate}>{item.jour} • {item.heureDebut}-{item.heureFin}</Text>
+            <Text style={styles.serviceType}>
+              {isServiceRecu ? '📥 Service reçu' : '📤 Service proposé'}
+            </Text>
           </View>
           
           <View style={styles.serviceRight}>
@@ -146,22 +159,65 @@ export default function MesServicesScreen() {
     );
   };
 
-  // 🎯 FILTRES PAR STATUT
-  const renderFiltres = () => {
-    const statutsUniques: (string | StatutType)[] = ['tous', ...Object.keys(STATUTS) as StatutType[]];
+  // 🎯 FILTRES DOUBLE RÔLE
+  const renderFiltresType = () => {
+    const types = [
+      { id: 'tous', label: 'Tous', icon: '📋' },
+      { id: 'recu', label: 'Services reçus', icon: '📥' },
+      { id: 'propose', label: 'Services proposés', icon: '📤' }
+    ];
     
     return (
       <View style={styles.filtresContainer}>
-        <Text style={styles.filtresTitle}>Filtrer par statut :</Text>
+        <Text style={styles.filtresTitle}>Type de service :</Text>
+        <FlatList
+          data={types}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          renderItem={({ item }) => {
+            const isActif = item.id === typeFiltre;
+            
+            return (
+              <TouchableOpacity
+                style={[
+                  styles.filtreButton,
+                  isActif && styles.filtreButtonActif
+                ]}
+                onPress={() => setTypeFiltre(item.id as any)}
+              >
+                <Text style={styles.filtreIcon}>{item.icon}</Text>
+                <Text style={[
+                  styles.filtreText,
+                  isActif && styles.filtreTextActif
+                ]}>
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.filtresList}
+        />
+      </View>
+    );
+  };
+
+  // 🎯 FILTRES PAR STATUT
+  const renderFiltresStatut = () => {
+    const statutsUniques: (string | StatutServiceType)[] = ['tous', ...Object.keys(STATUTS) as StatutServiceType[]];
+    
+    return (
+      <View style={styles.filtresContainer}>
+        <Text style={styles.filtresTitle}>Statut :</Text>
         <FlatList
           data={statutsUniques}
           horizontal
           showsHorizontalScrollIndicator={false}
-          renderItem={({ item }: { item: string | StatutType }) => {
+          renderItem={({ item }) => {
             const isActif = item === filtreActif;
             const statutInfo = item === 'tous' 
               ? { label: 'Tous', icon: '📋' }
-              : STATUTS[item as StatutType];
+              : STATUTS[item as StatutServiceType];
             
             return (
               <TouchableOpacity
@@ -190,12 +246,15 @@ export default function MesServicesScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      
+      {/* 🧡 HEADER ORANGE CAROTTE */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>📱 Mes Services</Text>
-        <Text style={styles.headerSubtitle}>Gérez vos demandes et conversations</Text>
+        <Text style={styles.headerTitle}>🤝 Mes Services Seniors</Text>
+        <Text style={styles.headerSubtitle}>Services reçus et proposés</Text>
       </View>
 
-      {renderFiltres()}
+      {renderFiltresType()}
+      {renderFiltresStatut()}
 
       <FlatList
         data={servicesFiltres}
@@ -205,18 +264,22 @@ export default function MesServicesScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>📭 Aucun service actif</Text>
+            <Text style={styles.emptyTitle}>📭 Aucun service</Text>
             <Text style={styles.emptyText}>
-              {filtreActif === 'tous' 
-                ? 'Vos conversations et services apparaîtront ici.'
-                : `Aucun service avec le statut "${STATUTS[filtreActif as StatutType]?.label || filtreActif}".`
+              {typeFiltre === 'tous' 
+                ? 'Aucun service actif pour le moment.'
+                : typeFiltre === 'recu'
+                  ? 'Vous n&apos;avez pas encore reçu de services.'
+                  : 'Vous n&apos;avez pas encore proposé de services.'
               }
             </Text>
             <TouchableOpacity 
               style={styles.nouvelleRechercheButton}
               onPress={() => router.push('/')}
             >
-              <Text style={styles.nouvelleRechercheText}>🔍 Nouvelle recherche</Text>
+              <Text style={styles.nouvelleRechercheText}>
+                {typeFiltre === 'propose' ? '🤝 Proposer un service' : '🔍 Nouvelle recherche'}
+              </Text>
             </TouchableOpacity>
           </View>
         }
@@ -226,82 +289,108 @@ export default function MesServicesScreen() {
 }
 
 const styles = StyleSheet.create({
+  // 🎨 CONTENEUR PRINCIPAL BLANC
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FFFFFF',
   },
+  
+  // 🧡 HEADER ORANGE CAROTTE
   header: {
-    backgroundColor: '#2c3e50',
-    padding: 20,
-    paddingTop: 10,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   },
+  
   headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontWeight: '600',
+    color: '#FF6B35',
+    letterSpacing: 0.3,
   },
+  
   headerSubtitle: {
     fontSize: 14,
-    color: '#bdc3c7',
+    color: '#757575',
     marginTop: 5,
   },
+  
+  // 🎯 FILTRES MINIMALISTES
   filtresContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FFFFFF',
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#ecf0f1',
+    borderBottomColor: '#F5F5F5',
   },
+  
   filtresTitle: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: '#757575',
     marginLeft: 20,
     marginBottom: 10,
+    fontWeight: '500',
   },
+  
   filtresList: {
     paddingHorizontal: 15,
   },
+  
   filtreButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ecf0f1',
+    backgroundColor: '#F5F5F5',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
+  
   filtreButtonActif: {
-    backgroundColor: '#3498db',
+    backgroundColor: '#FFF8F5',
+    borderColor: '#FF6B35',
   },
+  
   filtreIcon: {
     fontSize: 14,
     marginRight: 5,
   },
+  
   filtreText: {
     fontSize: 12,
-    color: '#7f8c8d',
+    color: '#757575',
     fontWeight: '500',
   },
+  
   filtreTextActif: {
-    color: '#ffffff',
+    color: '#FF6B35',
+    fontWeight: '600',
   },
+  
+  // 📋 LISTE SERVICES
   servicesList: {
     padding: 15,
   },
+  
   serviceCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 15,
     marginBottom: 15,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    elevation: 0,
+    shadowOpacity: 0,
   },
+  
   serviceHeader: {
     flexDirection: 'row',
     marginBottom: 12,
   },
+  
   avatar: {
     width: 50,
     height: 50,
@@ -310,34 +399,48 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 15,
   },
+  
   avatarText: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
+  
   serviceInfo: {
     flex: 1,
     justifyContent: 'center',
   },
+  
   profileName: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+    fontWeight: '600',
+    color: '#212121',
   },
+  
   serviceSecteur: {
     fontSize: 14,
-    color: '#3498db',
+    color: '#FF6B35',
     fontWeight: '500',
   },
+  
   serviceDate: {
     fontSize: 12,
-    color: '#7f8c8d',
+    color: '#757575',
     marginTop: 2,
   },
+  
+  serviceType: {
+    fontSize: 12,
+    color: '#757575',
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  
   serviceRight: {
     justifyContent: 'center',
     alignItems: 'flex-end',
   },
+  
   statutBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -345,47 +448,58 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
   },
+  
   statutIcon: {
     fontSize: 12,
     marginRight: 4,
   },
+  
   statutText: {
     fontSize: 11,
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontWeight: '500',
   },
+  
   dernierMessage: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: '#757575',
     fontStyle: 'italic',
     lineHeight: 20,
   },
+  
+  // 📭 ÉTAT VIDE
   emptyContainer: {
     alignItems: 'center',
     marginTop: 50,
     paddingHorizontal: 20,
   },
+  
   emptyTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#7f8c8d',
+    fontWeight: '600',
+    color: '#757575',
     marginBottom: 10,
   },
+  
   emptyText: {
     fontSize: 16,
-    color: '#7f8c8d',
+    color: '#757575',
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 22,
   },
+  
   nouvelleRechercheButton: {
-    backgroundColor: '#3498db',
+    backgroundColor: '#FF6B35',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
+    elevation: 0,
+    shadowOpacity: 0,
   },
+  
   nouvelleRechercheText: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '500',
   },

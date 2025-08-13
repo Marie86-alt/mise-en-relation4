@@ -1,3 +1,5 @@
+// Fichier : src/contexts/AuthContext.tsx
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { 
   createUserWithEmailAndPassword, 
@@ -10,12 +12,12 @@ import {
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase.config';
 
-// 🎯 TYPES TYPESCRIPT
+// 🎯 TYPES TYPESCRIPT (SIMPLIFIÉS)
 interface User {
   uid: string;
   email: string | null;
   displayName?: string | null;
-  userType?: 'client' | 'aidant';
+  // La propriété userType est supprimée
   createdAt?: string;
 }
 
@@ -34,7 +36,7 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// ✅ CRÉATION DU CONTEXT AVEC TYPES CORRECTS
+// ✅ CRÉATION DU CONTEXT
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // ✅ HOOK TYPÉ POUR UTILISER LE CONTEXT
@@ -52,40 +54,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Écouter les changements d'état d'authentification
   useEffect(() => {
-    console.log('🔵 AuthContext useEffect démarré');
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       try {
-        console.log('🔵 onAuthStateChanged appelé, user:', firebaseUser?.email || 'null');
-        
         if (firebaseUser) {
-          console.log('✅ Utilisateur détecté, récupération des données...');
-          // Récupérer les données utilisateur supplémentaires depuis Firestore
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
           const userData = userDoc.exists() ? userDoc.data() : {};
-          console.log('📄 Données Firestore:', userData);
           
+          // L'objet User est maintenant plus simple
           const finalUser: User = {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             displayName: firebaseUser.displayName,
-            userType: userData.userType || 'client',
-            createdAt: userData.createdAt,
             ...userData
           };
           
-          console.log('✅ setUser avec:', finalUser);
           setUser(finalUser);
         } else {
-          console.log('❌ Aucun utilisateur, setUser(null)');
           setUser(null);
         }
       } catch (err: any) {
         console.error('❌ Erreur dans onAuthStateChanged:', err);
         setError(err.message);
       } finally {
-        console.log('🔄 setLoading(false) dans onAuthStateChanged');
         setLoading(false);
       }
     });
@@ -93,30 +84,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  // ✅ FONCTION D'INSCRIPTION TYPÉE
+  // ✅ FONCTION D'INSCRIPTION MISE À JOUR
   const signUp = async (email: string, password: string, additionalData: Partial<User> = {}): Promise<FirebaseUser> => {
     try {
       setLoading(true);
       setError(null);
 
-      // Créer le compte Firebase Auth
       const { user: firebaseUser } = await createUserWithEmailAndPassword(auth, email, password);
 
-      // Mettre à jour le profil avec le nom d'affichage
       if (additionalData.displayName) {
         await updateProfile(firebaseUser, {
           displayName: additionalData.displayName
         });
       }
 
-      // Sauvegarder les données supplémentaires dans Firestore
+      // La sauvegarde dans Firestore est simplifiée (plus de userType)
       const userData = {
         email: firebaseUser.email,
         displayName: additionalData.displayName || '',
-        userType: additionalData.userType || 'client', // 'client' ou 'aidant'
         createdAt: new Date().toISOString(),
-        ...additionalData
+        ...additionalData // Pour toute autre donnée future
       };
+      
+      // On retire la propriété userType avant de sauvegarder
+      
 
       await setDoc(doc(db, 'users', firebaseUser.uid), userData);
 
@@ -129,27 +120,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // ✅ FONCTION DE CONNEXION TYPÉE
   const signIn = async (email: string, password: string): Promise<FirebaseUser> => {
     try {
-      console.log('🔵 AuthContext signIn appelé avec:', email);
       setLoading(true);
       setError(null);
-
       const { user: firebaseUser } = await signInWithEmailAndPassword(auth, email, password);
-      console.log('✅ Firebase signIn réussi:', firebaseUser.email);
       return firebaseUser;
     } catch (err: any) {
-      console.error('❌ AuthContext signIn erreur:', err);
       setError(err.message);
       throw err;
     } finally {
-      console.log('🔄 AuthContext signIn finally');
       setLoading(false);
     }
   };
 
-  // ✅ FONCTION DE DÉCONNEXION TYPÉE
   const logout = async (): Promise<void> => {
     try {
       setLoading(true);
@@ -163,17 +147,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // ✅ FONCTION DE MISE À JOUR TYPÉE
   const updateUserProfile = async (updates: Partial<User>): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
-
       if (user) {
-        // Mettre à jour Firestore
         await setDoc(doc(db, 'users', user.uid), updates, { merge: true });
-        
-        // Mettre à jour l'état local
         setUser(prev => prev ? { ...prev, ...updates } : null);
       }
     } catch (err: any) {
@@ -184,7 +163,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // ✅ VALEURS DU CONTEXT TYPÉES
   const value: AuthContextType = {
     user,
     loading,
