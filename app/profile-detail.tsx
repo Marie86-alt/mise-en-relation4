@@ -227,55 +227,47 @@ function ProfileDetailScreen() {
   };
 
   const handleEntreeEnContact = () => {
-    if (!profile) return;
-    
-    Alert.alert(
-      '📞 Entrée en contact',
-      `Voulez-vous entrer en contact avec ${profile.prenom} ${profile.nom} ?`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Confirmer',
-          style: 'default',
-          onPress: () => {
-            // Simulation de la conversation avec tous les critères selon cahier des charges
-            Alert.alert(
-              '💬 Conversation',
-              `Conversation avec ${profile.prenom} ${profile.nom}\n\n` +
-              `Secteur: ${secteur}\n` +
-              `Jour: ${jour}\n` +
-              `Horaires: ${heureDebut} - ${heureFin}\n` +
-              `Pour une ${etatCivil}\n` +
-              `Aidant préféré: ${preferenceAidant}\n\n` +
-              'Cette fonctionnalité sera bientôt disponible !',
-              [
-                {
-                  text: 'Confirmer le service',
-                  onPress: () => {
-                    Alert.alert(
-                      '✅ Service confirmé',
-                      'Le service a été confirmé !\n\n' +
-                      '📍 Vous allez saisir l\'adresse\n' +
-                      '💳 Un acompte de 20% sera demandé\n' +
-                      '🔍 Des vérifications seront effectuées\n' +
-                      '⭐ Une évaluation sera demandée à la fin',
-                      [
-                        { 
-                          text: 'Parfait !', 
-                          onPress: () => router.back() 
-                        }
-                      ]
-                    );
-                  }
-                },
-                { text: 'Continuer la conversation' }
-              ]
-            );
-          }
+     if (!profile) return;
+  
+  Alert.alert(
+    '📞 Entrée en contact',
+    `Voulez-vous entrer en contact avec ${profile.prenom} ${profile.nom} ?`,
+    [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Confirmer',
+        style: 'default',
+        onPress: () => {
+          // ✅ NAVIGATION DIRECTE VERS CONVERSATION (selon cahier des charges)
+          console.log('🚀 Navigation vers conversation avec paramètres:', {
+            profileName: `${profile.prenom} ${profile.nom}`,
+            secteur,
+            jour,
+            heureDebut,
+            heureFin
+          });
+          
+          router.push({
+            pathname: '/conversation',
+            params: {
+              profileId: profile.id,
+              profileName: `${profile.prenom} ${profile.nom}`,
+              secteur: secteur as string,
+              jour: jour as string,
+              heureDebut: heureDebut as string,
+              heureFin: heureFin as string,
+              etatCivil: etatCivil as string,
+              preferenceAidant: preferenceAidant as string,
+              // Informations supplémentaires pour la conversation
+              aidantTarif: profile.tarifHeure.toString(),
+              aidantExperience: profile.experience.toString()
+            }
+          });
         }
-      ]
-    );
-  };
+      }
+    ]
+  );
+};
 
   if (loading) {
     return (
