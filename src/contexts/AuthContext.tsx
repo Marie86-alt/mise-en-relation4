@@ -1,6 +1,7 @@
 // Fichier : src/contexts/AuthContext.tsx
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, 
+  useState, ReactNode } from 'react';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
@@ -12,13 +13,19 @@ import {
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase.config';
 
+
 // 🎯 TYPES TYPESCRIPT (SIMPLIFIÉS)
 interface User {
   uid: string;
   email: string | null;
   displayName?: string | null;
-  // La propriété userType est supprimée
   createdAt?: string;
+  role?: 'user' | 'admin';
+  experience?: number;
+  tarifHeure?: number;
+  description?: string;
+  isAidant?: boolean;
+
 }
 
 interface AuthContextType {

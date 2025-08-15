@@ -7,32 +7,30 @@ import {
   StyleSheet,
   Image,
   SafeAreaView,
-  ActivityIndicator
+  
+  ScrollView
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { profilesService } from '@/src/services/firebase/profile';
 import { Colors } from '@/constants/Colors';
+import { ProfileCardSkeleton } from '@/components/ProfileCardSkeleton';
 
+// Ce type correspond aux données de la collection 'users'
 type Profile = {
   id: string;
-  nom: string;
-  prenom: string;
-  age: number;
-  secteur: string;
-  tarifHeure: number;
-  averageRating: number;
-  totalReviews: number;
-  photo: string;
-  isActive: boolean;
-  experience: number;
-  description: string;
-  genre: string;
-  ville: string;
-  jour: string;
-  horaires: {
-    debut: string;
-    fin: string;
-  };
+  displayName: string;
+  photo?: string;
+  secteur?: string;
+  experience?: number;
+  tarifHeure?: number;
+  averageRating?: number;
+  totalReviews?: number;
+  isActive?: boolean;
+  description?: string;
+  genre?: string;
+  ville?: string;
+  jour?: string; // Peut être différent de la recherche, à gérer
+  horaires?: { debut: string; fin: string };
 };
 
 export default function ProfileListScreen() {
@@ -61,7 +59,6 @@ export default function ProfileListScreen() {
       const firebaseProfiles = await profilesService.searchProfiles(searchCriteria);
       setProfiles(firebaseProfiles as Profile[]);
     } catch (err: any) {
-      console.error('❌ Erreur chargement profils:', err);
       setError(`Erreur lors du chargement : ${err.message}`);
     } finally {
       setLoading(false);
@@ -72,7 +69,7 @@ export default function ProfileListScreen() {
     loadProfiles();
   }, [loadProfiles]);
 
-  const renderStars = (note: number) => {
+  const renderStars = (note: number = 0) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       stars.push(
@@ -91,8 +88,6 @@ export default function ProfileListScreen() {
         jour: jour as string,
         heureDebut: heureDebut as string,
         heureFin: heureFin as string,
-        etatCivil: etatCivilPersonne as string,
-        preferenceAidant: preferenceAidant as string
       }
     });
   };
@@ -104,28 +99,27 @@ export default function ProfileListScreen() {
     >
       <View style={styles.profileHeader}>
         <Image 
-          source={{ uri: item.photo }} 
+          source={{ uri: item.photo || 'https://via.placeholder.com/150' }} 
           style={styles.profilePhoto}
         />
         <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>{item.prenom} {item.nom}</Text>
+          <Text style={styles.profileName}>{item.displayName}</Text>
           <Text style={styles.profileSector}>{item.secteur}</Text>
-          <Text style={styles.profileExperience}>{item.experience} ans d&apos;expérience</Text>
-          <Text style={styles.profileSchedule}>{item.jour} • {item.horaires.debut} - {item.horaires.fin}</Text>
+          <Text style={styles.profileExperience}>{item.experience || 0} ans d&apos;expérience</Text>
         </View>
         <View style={styles.profileRight}>
           <View style={styles.ratingContainer}>
             <View style={styles.starsContainer}>{renderStars(item.averageRating)}</View>
             <Text style={styles.ratingText}>
-              {item.averageRating > 0 ? `${item.averageRating} (${item.totalReviews})` : 'Nouveau'}
+              {item.averageRating ? `${item.averageRating} (${item.totalReviews || 0})` : 'Nouveau'}
             </Text>
           </View>
-          <Text style={styles.profileTarif}>{item.tarifHeure}€/h</Text>
-          <View style={[styles.statusBadge, item.isActive ? styles.disponible : styles.indisponible]}>
-            <Text style={[styles.statusText, item.isActive ? styles.disponibleText : styles.indisponibleText]}>
-              {item.isActive ? 'Disponible' : 'Occupé'}
-            </Text>
-          </View>
+          <Text style={styles.profileTarif}>{item.tarifHeure || 'N/A'}€/h</Text>
+          {item.isActive !== false && (
+            <View style={[styles.statusBadge, styles.disponible]}>
+              <Text style={[styles.statusText, styles.disponibleText]}>Disponible</Text>
+            </View>
+          )}
         </View>
       </View>
       <Text style={styles.profileDescription} numberOfLines={2}>{item.description}</Text>
@@ -135,10 +129,18 @@ export default function ProfileListScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.light.primary} />
-          <Text style={styles.loadingText}>🔍 Recherche des profils...</Text>
+        <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Text style={styles.backButtonText}>← Nouvelle recherche</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Aidants disponibles</Text>
+            <Text style={styles.resultCount}>Recherche en cours...</Text>
         </View>
+        <ScrollView contentContainerStyle={styles.listContainer}>
+            <ProfileCardSkeleton />
+            <ProfileCardSkeleton />
+            <ProfileCardSkeleton />
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -195,27 +197,26 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#2c3e50' },
   resultCount: { color: '#6c757d', fontSize: 14, marginTop: 4 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { fontSize: 18, color: '#6c757d', marginTop: 10 },
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   errorText: { fontSize: 16, color: Colors.light.danger, textAlign: 'center', marginBottom: 20 },
   retryButton: { backgroundColor: Colors.light.primary, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8 },
   retryButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '500' },
   listContainer: { padding: 15 },
-  profileCard: { backgroundColor: '#ffffff', borderRadius: 12, padding: 15, marginBottom: 15, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3 },
+  profileCard: { backgroundColor: '#ffffff', borderRadius: 12, padding: 15, marginBottom: 15, borderWidth: 1, borderColor: '#f0f0f0' },
   profileHeader: { flexDirection: 'row', marginBottom: 10 },
-  profilePhoto: { width: 60, height: 60, borderRadius: 30, marginRight: 15 },
+  profilePhoto: { width: 60, height: 60, borderRadius: 30, marginRight: 15, backgroundColor: '#e0e0e0' },
   profileInfo: { flex: 1, justifyContent: 'center' },
   profileName: { fontSize: 18, fontWeight: 'bold', color: '#2c3e50' },
   profileSector: { fontSize: 14, color: Colors.light.primary, fontWeight: '500' },
   profileExperience: { fontSize: 12, color: '#6c757d', marginTop: 2 },
   profileSchedule: { fontSize: 12, color: '#6c757d', fontWeight: '500', marginTop: 2 },
-  profileRight: { alignItems: 'flex-end', justifyContent: 'space-between' },
-  ratingContainer: { alignItems: 'flex-end' },
+  profileRight: { alignItems: 'flex-end' },
+  ratingContainer: { alignItems: 'flex-end', marginBottom: 5 },
   starsContainer: { flexDirection: 'row' },
   star: { color: '#f39c12', fontSize: 14 },
   emptyStar: { color: '#dee2e6', fontSize: 14 },
   ratingText: { fontSize: 12, color: '#6c757d', marginTop: 2 },
-  profileTarif: { fontSize: 16, fontWeight: 'bold', color: Colors.light.success },
+  profileTarif: { fontSize: 16, fontWeight: 'bold', color: Colors.light.success, marginBottom: 5 },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20 },
   disponible: { backgroundColor: '#d4edda' },
   indisponible: { backgroundColor: '#f8d7da' },

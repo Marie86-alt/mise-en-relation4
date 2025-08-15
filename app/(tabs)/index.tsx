@@ -30,13 +30,11 @@ export default function HomeScreen() {
   const [preferenceAidant, setPreferenceAidant] = useState('');
 
   const secteurs = [
-    'Accompagnement (courses, rdv)',
+
     'Aide au repas',
-    'Aide ménagère',
     'Dame de compagnie',
     'Soins légers et assistance',
     'Stimulation cognitive (jeux, lecture)',
-    'Petits travaux (jardinage, bricolage)',
     'Autre'
   ];
 

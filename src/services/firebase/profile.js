@@ -1,135 +1,3 @@
-// import {
-//   collection,
-
-//   getDocs,
-  
-  
-
-//   query,
-//   where,
-  
-// } from 'firebase/firestore';
-// import { db } from '../../../firebase.config.js';
-
-// export const profilesService = {
-
-//   // ... (votre fonction createProfile reste inchangée)
-//   createProfile: async (profileData) => {
-//     // ... code existant
-//   },
-//   getAllProfiles: async () => {
-//     try {
-//       console.log('📊 Récupération de tous les profils...');
-//       const profilesCollection = collection(db, 'profiles');
-//       const snapshot = await getDocs(profilesCollection);
-      
-//       const profiles = [];
-//       snapshot.forEach((doc) => {
-//         profiles.push({
-//           id: doc.id,
-//           ...doc.data()
-//         });
-//       });
-      
-//       console.log(`📊 ${profiles.length} profils récupérés depuis Firebase`);
-//       return profiles;
-//     } catch (error) {
-//       console.error('❌ Erreur getAllProfiles:', error);
-//       return [];
-//     }
-//   },
-
-//   // Rechercher des profils disponibles selon les critères
-//   searchProfiles: async (searchCriteria) => {
-//     try {
-//       const { secteur, jour, heureDebut, heureFin, etatCivil, preferenceAidant } = searchCriteria;
-      
-//       console.log('🔍 Recherche de profils:', searchCriteria);
-
-//       const profilesCollection = collection(db, 'profiles');
-//       let constraints = [where('isActive', '==', true)];
-
-//       // Filtres selon le cahier des charges
-//       if (secteur) {
-//         constraints.push(where('secteur', '==', secteur));
-//       }
-
-//       if (jour) {
-//         constraints.push(where('jour', '==', jour));
-//       }
-      
-//       if (etatCivil) {
-//         constraints.push(where('specialisationPublic', '==', etatCivil));
-//       }
-      
-//       // CORRECTION : On retire le orderBy pour éviter l'erreur d'index manquant.
-//       // La requête sera plus simple et ne nécessitera pas d'index composite.
-//       const finalQuery = query(profilesCollection, ...constraints);
-      
-//       // L'ancienne ligne qui causait l'erreur :
-//       // profilesQuery = query(profilesQuery, ...constraints, orderBy('averageRating', 'desc'));
-
-//       const snapshot = await getDocs(finalQuery);
-//       let profiles = [];
-
-//       snapshot.forEach((doc) => {
-//         const data = doc.data();
-        
-//         // Le reste de votre logique de filtrage côté client reste valide
-//         const profileHeureDebut = data.horaires?.debut;
-//         const profileHeureFin = data.horaires?.fin;
-        
-//         let horaireCompatible = true;
-//         if (heureDebut && heureFin && profileHeureDebut && profileHeureFin) {
-//           horaireCompatible = (heureDebut < profileHeureFin) && (heureFin > profileHeureDebut);
-//         }
-
-//         let preferencesCompatibles = true;
-//         if (preferenceAidant && data.genre) {
-//           preferencesCompatibles = data.genre === preferenceAidant;
-//         }
-
-//         if (horaireCompatible && preferencesCompatibles) {
-//           profiles.push({
-//             id: doc.id,
-//             ...data
-//           });
-//         }
-//       });
-
-//       console.log(`✅ ${profiles.length} profils trouvés`);
-//       // Si le tri est crucial, vous pouvez le faire ici, après avoir reçu les données :
-//       // profiles.sort((a, b) => b.averageRating - a.averageRating);
-//       return profiles;
-//     } catch (error) {
-//       console.error('❌ Erreur recherche profils:', error);
-//       throw error;
-//     }
-//   },
-
-//   // ... (le reste de vos fonctions getProfile, updateProfile, etc. restent inchangées)
-//   getProfile: async (profileId) => {
-//     // ... code existant
-//   },
-  
-//   updateProfile: async (profileId, updateData) => {
-//     // ... code existant
-//   },
-
-//   addReview: async (profileId, reviewData) => {
-//     // ... code existant
-//   },
-
-//   updateProfileRating: async (profileId) => {
-//     // ... code existant
-//   },
-  
-//   deactivateProfile: async (profileId) => {
-//     // ... code existant
-//   }
-// };
-
-
 import {
   collection,
   getDocs,
@@ -137,127 +5,82 @@ import {
   where,
   getDoc,
   doc,
-
   updateDoc,
 } from 'firebase/firestore';
 import { db } from '../../../firebase.config.js';
 
 export const profilesService = {
-  // ... vos autres fonctions ...
 
-  // ✅ SERVICE CORRIGÉ - Plus flexible
+  /**
+   * Recherche les utilisateurs qui ont un profil aidant activé.
+   * Cible la collection 'users' et filtre selon les critères.
+   */
   searchProfiles: async (searchCriteria) => {
     try {
-      const { secteur, jour, heureDebut, heureFin, etatCivil, preferenceAidant } = searchCriteria;
+      const { secteur,  preferenceAidant } = searchCriteria;
      
-      console.log('🔍 Recherche de profils:', searchCriteria);
+      console.log('🔍 Lancement de la recherche dans la collection "users":', searchCriteria);
       
-      const profilesCollection = collection(db, 'profiles');
-      let constraints = [where('isActive', '==', true)];
+      const usersCollection = collection(db, 'users');
       
-      // ✅ CORRECTION 1: Filtres Firebase stricts seulement pour les champs simples
-      if (secteur) {
-        constraints.push(where('secteur', '==', secteur));
-      }
-      if (jour) {
-        constraints.push(where('jour', '==', jour));
-      }
+      // 1. Filtre de base côté Firebase : ne récupérer que les utilisateurs qui sont aidants.
+      const constraints = [where('isAidant', '==', true)];
       
-      // ✅ CORRECTION 2: On retire etatCivil des contraintes Firebase
-      // car specialisationPublic ne correspond pas à etatCivil dans vos données
-      // On fera ce filtrage côté client
-      
-      const finalQuery = query(profilesCollection, ...constraints);
+      // Le reste des filtres est trop complexe pour Firestore, on les fait côté client.
+      const finalQuery = query(usersCollection, ...constraints);
       const snapshot = await getDocs(finalQuery);
       
-      let profiles = [];
+      const profiles = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
         
-        console.log(`🔍 Test profil ${data.prenom}:`);
-        console.log(`   Secteur: "${data.secteur}" vs "${secteur}"`);
-        console.log(`   Jour: "${data.jour}" vs "${jour}"`);
-        console.log(`   Genre: "${data.genre}" vs "${preferenceAidant}"`);
-        console.log(`   SpecialisationPublic: "${data.specialisationPublic}"`);
-        console.log(`   etatCivil recherché: "${etatCivil}"`);
-       
-        // ✅ CORRECTION 3: Logique horaires améliorée
-        let horaireCompatible = true;
-        if (heureDebut && heureFin && data.horaires?.debut && data.horaires?.fin) {
-          const profileStart = parseInt(data.horaires.debut.split(':')[0]);
-          const profileEnd = parseInt(data.horaires.fin.split(':')[0]);
-          const searchStart = parseInt(heureDebut.split(':')[0]);
-          const searchEnd = parseInt(heureFin.split(':')[0]);
-          
-          // Vérifier si les créneaux se chevauchent
-          horaireCompatible = !(searchEnd <= profileStart || searchStart >= profileEnd);
-          
-          console.log(`   Horaires: ${profileStart}h-${profileEnd}h vs ${searchStart}h-${searchEnd}h → Compatible: ${horaireCompatible}`);
-        }
+        // 2. Filtre côté client
         
-        // ✅ CORRECTION 4: Logique genre/préférence
+        // Filtre par secteur
+        const secteurCompatible = !secteur || data.secteur === secteur;
+
+        // Filtre par horaires (à affiner si vous stockez les disponibilités des aidants)
+        const horaireCompatible = true; // Pour l'instant, on accepte tout le monde
+
+        // Filtre par préférence de genre de l'aidant
         let preferencesCompatibles = true;
-        if (preferenceAidant && data.genre) {
+        if (preferenceAidant && preferenceAidant !== 'Indifférent' && data.genre) {
           preferencesCompatibles = data.genre.toLowerCase() === preferenceAidant.toLowerCase();
-          console.log(`   Préférence genre: ${preferencesCompatibles}`);
         }
         
-        // ✅ CORRECTION 5: Logique etatCivil flexible
-        let etatCivilCompatible = true;
-        if (etatCivil) {
-          // Pour vos données actuelles, on peut matcher par genre
-          // ou par specialisationPublic si ça fait sens
-          etatCivilCompatible = 
-            data.genre?.toLowerCase() === etatCivil.toLowerCase() ||
-            data.specialisationPublic?.toLowerCase().includes(etatCivil.toLowerCase()) ||
-            // Ou pour "femme", accepter tous les profils femmes
-            (etatCivil.toLowerCase() === 'femme' && data.genre?.toLowerCase() === 'femme') ||
-            // Ou accepter certaines spécialisations
-            (etatCivil.toLowerCase() === 'femme' && data.specialisationPublic?.includes('maisons'));
-            
-          console.log(`   etatCivil compatible: ${etatCivilCompatible}`);
-        }
-        
-        const estCompatible = horaireCompatible && preferencesCompatibles && etatCivilCompatible;
-        console.log(`   🎯 RÉSULTAT: ${estCompatible ? '✅ COMPATIBLE' : '❌ INCOMPATIBLE'}`);
-        
-        if (estCompatible) {
+        if (secteurCompatible && horaireCompatible && preferencesCompatibles) {
           profiles.push({
-            id: doc.id,
+            id: doc.id, // L'ID du document est l'UID de l'utilisateur
             ...data
           });
         }
       });
       
-      console.log(`✅ ${profiles.length} profils trouvés`);
+      console.log(`✅ ${profiles.length} profils aidants trouvés après filtrage.`);
       
-      // Tri par note (optionnel)
       profiles.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
       
       return profiles;
     } catch (error) {
-      console.error('❌ Erreur recherche profils:', error);
+      console.error('❌ Erreur lors de la recherche de profils:', error);
       throw error;
     }
   },
 
-  // ✅ FONCTION MANQUANTE : getProfile par ID
-  getProfile: async (profileId) => {
-    try {
-      console.log('🔄 Récupération profil ID:', profileId);
+  /**
+   * Récupère un profil utilisateur unique depuis la collection 'users'.
+   */
+  getProfile: async (userId) => {
+     try {
+      console.log('🔄 Récupération du profil utilisateur depuis la collection USERS, ID:', userId);
+      const userDoc = await getDoc(doc(db, 'users', userId));
       
-      // Méthode 1: Chercher par ID document
-      const profileDoc = await getDoc(doc(db, 'profiles', profileId));
-      
-      if (profileDoc.exists()) {
-        const profileData = {
-          id: profileDoc.id,
-          ...profileDoc.data()
-        };
-        console.log('✅ Profil trouvé:', profileData.prenom, profileData.nom);
-        return profileData;
+      if (userDoc.exists()) {
+        const userData = { id: userDoc.id, ...userDoc.data() };
+        console.log('✅ Utilisateur trouvé:', userData.displayName);
+        return userData;
       } else {
-        console.warn('⚠️ Profil non trouvé avec ID:', profileId);
+        console.warn('⚠️ Utilisateur non trouvé avec ID:', userId);
         return null;
       }
     } catch (error) {
@@ -266,65 +89,22 @@ export const profilesService = {
     }
   },
 
-  // ... vos autres fonctions (getAllProfiles, etc.)
-  getAllProfiles: async () => {
-    try {
-      console.log('📊 Récupération de tous les profils...');
-      const profilesCollection = collection(db, 'profiles');
-      const snapshot = await getDocs(profilesCollection);
-      
-      const profiles = [];
-      snapshot.forEach((doc) => {
-        profiles.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      
-      console.log(`📊 ${profiles.length} profils récupérés depuis Firebase`);
-      return profiles;
-    } catch (error) {
-      console.error('❌ Erreur getAllProfiles:', error);
-      return [];
-    }
-  },
+  // Note : Les fonctions ci-dessous (updateProfile, etc.) sont maintenant gérées
+  // par le AuthContext, mais on les garde ici au cas où vous auriez besoin
+  // de logiques plus complexes qui ne sont pas liées à l'utilisateur connecté.
 
-  // ✅ FONCTION UPDATE PROFILE
-  updateProfile: async (profileId, updateData) => {
+  /**
+   * Met à jour des données pour un utilisateur spécifique dans la collection 'users'.
+   */
+  updateProfile: async (userId, updateData) => {
     try {
-      console.log('🔄 Mise à jour profil:', profileId);
-      const profileRef = doc(db, 'profiles', profileId);
-      await updateDoc(profileRef, updateData);
-      console.log('✅ Profil mis à jour');
+      console.log('🔄 Mise à jour de l\'utilisateur:', userId);
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, updateData);
+      console.log('✅ Utilisateur mis à jour');
       return true;
     } catch (error) {
-      console.error('❌ Erreur update profil:', error);
-      throw error;
-    }
-  },
-
-  // ✅ FONCTION ADD REVIEW
-  addReview: async (profileId, reviewData) => {
-    try {
-      console.log('🔄 Ajout avis pour profil:', profileId);
-      // Logique d'ajout d'avis (à implémenter selon vos besoins)
-      return true;
-    } catch (error) {
-      console.error('❌ Erreur ajout avis:', error);
-      throw error;
-    }
-  },
-
-  // ✅ FONCTION DEACTIVATE PROFILE
-  deactivateProfile: async (profileId) => {
-    try {
-      console.log('🔄 Désactivation profil:', profileId);
-      const profileRef = doc(db, 'profiles', profileId);
-      await updateDoc(profileRef, { isActive: false });
-      console.log('✅ Profil désactivé');
-      return true;
-    } catch (error) {
-      console.error('❌ Erreur désactivation profil:', error);
+      console.error('❌ Erreur updateProfile:', error);
       throw error;
     }
   },

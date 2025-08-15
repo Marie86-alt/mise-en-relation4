@@ -1,16 +1,19 @@
 import { initializeApp } from 'firebase/app';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { initializeAuth, getReactNativePersistence,
+  browserLocalPersistence
+ } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 // Remplacez par votre configuration Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyDSal_1eOIoAZGj7IK64Hj_8YiQpxZiMcs",
-  authDomain: "mise-en-relation-app.firebaseapp.com",
-  projectId: "mise-en-relation-app",
-  storageBucket: "mise-en-relation-app.firebasestorage.app",
-  messagingSenderId: "869583319045",
-  appId: "1:869583319045:web:711e74f9d79dcb730a6c6c"
+  apiKey: "AIzaSyDSr-Bn_JOwdHUsnWBJ_TFy75zcNPU113E",
+  authDomain: "mise-en-relation-app-fc187.firebaseapp.com",
+  projectId: "mise-en-relation-app-fc187",
+  storageBucket: "mise-en-relation-app-fc187.firebasestorage.app",
+  messagingSenderId: "725605633193",
+  appId: "1:725605633193:web:437ef93f522c8c81f6adb8"
 };
 
 // Initialiser Firebase
@@ -18,8 +21,11 @@ const app = initializeApp(firebaseConfig);
 
 // Initialiser Auth avec persistence pour React Native
 const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage)
+  persistence: Platform.OS === 'web' 
+    ? browserLocalPersistence // Utilise le stockage du navigateur (IndexedDB)
+    : getReactNativePersistence(AsyncStorage) // Utilise le stockage natif
 });
+
 
 // Initialiser Firestore
 const db = getFirestore(app);

@@ -1,6 +1,4 @@
-// Fichier : app/(auth)/login.tsx
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,10 +9,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   ActivityIndicator,
-  TouchableWithoutFeedback, // <-- NOUVEAU
-  Keyboard, // <-- NOUVEAU
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/contexts/AuthContext';
@@ -25,103 +20,124 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isConnecting, setIsConnecting] = useState(false);
 
-  const { signIn } = useAuth() as any;
+  // ✅ CORRECTION FINALE : 'error' est bien retiré de la déstructuration
+  const { signIn, user, loading: authLoading } = useAuth() as any;
   const router = useRouter();
 
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace('/(tabs)');
+    }
+  }, [user, authLoading, router]);
+
   const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
+     if (!email.trim() || !password.trim()) {
       Alert.alert('Champs requis', 'Veuillez entrer votre email et votre mot de passe.');
       return;
     }
     setIsConnecting(true);
     try {
       await signIn(email.trim(), password);
-      // La redirection est maintenant gérée par le _layout racine
-    } catch  {
-      Alert.alert('Erreur de connexion', 'L\'email ou le mot de passe est incorrect.');
+    } catch (error: any) { // ✅ On type 'error' et on l'utilise ci-dessous
+      console.error('Erreur de connexion détaillée:', error); // Log pour le débogage
+      Alert.alert(
+        'Erreur de connexion',
+        // On peut afficher un message plus générique à l'utilisateur
+        'L\'email ou le mot de passe est incorrect. Veuillez réessayer.'
+      );
     } finally {
       setIsConnecting(false);
     }
   };
 
+  const handleSignupPress = () => {
+    router.push('/(auth)/signup');
+  };
+
+  if (authLoading || user) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.light.primary} />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
+        style={styles.keyboardAvoidingContainer}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={styles.header}>
-              <Text style={styles.title}>Connexion</Text>
-              <Text style={styles.subtitle}>Retrouvez votre compte</Text>
+        <View style={styles.innerContainer}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Connexion</Text>
+            <Text style={styles.subtitle}>Retrouvez votre compte</Text>
+          </View>
+
+          <View style={styles.form}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="votre@email.com"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!isConnecting}
+              />
             </View>
 
-            <View style={styles.form}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="votre@email.com"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  editable={!isConnecting}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Mot de passe</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Votre mot de passe"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  editable={!isConnecting}
-                />
-              </View>
-
-              <TouchableOpacity
-                style={[styles.loginButton, isConnecting && styles.buttonDisabled]}
-                onPress={handleLogin}
-                disabled={isConnecting}
-              >
-                {isConnecting ? (
-                  <ActivityIndicator color="#ffffff" />
-                ) : (
-                  <Text style={styles.loginButtonText}>Se connecter</Text>
-                )}
-              </TouchableOpacity>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Mot de passe</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Votre mot de passe"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                editable={!isConnecting}
+              />
             </View>
 
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Pas encore de compte ?</Text>
-              <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
-                <Text style={styles.signupLink}>Créer un compte</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </TouchableWithoutFeedback>
+            <TouchableOpacity
+              style={[styles.loginButton, isConnecting && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={isConnecting}
+            >
+              {isConnecting ? <ActivityIndicator color="#ffffff" /> : <Text style={styles.loginButtonText}>Se connecter</Text>}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Pas encore de compte ?</Text>
+            <TouchableOpacity onPress={handleSignupPress} disabled={isConnecting}>
+              <Text style={styles.signupLink}>Créer un compte</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
-// Les styles sont très légèrement adaptés
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: '#f8f9fa' 
   },
-  scrollContent: { 
-    flexGrow: 1, 
+  keyboardAvoidingContainer: {
+    flex: 1,
+  },
+  innerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+  },
+  loadingContainer: { 
+    flex: 1, 
     justifyContent: 'center', 
-    padding: 20 
+    alignItems: 'center' 
   },
   header: { 
     alignItems: 'center', 
