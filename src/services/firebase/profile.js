@@ -6,6 +6,7 @@ import {
   getDoc,
   doc,
   updateDoc,
+  limit
 } from 'firebase/firestore';
 import { db } from '../../../firebase.config.js';
 
@@ -15,58 +16,120 @@ export const profilesService = {
    * Recherche les utilisateurs qui ont un profil aidant activé.
    * Cible la collection 'users' et filtre selon les critères.
    */
-  searchProfiles: async (searchCriteria) => {
+// 🔍 Remplacez votre function searchProfiles dans src/services/firebase/profile.js :
+
+searchProfiles: async (searchCriteria) => {
+  try {
+    const { secteur, preferenceAidant } = searchCriteria;
+   
+    console.log('🔍 Lancement de la recherche dans la collection "users":', searchCriteria);
+    
+    const usersCollection = collection(db, 'users');
+    
+    // ✅ VERSION SIMPLIFIÉE : On essaie d'abord sans filtre pour tester les permissions
+    console.log('🧪 Test 1: Lecture de tous les utilisateurs...');
+    
     try {
-      const { secteur,  preferenceAidant } = searchCriteria;
-     
-      console.log('🔍 Lancement de la recherche dans la collection "users":', searchCriteria);
+      const allUsersQuery = query(usersCollection, limit(10));
+      const allUsersSnapshot = await getDocs(allUsersQuery);
+      console.log('✅ Test 1 réussi:', allUsersSnapshot.docs.length, 'utilisateurs lus');
       
-      const usersCollection = collection(db, 'users');
-      
-      // 1. Filtre de base côté Firebase : ne récupérer que les utilisateurs qui sont aidants.
-      const constraints = [where('isAidant', '==', true)];
-      
-      // Le reste des filtres est trop complexe pour Firestore, on les fait côté client.
-      const finalQuery = query(usersCollection, ...constraints);
-      const snapshot = await getDocs(finalQuery);
-      
-      const profiles = [];
-      snapshot.forEach((doc) => {
+      // Afficher quelques utilisateurs pour debug
+      allUsersSnapshot.docs.forEach((doc, i) => {
         const data = doc.data();
-        
-        // 2. Filtre côté client
-        
-        // Filtre par secteur
-        const secteurCompatible = !secteur || data.secteur === secteur;
-
-        // Filtre par horaires (à affiner si vous stockez les disponibilités des aidants)
-        const horaireCompatible = true; // Pour l'instant, on accepte tout le monde
-
-        // Filtre par préférence de genre de l'aidant
-        let preferencesCompatibles = true;
-        if (preferenceAidant && preferenceAidant !== 'Indifférent' && data.genre) {
-          preferencesCompatibles = data.genre.toLowerCase() === preferenceAidant.toLowerCase();
-        }
-        
-        if (secteurCompatible && horaireCompatible && preferencesCompatibles) {
-          profiles.push({
-            id: doc.id, // L'ID du document est l'UID de l'utilisateur
-            ...data
-          });
-        }
+        console.log(`👤 User ${i+1}:`, {
+          id: doc.id,
+          email: data.email,
+          isAidant: data.isAidant,
+          isVerified: data.isVerified,
+          secteur: data.secteur
+        });
       });
       
-      console.log(`✅ ${profiles.length} profils aidants trouvés après filtrage.`);
-      
-      profiles.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
-      
-      return profiles;
-    } catch (error) {
-      console.error('❌ Erreur lors de la recherche de profils:', error);
-      throw error;
+    } catch (testError) {
+      console.error('❌ Test 1 échoué - Pas de permission de lecture basique:', testError);
+      throw new Error('Permissions insuffisantes pour lire les utilisateurs. Vérifiez les règles Firestore.');
     }
-  },
+    
+    // ✅ Test 2: Filtrage par isAidant
+    console.log('🧪 Test 2: Filtrage par isAidant = true...');
+    
+    try {
+      const aidantsQuery = query(
+        usersCollection, 
+        where('isAidant', '==', true),
+        limit(10)
+      );
+      const aidantsSnapshot = await getDocs(aidantsQuery);
+      console.log('✅ Test 2 réussi:', aidantsSnapshot.docs.length, 'aidants trouvés');
+      
+    } catch (testError) {
+      console.error('❌ Test 2 échoué - Problème avec le filtre isAidant:', testError);
+      // On continue sans le filtre Firestore, on filtrera côté client
+    }
+    
+    // ✅ Recherche principale
+    console.log('🎯 Recherche principale...');
+    
+    // Pour l'instant, on fait simple : pas de filtre Firestore, tout côté client
+    const finalQuery = query(usersCollection);
+    const snapshot = await getDocs(finalQuery);
+    
+    console.log('📊 Documents récupérés:', snapshot.docs.length);
+    
+    const profiles = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      
+      // ✅ Filtres côté client
+      
+      // 1. Doit être un aidant
+      if (!data.isAidant) {
+        return; // Ignore les non-aidants
+      }
+      
+      // 2. Filtre par secteur
+      const secteurCompatible = !secteur || data.secteur === secteur;
 
+      // 3. Filtre par préférence de genre de l'aidant
+      let preferencesCompatibles = true;
+      if (preferenceAidant && preferenceAidant !== 'Indifférent' && data.genre) {
+        preferencesCompatibles = data.genre.toLowerCase() === preferenceAidant.toLowerCase();
+      }
+      
+      // 4. Les horaires (pour l'instant on accepte tout)
+      const horaireCompatible = true;
+      
+      if (secteurCompatible && horaireCompatible && preferencesCompatibles) {
+        profiles.push({
+          id: doc.id,
+          ...data
+        });
+        console.log('✅ Profil ajouté:', data.displayName, data.secteur);
+      } else {
+        console.log('❌ Profil rejeté:', data.displayName, {
+          secteurOK: secteurCompatible,
+          horaireOK: horaireCompatible, 
+          preferenceOK: preferencesCompatibles
+        });
+      }
+    });
+    
+    console.log(`✅ ${profiles.length} profils aidants trouvés après filtrage.`);
+    
+    // Tri par note
+    profiles.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+    
+    return profiles;
+    
+  } catch (error) {
+    console.error('❌ Erreur lors de la recherche de profils:', error);
+    console.error('❌ Type d\'erreur:', error.constructor.name);
+    console.error('❌ Code erreur:', error.code);
+    console.error('❌ Message:', error.message);
+    throw error;
+  }
+},
   /**
    * Récupère un profil utilisateur unique depuis la collection 'users'.
    */

@@ -1,38 +1,65 @@
-// Fichier : src/contexts/AuthContext.tsx
-
-import React, { createContext, useContext, useEffect, 
-  useState, ReactNode } from 'react';
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
+// src/contexts/AuthContext.tsx
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useCallback,
+  useState,
+  ReactNode,
+} from 'react';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as fbSignOut,
   onAuthStateChanged,
   updateProfile,
-  User as FirebaseUser 
+  User as FirebaseUser,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebase.config';
+import {
+  doc,
+  setDoc,
+  getDoc,
+  serverTimestamp,
+  Timestamp,
+} from 'firebase/firestore';
+import { auth, db } from '@/firebase.config';
 
-
-// 🎯 TYPES TYPESCRIPT (SIMPLIFIÉS)
-interface User {
+// ---------- TYPES ----------
+export interface User {
   uid: string;
   email: string | null;
   displayName?: string | null;
-  createdAt?: string;
-  role?: 'user' | 'admin';
-  experience?: number;
-  tarifHeure?: number;
-  description?: string;
-  isAidant?: boolean;
 
+  role?: 'user' | 'admin';
+
+  // Profil aidant (facultatif)
+  experience?: number | null;
+  tarifHeure?: number | null;
+  description?: string | null;
+  isAidant?: boolean;
+  secteur?: string | null;
+  genre?: string | null;
+
+  // État du compte
+  isVerified?: boolean;
+  isSuspended?: boolean;
+  isDeleted?: boolean;
+
+  createdAt?: Timestamp | Date | null;
 }
 
 interface AuthContextType {
   user: User | null;
+  isAdmin: boolean;
   loading: boolean;
   error: string | null;
-  signUp: (email: string, password: string, additionalData?: Partial<User>) => Promise<FirebaseUser>;
+
+  signUp: (
+    email: string,
+    password: string,
+    additionalData?: Partial<User>
+  ) => Promise<FirebaseUser>;
   signIn: (email: string, password: string) => Promise<FirebaseUser>;
   logout: () => Promise<void>;
   updateUserProfile: (updates: Partial<User>) => Promise<void>;
@@ -43,46 +70,97 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// ✅ CRÉATION DU CONTEXT
+// ---------- CONTEXTE ----------
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ✅ HOOK TYPÉ POUR UTILISER LE CONTEXT
 export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
     throw new Error('useAuth doit être utilisé dans un AuthProvider');
   }
-  return context;
+  return ctx;
 };
 
-// ✅ PROVIDER TYPÉ
+// ---------- PROVIDER ----------
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // ---- Abonnement à la session + ensureUserDoc ----
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+      setLoading(true);
       try {
-        if (firebaseUser) {
-          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-          const userData = userDoc.exists() ? userDoc.data() : {};
-          
-          // L'objet User est maintenant plus simple
-          const finalUser: User = {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName,
-            ...userData
-          };
-          
-          setUser(finalUser);
-        } else {
+        if (!firebaseUser) {
           setUser(null);
+          return;
         }
-      } catch (err: any) {
-        console.error('❌ Erreur dans onAuthStateChanged:', err);
-        setError(err.message);
+
+        const userRef = doc(db, 'users', firebaseUser.uid);
+        let snap = await getDoc(userRef);
+
+        // ⚙️ ensureUserDoc : si le doc Firestore n'existe pas → on le crée
+        if (!snap.exists()) {
+          await setDoc(
+            userRef,
+            {
+              email: firebaseUser.email ?? null,
+              displayName: firebaseUser.displayName ?? null,
+              role: 'user',
+              isVerified: false,
+              isSuspended: false,
+              isDeleted: false,
+              createdAt: serverTimestamp(),
+            },
+            { merge: true }
+          );
+          snap = await getDoc(userRef); // relire les données
+        }
+
+        const data = (snap.data() || {}) as Partial<User>;
+
+        const finalUser: User = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName ?? data.displayName ?? null,
+
+          role: (data.role as User['role']) ?? 'user',
+
+          // état du compte
+          isVerified: data.isVerified ?? false,
+          isSuspended: data.isSuspended ?? false,
+          isDeleted: data.isDeleted ?? false,
+
+          createdAt: (data.createdAt as Timestamp) ?? null,
+
+          // champs aidant
+          experience: data.experience ?? null,
+          tarifHeure: data.tarifHeure ?? null,
+          description: data.description ?? null,
+          isAidant: data.isAidant ?? false,
+          secteur: data.secteur ?? null,
+          genre: data.genre ?? null,
+        };
+
+        // Si le compte est suspendu ou supprimé → on déconnecte
+        if (finalUser.isDeleted) {
+          setUser(null);
+          setError('Votre compte a été supprimé.');
+          await fbSignOut(auth);
+          return;
+        }
+        if (finalUser.isSuspended) {
+          setUser(null);
+          setError('Votre compte est suspendu. Contactez le support.');
+          await fbSignOut(auth);
+          return;
+        }
+
+        setUser(finalUser);
+      } catch (e: any) {
+        setError(e?.message ?? 'Erreur de session');
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -91,101 +169,135 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  // ✅ FONCTION D'INSCRIPTION MISE À JOUR
-  const signUp = async (email: string, password: string, additionalData: Partial<User> = {}): Promise<FirebaseUser> => {
-    try {
-      setLoading(true);
+  // ---------- Actions (stables via useCallback) ----------
+
+  const signUp = useCallback(
+    async (
+      email: string,
+      password: string,
+      additionalData: Partial<User> = {}
+    ): Promise<FirebaseUser> => {
       setError(null);
+      setLoading(true);
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const fbUser = cred.user;
 
-      const { user: firebaseUser } = await createUserWithEmailAndPassword(auth, email, password);
+        // MAJ displayName côté Auth si fourni
+        if (additionalData.displayName) {
+          await updateProfile(fbUser, { displayName: additionalData.displayName || '' });
+        }
 
-      if (additionalData.displayName) {
-        await updateProfile(firebaseUser, {
-          displayName: additionalData.displayName
-        });
+        // Créer / merger le document Firestore
+        const userRef = doc(db, 'users', fbUser.uid);
+        await setDoc(
+          userRef,
+          {
+            email: fbUser.email ?? null,
+            displayName: additionalData.displayName ?? fbUser.displayName ?? null,
+            role: 'user',
+            isVerified: false,
+            isSuspended: false,
+            isDeleted: false,
+            createdAt: serverTimestamp(),
+
+            // champs aidant si fournis
+            experience: additionalData.experience ?? null,
+            tarifHeure: additionalData.tarifHeure ?? null,
+            description: additionalData.description ?? null,
+            isAidant: additionalData.isAidant ?? false,
+            secteur: additionalData.secteur ?? null,
+            genre: additionalData.genre ?? null,
+          },
+          { merge: true }
+        );
+
+        return fbUser;
+      } catch (e: any) {
+        setError(e?.message ?? 'Erreur inscription');
+        throw e;
+      } finally {
+        setLoading(false);
       }
-
-      // La sauvegarde dans Firestore est simplifiée (plus de userType)
-      const userData = {
-        email: firebaseUser.email,
-        displayName: additionalData.displayName || '',
-        createdAt: new Date().toISOString(),
-        ...additionalData // Pour toute autre donnée future
-      };
-      
-      // On retire la propriété userType avant de sauvegarder
-      
-
-      await setDoc(doc(db, 'users', firebaseUser.uid), userData);
-
-      return firebaseUser;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signIn = async (email: string, password: string): Promise<FirebaseUser> => {
-    try {
-      setLoading(true);
-      setError(null);
-      const { user: firebaseUser } = await signInWithEmailAndPassword(auth, email, password);
-      return firebaseUser;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const logout = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      setError(null);
-      await signOut(auth);
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateUserProfile = async (updates: Partial<User>): Promise<void> => {
-    try {
-      setLoading(true);
-      setError(null);
-      if (user) {
-        await setDoc(doc(db, 'users', user.uid), updates, { merge: true });
-        setUser(prev => prev ? { ...prev, ...updates } : null);
-      }
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const value: AuthContextType = {
-    user,
-    loading,
-    error,
-    signUp,
-    signIn,
-    logout,
-    updateUserProfile,
-    clearError: () => setError(null)
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+    },
+    []
   );
-};
 
-export default AuthContext;
+  const signIn = useCallback(
+    async (email: string, password: string): Promise<FirebaseUser> => {
+      setError(null);
+      setLoading(true);
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        return cred.user;
+      } catch (e: any) {
+        setError(e?.message ?? 'Erreur connexion');
+        throw e;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const logout = useCallback(
+    async (): Promise<void> => {
+      setError(null);
+      setLoading(true);
+      try {
+        await fbSignOut(auth);
+        setUser(null);
+      } catch (e: any) {
+        setError(e?.message ?? 'Erreur déconnexion');
+        throw e;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const updateUserProfile = useCallback(
+    async (updates: Partial<User>): Promise<void> => {
+      if (!user) throw new Error('Utilisateur non connecté');
+      setError(null);
+      setLoading(true);
+      try {
+        // Synchroniser displayName côté Auth si on le met à jour
+        if (typeof updates.displayName !== 'undefined' && auth.currentUser) {
+          await updateProfile(auth.currentUser, { displayName: updates.displayName || '' });
+        }
+
+        await setDoc(doc(db, 'users', user.uid), updates, { merge: true });
+        setUser((prev) => (prev ? { ...prev, ...updates } : prev));
+      } catch (e: any) {
+        setError(e?.message ?? 'Erreur mise à jour profil');
+        throw e;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user]
+  );
+
+  const clearError = useCallback(() => setError(null), []);
+
+  const isAdmin = user?.role === 'admin';
+
+  const value = useMemo<AuthContextType>(
+    () => ({
+      user,
+      isAdmin,
+      loading,
+      error,
+      signUp,
+      signIn,
+      logout,
+      updateUserProfile,
+      clearError,
+    }),
+    [user, isAdmin, loading, error, signUp, signIn, logout, updateUserProfile, clearError]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
