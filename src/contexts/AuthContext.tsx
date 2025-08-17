@@ -24,6 +24,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { auth, db } from '@/firebase.config';
+import {Alert} from 'react-native';
 
 // ---------- TYPES ----------
 export interface User {
@@ -145,11 +146,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // Si le compte est suspendu ou supprimé → on déconnecte
         if (finalUser.isDeleted) {
-          setUser(null);
-          setError('Votre compte a été supprimé.');
-          await fbSignOut(auth);
-          return;
-        }
+  setUser(null);
+  setError('Votre compte a été supprimé par un administrateur.');
+  
+  // ✅ ALERT VISIBLE pour l'utilisateur
+  Alert.alert(
+    '🚫 Compte supprimé',
+    'Votre compte a été désactivé par un administrateur.\n\nVous ne pouvez plus accéder à l\'application.\n\nContactez le support si vous pensez qu\'il s\'agit d\'une erreur.',
+    [
+      { 
+        text: 'Compris',
+        onPress: () => {},
+        style: 'default'
+      },
+    ],
+    { cancelable: false }
+  );
+  
+  await fbSignOut(auth);
+  return;
+}
         if (finalUser.isSuspended) {
           setUser(null);
           setError('Votre compte est suspendu. Contactez le support.');

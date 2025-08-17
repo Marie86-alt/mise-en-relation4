@@ -83,10 +83,17 @@ export default function AdminScreen() {
       limit(100)
     );
     const unsub = onSnapshot(qUsers, (snap) => {
-      setUsers(snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })));
-    }, (err) => console.error('listen users', err));
-    return unsub;
-  }, [isAdmin]);
+      const activeUsers = snap.docs
+      .map(d => ({ id: d.id, ...(d.data() as any) }))
+      .filter(u => !u.isDeleted); // Filtre les supprimés
+    
+    setUsers(activeUsers);
+    console.log(`📊 Utilisateurs actifs: ${activeUsers.length}`);
+    
+  }, (err) => console.error('listen users', err));
+  
+  return unsub;
+}, [isAdmin]);
 
   // ---- Abonnement : conversations ----
   useEffect(() => {
@@ -155,54 +162,60 @@ export default function AdminScreen() {
     );
   };
 
-  const deleteUser = async (u: UserRow) => {
-    Alert.alert(
-      '⚠️ Suppression définitive',
-      `Voulez-vous SUPPRIMER DÉFINITIVEMENT l'utilisateur ${u.displayName || u.email} ?\n\nCette action est irréversible et supprimera :\n• Le compte utilisateur\n• Tous ses messages\n• Toutes ses conversations`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        { 
-          text: 'SUPPRIMER',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // 1. Supprimer les messages de l'utilisateur
-              const conversationsQuery = query(
-                collection(db, 'conversations'),
-                where('participants', 'array-contains', u.id)
-              );
-              const conversationsSnap = await getDocs(conversationsQuery);
-              
-              for (const convDoc of conversationsSnap.docs) {
-                // Supprimer tous les messages de cette conversation
-                const messagesQuery = query(collection(db, 'conversations', convDoc.id, 'messages'));
-                const messagesSnap = await getDocs(messagesQuery);
-                for (const msgDoc of messagesSnap.docs) {
-                  await deleteDoc(doc(db, 'conversations', convDoc.id, 'messages', msgDoc.id));
-                }
-                // Supprimer la conversation
-                await deleteDoc(doc(db, 'conversations', convDoc.id));
+  // 🔧 Dans votre AdminScreen.tsx, remplacez SEULEMENT la fonction deleteUser par :
+
+const deleteUser = async (u: UserRow) => {
+  Alert.alert(
+    '⚠️ Supprimer utilisateur',
+    `Voulez-vous supprimer l'utilisateur ${u.displayName || u.email} ?\n\n• L'utilisateur sera désactivé\n• Il ne pourra plus se connecter\n• Ses données seront conservées`,
+    [
+      { text: 'Annuler', style: 'cancel' },
+      { 
+        text: 'SUPPRIMER',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            // ✅ SOFT DELETE au lieu de suppression réelle
+            await updateDoc(doc(db, 'users', u.id), { 
+              isDeleted: true,
+              deletedAt: serverTimestamp(),
+              deletedBy: adminUser?.uid
+            });
+
+            // Supprimer conversations et messages (optionnel)
+            const conversationsQuery = query(
+              collection(db, 'conversations'),
+              where('participants', 'array-contains', u.id)
+            );
+            const conversationsSnap = await getDocs(conversationsQuery);
+            
+            for (const convDoc of conversationsSnap.docs) {
+              const messagesQuery = query(collection(db, 'conversations', convDoc.id, 'messages'));
+              const messagesSnap = await getDocs(messagesQuery);
+              for (const msgDoc of messagesSnap.docs) {
+                await deleteDoc(doc(db, 'conversations', convDoc.id, 'messages', msgDoc.id));
               }
-
-              // 2. Supprimer le document utilisateur
-              await deleteDoc(doc(db, 'users', u.id));
-
-              // 3. Logger l'action
-              await logAdminAction('DELETE_USER', u.id, { 
-                email: u.email, 
-                displayName: u.displayName 
-              });
-
-              Alert.alert('✅ Utilisateur supprimé', 'L\'utilisateur et toutes ses données ont été supprimés définitivement.');
-            } catch (e) {
-              console.error(e);
-              Alert.alert('Erreur', 'Impossible de supprimer cet utilisateur.');
+              await deleteDoc(doc(db, 'conversations', convDoc.id));
             }
+
+            // Logger l'action
+            await logAdminAction('DELETE_USER_SOFT', u.id, { 
+              email: u.email, 
+              displayName: u.displayName 
+            });
+
+            Alert.alert('✅ Utilisateur supprimé', 'L\'utilisateur a été désactivé et ne peut plus se connecter.');
+            
+          } catch (e) {
+            console.error(e);
+            Alert.alert('Erreur', 'Impossible de supprimer cet utilisateur.');
           }
         }
-      ]
-    );
-  };
+      }
+    ]
+  );
+};
+
 
   const loadConversationMessages = async (conversation: ConversationRow) => {
     try {
