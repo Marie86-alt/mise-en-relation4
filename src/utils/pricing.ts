@@ -111,32 +111,3 @@ export class PricingService {
     };
   }
 }
-
-// 🧪 Tests rapides (à supprimer en production)
-export const testPricing = () => {
-  console.log('=== Tests de Tarification ===');
-  
-  // Test 1h
-  const price1h = PricingService.calculatePrice(1);
-  console.log('1h:', PricingService.getPricingSummary(price1h));
-  
-  // Test 2h
-  const price2h = PricingService.calculatePrice(2);
-  console.log('2h:', PricingService.getPricingSummary(price2h));
-  
-  // Test 3h (avec réduction)
-  const price3h = PricingService.calculatePrice(3);
-  console.log('3h:', PricingService.getPricingSummary(price3h));
-  
-  // Test 4h
-  const price4h = PricingService.calculatePrice(4);
-  console.log('4h:', PricingService.getPricingSummary(price4h));
-  
-  // Test avec horaires
-  const priceTimeRange = PricingService.calculatePriceFromTimeRange('14:00', '17:00');
-  console.log('14h-17h:', PricingService.getPricingSummary(priceTimeRange));
-  
-  // Test commission
-  const commission = PricingService.calculateCommission(60);
-  console.log('Commission sur 60€:', commission);
-};
