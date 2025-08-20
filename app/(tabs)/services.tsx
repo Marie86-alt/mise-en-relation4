@@ -1,12 +1,13 @@
+// app/(tabs)/services.tsx
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { chatService } from '../../src/services/firebase/chatService';
 import { Colors } from '@/constants/Colors';
-import { DocumentData } from 'firebase/firestore';
+import { DocumentData, Timestamp } from 'firebase/firestore';
 
-type StatutServiceType = 'conversation' | 'service_confirme' | 'en_cours' | 'termine' | 'evaluation';
+type StatutServiceType = 'conversation' | 'service_confirme' | 'en_cours' | 'termine' | 'evaluation' | 'acompte_paye';
 
 interface StatutInfo {
   label: string;
@@ -17,6 +18,7 @@ interface StatutInfo {
 const STATUTS: Record<StatutServiceType, StatutInfo> = {
   conversation: { label: 'En discussion', couleur: '#FF6B35', icon: '💬' },
   service_confirme: { label: 'Confirmé', couleur: '#3498db', icon: '🗓️' },
+  acompte_paye: { label: 'Confirmé', couleur: '#3498db', icon: '🗓️' },
   en_cours: { label: 'En cours', couleur: '#27ae60', icon: '🔄' },
   termine: { label: 'Terminé', couleur: '#757575', icon: '✅' },
   evaluation: { label: 'À évaluer', couleur: '#f39c12', icon: '⭐' }
@@ -25,8 +27,8 @@ const STATUTS: Record<StatutServiceType, StatutInfo> = {
 interface Conversation extends DocumentData {
   id: string;
   participants: string[];
-  participantDetails: { [uid: string]: { displayName: string } };
-  lastMessage?: { texte: string };
+  participantDetails: { [uid: string]: { displayName?: string } };
+  lastMessage?: { texte: string; createdAt?: Timestamp };
   secteur: string;
   status: StatutServiceType;
   jour?: string;
@@ -38,7 +40,7 @@ const ConversationCard = ({ item, onPress }: { item: Conversation; onPress: () =
   const { user } = useAuth();
   if (!user) return null;
 
-  const otherUserId = item.participants.find(uid => uid !== user.uid);
+  const otherUserId = item.participants?.find(uid => uid !== user.uid);
   const otherUser = otherUserId ? item.participantDetails?.[otherUserId] : null;
   const statutInfo = STATUTS[item.status] || STATUTS.conversation;
 
@@ -46,11 +48,11 @@ const ConversationCard = ({ item, onPress }: { item: Conversation; onPress: () =
     <TouchableOpacity style={styles.serviceCard} onPress={onPress}>
       <View style={styles.serviceHeader}>
         <View style={[styles.avatar, { backgroundColor: statutInfo.couleur }]}>
-          <Text style={styles.avatarText}>{otherUser?.displayName?.charAt(0).toUpperCase() || '?'}</Text>
+          <Text style={styles.avatarText}>{(otherUser?.displayName || '?').charAt(0).toUpperCase()}</Text>
         </View>
         <View style={styles.serviceInfo}>
           <Text style={styles.profileName}>{otherUser?.displayName || 'Interlocuteur'}</Text>
-          <Text style={styles.serviceSecteur}>{item.secteur}</Text>
+          <Text style={styles.serviceSecteur}>{item.secteur || '—'}</Text>
         </View>
         <View style={[styles.statutBadge, { backgroundColor: statutInfo.couleur }]}>
           <Text style={styles.statutIcon}>{statutInfo.icon}</Text>
@@ -93,7 +95,13 @@ export default function MesServicesScreen() {
       return;
     }
     const unsubscribe = chatService.listenToUserConversations(user.uid, (convs) => {
-      setConversations((convs || []) as Conversation[]);
+      // Tri côté client (on évite l’orderBy Firestore qui demande un index composite)
+      const sortedConvs = (convs || []).sort((a: any, b: any) => {
+        const timeA = a?.lastMessage?.createdAt?.toDate?.() ?? 0;
+        const timeB = b?.lastMessage?.createdAt?.toDate?.() ?? 0;
+        return (timeB as number) - (timeA as number);
+      });
+      setConversations(sortedConvs as Conversation[]);
       setLoading(false);
     });
     return () => unsubscribe?.();
@@ -102,21 +110,21 @@ export default function MesServicesScreen() {
   const sections = useMemo(() => {
     return {
       '💬 En discussion': conversations.filter((c) => c.status === 'conversation'),
-      '🗓️ Services à venir': conversations.filter((c) => c.status === 'service_confirme' || c.status === 'en_cours'),
+      '🗓️ Services à venir': conversations.filter((c) => ['service_confirme', 'acompte_paye', 'en_cours'].includes(c.status)),
       '✅ Services terminés': conversations.filter((c) => c.status === 'termine' || c.status === 'evaluation'),
     };
   }, [conversations]);
 
   const ouvrirConversation = (conv: Conversation) => {
     if (!user) return;
-    const otherUserId = conv.participants.find((uid) => uid !== user.uid);
-    const otherUserName = otherUserId ? conv.participantDetails?.[otherUserId]?.displayName : 'Interlocuteur';
+    const otherUserId = conv.participants?.find((uid) => uid !== user.uid) || '';
+    const otherUserName = otherUserId ? conv.participantDetails?.[otherUserId]?.displayName || 'Interlocuteur' : 'Interlocuteur';
     router.push({
       pathname: '/conversation',
       params: {
         profileId: otherUserId,
         profileName: otherUserName,
-        secteur: conv.secteur,
+        secteur: conv.secteur || '',
         jour: conv.jour || '',
         heureDebut: conv.heureDebut || '',
         heureFin: conv.heureFin || '',
@@ -152,8 +160,8 @@ export default function MesServicesScreen() {
       ) : (
         <ScrollView>
           {Object.entries(sections).map(
-            ([title, data]) => data.length > 0 && (
-              <Section key={title} title={title} data={data} onPressItem={ouvrirConversation} />
+            ([title, data]) => (data as Conversation[]).length > 0 && (
+              <Section key={title} title={title} data={data as Conversation[]} onPressItem={ouvrirConversation} />
             )
           )}
         </ScrollView>

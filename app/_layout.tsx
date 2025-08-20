@@ -35,6 +35,7 @@ function RootLayoutNav() {
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="paiement" options={{ headerShown: false }} />
+      <Stack.Screen name="paiement-final" options={{ headerShown: false }} />
       <Stack.Screen name="conversation" options={{ headerShown: false }} />
       <Stack.Screen name="profile-detail" options={{ headerShown: false }} />
       <Stack.Screen name="profile-list" options={{ headerShown: false }} />

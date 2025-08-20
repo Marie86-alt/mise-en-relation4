@@ -42,7 +42,6 @@ export default function ProfileScreen() {
     'Soins légers et assistance',
     'Stimulation cognitive (jeux, lecture)',
     'Accompagnement (sorties, promenades)',
-    'Petits travaux et sécurité du domicile',
     'Autre',
   ];
 

@@ -10,6 +10,7 @@ import {
   addDoc, serverTimestamp, orderBy, limit, deleteDoc, getDocs
 } from 'firebase/firestore';
 import { db } from '@/firebase.config';
+import { statisticsService } from '../../src/services/firebase/statisticsService';
 
 type UserRow = {
   id: string;
@@ -333,111 +334,52 @@ export default function AdminScreen() {
   };
 
   // 📊 Calcul des statistiques (useCallback pour dépendances stables)
-  const calculateStats = useCallback(async () => {
-    if (!isAdmin) return;
-    setLoadingStats(true);
-    try {
-      // Utilisateurs
-      const usersSnap = await getDocs(collection(db, 'users'));
-      const allUsers = usersSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as UserRow[];
+  // ✅ NOUVELLE FONCTION calculateStats (remplace l'ancienne) :
 
-      const aidants = allUsers.filter(u => u.isAidant && !u.isDeleted);
-      const clients = allUsers.filter(u => !u.isAidant && !u.isDeleted);
-      const aidantsVerifies = aidants.filter(u => u.isVerified);
-      const aidantsEnAttente = aidants.filter(u => !u.isVerified);
-      const comptesSuspendus = allUsers.filter(u => u.isSuspended && !u.isDeleted);
-
-      // Conversations
-      const conversationsSnap = await getDocs(collection(db, 'conversations'));
-      const allConversations = conversationsSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as ConversationRow[];
-      const conversationsActives = allConversations.filter(c => c.status !== 'termine').length;
-
-      // Services (optionnel)
-      let servicesRealises = 0;
-      let servicesEnCours = 0;
-      let chiffreAffaires = 0;
-
-      try {
-        const servicesSnap = await getDocs(collection(db, 'services'));
-        const allServices = servicesSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as {
-          id: string;
-          status?: string;
-          montant?: number;
-        }[];
-
-        servicesRealises = allServices.filter(s => s.status === 'termine').length;
-        servicesEnCours = allServices.filter(s => s.status === 'en_cours').length;
-        chiffreAffaires = allServices
-          .filter(s => s.status === 'termine' && s.montant)
-          .reduce((sum, s) => sum + (s.montant || 0), 0);
-      } catch {
-        console.log('Collection services non trouvée, utilisation de valeurs estimées.');
-        servicesRealises = Math.floor(aidantsVerifies.length * 2.5);
-        chiffreAffaires = servicesRealises * 25;
-      }
-
-      const commissionPerçue = chiffreAffaires * 0.4;
-
-      // Secteurs populaires
-      const secteursCount = aidants.reduce((acc, aidant) => {
-        const secteur = aidant.secteur || 'Non spécifié';
-        if (!acc[secteur]) acc[secteur] = { count: 0, revenue: 0 };
-        acc[secteur].count++;
-        acc[secteur].revenue += (aidant.tarifHeure || 22) * 10;
-        return acc;
-      }, {} as Record<string, { count: number; revenue: number }>);
-
-      const secteursPopulaires = Object.entries(secteursCount)
-        .map(([secteur, data]) => ({ secteur, ...data }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 5);
-
-      // Avis (optionnel)
-      let evaluationMoyenne = 0;
-      try {
-        const avisSnap = await getDocs(collection(db, 'avis'));
-        const allAvis = avisSnap.docs.map(d => d.data() as any);
-        const ratings = allAvis.filter(a => a.rating).map(a => Number(a.rating));
-        evaluationMoyenne = ratings.length > 0
-          ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
-          : 0;
-      } catch {
-        console.log('Collection avis non trouvée.');
-        evaluationMoyenne = 4.2;
-      }
-
-      // Évolution mensuelle (exemple)
-      const evolutionMensuelle = [
-        { mois: 'Jan', services: Math.floor(servicesRealises * 0.1), revenue: Math.floor(chiffreAffaires * 0.1) },
-        { mois: 'Fév', services: Math.floor(servicesRealises * 0.15), revenue: Math.floor(chiffreAffaires * 0.15) },
-        { mois: 'Mar', services: Math.floor(servicesRealises * 0.2), revenue: Math.floor(chiffreAffaires * 0.2) },
-        { mois: 'Avr', services: Math.floor(servicesRealises * 0.25), revenue: Math.floor(chiffreAffaires * 0.25) },
-        { mois: 'Mai', services: Math.floor(servicesRealises * 0.15), revenue: Math.floor(chiffreAffaires * 0.15) },
-        { mois: 'Jun', services: Math.floor(servicesRealises * 0.15), revenue: Math.floor(chiffreAffaires * 0.15) },
-      ];
-
-      setStats({
-        totalAidants: aidants.length,
-        totalClients: clients.length,
-        servicesRealises,
-        servicesEnCours,
-        chiffreAffaires,
-        commissionPerçue,
-        evaluationMoyenne: Math.round(evaluationMoyenne * 10) / 10,
-        aidantsVerifies: aidantsVerifies.length,
-        aidantsEnAttente: aidantsEnAttente.length,
-        comptesSuspendus: comptesSuspendus.length,
-        conversationsActives,
-        secteursPopulaires,
-        evolutionMensuelle
-      });
-    } catch {
-      Alert.alert('Erreur', 'Impossible de charger les statistiques');
-    } finally {
-      setLoadingStats(false);
-    }
-  }, [isAdmin]);
-
+const calculateStats = useCallback(async () => {
+  if (!isAdmin) return;
+  setLoadingStats(true);
+  
+  try {
+    console.log('📊 Chargement statistiques réelles...');
+    
+    // 🔥 Utilise le service dédié au lieu des calculs manuels
+    const statsData = await statisticsService.calculateStats();
+    
+    console.log('✅ Stats réelles chargées:', {
+      aidants: statsData.totalAidants,
+      clients: statsData.totalClients,
+      services: statsData.servicesRealises,
+      ca: statsData.chiffreAffaires
+    });
+    
+    // Met à jour l'état avec les vraies données
+    setStats(statsData);
+    
+  } catch (error) {
+    console.error('❌ Erreur stats réelles:', error);
+    Alert.alert('Erreur', 'Impossible de charger les statistiques');
+    
+    // 🔄 Fallback avec données locales disponibles
+    setStats({
+      totalAidants: users.filter(u => u.isAidant && !u.isDeleted).length,
+      totalClients: users.filter(u => !u.isAidant && !u.isDeleted).length,
+      aidantsVerifies: users.filter(u => u.isAidant && u.isVerified && !u.isDeleted).length,
+      aidantsEnAttente: users.filter(u => u.isAidant && !u.isVerified && !u.isDeleted).length,
+      comptesSuspendus: users.filter(u => u.isSuspended && !u.isDeleted).length,
+      servicesRealises: 0,
+      servicesEnCours: 0,
+      chiffreAffaires: 0,
+      commissionPerçue: 0,
+      evaluationMoyenne: 0,
+      conversationsActives: conversations.filter(c => c.status !== 'termine').length,
+      secteursPopulaires: [],
+      evolutionMensuelle: []
+    });
+  } finally {
+    setLoadingStats(false);
+  }
+}, [isAdmin, users, conversations]);
   // 📊 Charger les stats quand on arrive sur l'onglet
   useEffect(() => {
     if (tab === 'stats' && isAdmin) {

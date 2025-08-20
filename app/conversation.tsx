@@ -1,40 +1,47 @@
-import React, { useState, useEffect, useRef } from 'react';
+// app/conversation.tsx
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  SafeAreaView,
-  Alert,
-  Modal,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
+  View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, SafeAreaView,
+  Alert, Modal, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { chatService, Message } from '../src/services/firebase/chatService';
 import { Colors } from '@/constants/Colors';
 import { Timestamp } from 'firebase/firestore';
-
-// 🆕 IMPORT DU SYSTÈME DE TARIFICATION
 import { PricingService, PricingResult } from '../src/utils/pricing';
+import { avisService } from '../src/services/firebase/avisService';
 
-// ---- ÉTAPES (logique locale d'UI)
-type EtapeType = 'conversation' | 'attente_verification' | 'service_en_cours' | 'evaluation' | 'avis_obligatoire';
-
+type EtapeType = 'conversation' | 'attente_service' | 'evaluation' | 'avis_obligatoire';
 const ETAPES: Record<string, EtapeType> = {
   CONVERSATION: 'conversation',
-  ATTENTE_VERIFICATION: 'attente_verification',
-  SERVICE_EN_COURS: 'service_en_cours',
+  ATTENTE_SERVICE: 'attente_service',
   EVALUATION: 'evaluation',
   AVIS_OBLIGATOIRE: 'avis_obligatoire',
 };
 
 export default function ConversationScreen() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const flatListRef = useRef<FlatList<Message>>(null);
+
+  // --- params stables
+  const rawParams = useLocalSearchParams();
+  const getParam = (key: string): string => {
+    const value = rawParams[key] || rawParams[`r_${key}`];
+    return typeof value === 'string' ? value : '';
+  };
+
+  const stableParams = useRef({
+    profileId: getParam('profileId'),
+    profileName: getParam('profileName'),
+    secteur: getParam('secteur'),
+    jour: getParam('jour'),
+    heureDebut: getParam('heureDebut'),
+    heureFin: getParam('heureFin'),
+  }).current;
+
+  // --- états
   const [etapeActuelle, setEtapeActuelle] = useState<EtapeType>(ETAPES.CONVERSATION);
   const [messages, setMessages] = useState<Message[]>([]);
   const [nouveauMessage, setNouveauMessage] = useState<string>('');
@@ -44,107 +51,127 @@ export default function ConversationScreen() {
   const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [showAcompteModal, setShowAcompteModal] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-
-  // 🆕 ÉTAT POUR LA TARIFICATION
   const [pricingData, setPricingData] = useState<PricingResult | null>(null);
+  const [isConversationReady, setIsConversationReady] = useState<boolean>(false);
 
-  const { user } = useAuth();
-  const flatListRef = useRef<FlatList<Message>>(null);
-  const router = useRouter();
-  const params = useLocalSearchParams();
-  const { profileId, profileName, secteur, jour, heureDebut, heureFin } = params;
-  const conversationId = user && profileId ? chatService.getConversationId(user.uid, profileId as string) : null;
+  const conversationId =
+    user && stableParams.profileId
+      ? chatService.getConversationId(user.uid, stableParams.profileId)
+      : null;
 
-  // 🆕 CALCUL DE LA TARIFICATION AU CHARGEMENT
+  // --- tarification
   useEffect(() => {
+    const { heureDebut, heureFin } = stableParams;
     if (heureDebut && heureFin) {
       try {
-        const pricing = PricingService.calculatePriceFromTimeRange(
-          heureDebut as string,
-          heureFin as string
-        );
+        const pricing = PricingService.calculatePriceFromTimeRangeSafe(heureDebut, heureFin, 1);
         setPricingData(pricing);
-        console.log('💰 Tarification calculée:', {
-          heures: pricing.hours,
-          prixFinal: pricing.finalPrice,
-          reduction: pricing.discount,
-          acompte: pricing.finalPrice * 0.20
-        });
       } catch (error) {
         console.error('❌ Erreur calcul tarification:', error);
-        Alert.alert('Erreur', 'Impossible de calculer le prix du service');
       }
     }
-  }, [heureDebut, heureFin]);
+  }, [stableParams]);
 
+  // --- s’assurer que la conversation existe avant d’écouter les messages
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversationId || !user || !stableParams.profileId) return;
+    const setupConversation = async () => {
+      try {
+        await chatService.ensureConversationExists(
+          conversationId,
+          [user.uid, stableParams.profileId],
+          {
+            [user.uid]: { displayName: user.displayName || 'Vous' },
+            [stableParams.profileId]: { displayName: stableParams.profileName || 'Aidant' },
+          }
+        );
+        setIsConversationReady(true);
+      } catch (error) {
+        console.error("❌ Échec de la configuration de la conversation", error);
+        Alert.alert("Erreur", "Impossible de charger la conversation.");
+      }
+    };
+    setupConversation();
+  }, [conversationId, user, stableParams.profileId, stableParams.profileName]);
+
+  // --- écoute messages quand prêt
+  useEffect(() => {
+    if (!conversationId || !isConversationReady) return;
     const unsubscribe = chatService.listenToMessages(conversationId, setMessages);
     return () => unsubscribe?.();
-  }, [conversationId]);
+  }, [conversationId, isConversationReady]);
 
-  // ---------- UTILS ----------
+  // --- retour de paiement (acompte / final)
+  useEffect(() => {
+    const paymentSuccess = String(rawParams.paymentSuccess || '');
+    const paymentType = String(rawParams.paymentType || '');
+    
+    if (paymentSuccess === 'true') {
+      const returnedAdresse = rawParams.adresse || rawParams.r_adresse;
+      if (typeof returnedAdresse === 'string' && returnedAdresse) setAdresseService(returnedAdresse as string);
+      
+      if (paymentType === 'deposit') {
+        setEtapeActuelle(ETAPES.ATTENTE_SERVICE);
+        if (conversationId && chatService.updateConversationStatus) {
+          chatService.updateConversationStatus(conversationId, 'acompte_paye');
+        }
+      } else if (paymentType === 'final') {
+        Alert.alert(
+          '✅ Service terminé !', 
+          'Le paiement a été effectué avec succès. Merci d\'avoir utilisé notre plateforme !',
+          [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
+        );
+      }
+    }
+  }, [rawParams.paymentSuccess, rawParams.paymentType, rawParams.adresse, rawParams.r_adresse, conversationId, router]);
+
+  // ----------------------------- utils prix -----------------------------
   const formatHeure = (ts: any) => {
     try {
       let date: Date;
       if (!ts) return '';
-      if (ts instanceof Timestamp) {
-        date = ts.toDate();
-      } else if (typeof ts?.toDate === 'function') {
-        date = ts.toDate();
-      } else if (typeof ts === 'number') {
-        date = new Date(ts);
-      } else {
-        return '';
-      }
+      if (ts instanceof Timestamp) date = ts.toDate();
+      else if (typeof ts?.toDate === 'function') date = ts.toDate();
+      else if (typeof ts === 'number') date = new Date(ts);
+      else return '';
       const h = String(date.getHours()).padStart(2, '0');
       const m = String(date.getMinutes()).padStart(2, '0');
       return `${h}:${m}`;
-    } catch {
-      return '';
-    }
+    } catch { return ''; }
   };
 
-  // 🆕 CALCUL DE L'ACOMPTE RÉEL (20%)
   const getAcompteAmount = () => {
-    return pricingData ? pricingData.finalPrice * 0.20 : 0;
+    if (!pricingData || isNaN(pricingData.finalPrice)) return 0;
+    return parseFloat((pricingData.finalPrice * 0.2).toFixed(2));
   };
 
-  // 🆕 CALCUL DU MONTANT RESTANT
   const getMontantRestant = () => {
-    return pricingData ? pricingData.finalPrice - getAcompteAmount() : 0;
+    if (!pricingData || isNaN(pricingData.finalPrice)) return 0;
+    const acompte = getAcompteAmount();
+    return parseFloat((pricingData.finalPrice - acompte).toFixed(2));
   };
 
-  // ---------- ACTIONS ----------
+  // commission 40/60 (affichage informatif)
+  const getCommissionPlateforme = () => {
+    if (!pricingData || isNaN(pricingData.finalPrice)) return 0;
+    return parseFloat((pricingData.finalPrice * 0.4).toFixed(2));
+  };
+
+  const getMontantAidant = () => {
+    if (!pricingData || isNaN(pricingData.finalPrice)) return 0;
+    return parseFloat((pricingData.finalPrice * 0.6).toFixed(2));
+  };
+
+  const formatMontant = (montant: number): string => `${montant.toFixed(2)}€`;
+
+  // ----------------------------- actions -----------------------------
   const envoyerMessage = async () => {
-    if (!user || !conversationId) return;
+    if (!user || !conversationId || !isConversationReady) return;
     const texte = (nouveauMessage || '').trim();
     if (!texte) return;
-
     try {
       setLoading(true);
-
-      await chatService.sendMessage(
-        conversationId,
-        {
-          texte,
-          expediteurId: user.uid,
-        },
-        {
-          participants: [user.uid, String(profileId)],
-          participantDetails: {
-            [user.uid]: { displayName: user.displayName || 'Vous' },
-            [String(profileId)]: { displayName: String(profileName) || 'Aidant' },
-          },
-          secteur: String(secteur || ''),
-          jour: String(jour || ''),
-          heureDebut: String(heureDebut || ''),
-          heureFin: String(heureFin || ''),
-          status: 'conversation',
-        }
-      );
-
-      await chatService.updateConversationLastMessage(conversationId, { texte });
+      await chatService.sendMessage(conversationId, { texte, expediteurId: user.uid });
       setNouveauMessage('');
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
     } catch (e) {
@@ -157,12 +184,12 @@ export default function ConversationScreen() {
 
   const retournerEnArriere = () => {
     if (router.canGoBack()) router.back();
-    else router.replace('/(tabs)/services');
+    else router.replace('/');
   };
 
   const confirmerService = () => {
     if (adresseService.trim() === '') {
-      Alert.alert('Erreur', "Veuillez saisir l'adresse.");
+      Alert.alert('Erreur', 'Veuillez saisir l\'adresse.');
       return;
     }
     setShowConfirmationModal(false);
@@ -170,54 +197,60 @@ export default function ConversationScreen() {
   };
 
   const payerAcompte = async () => {
-    if (!conversationId || !pricingData) return;
+    if (!conversationId || !pricingData || !user) return;
     setLoading(true);
     setShowAcompteModal(false);
     try {
-      await chatService.updateConversationStatus(conversationId, 'service_confirme');
-      setEtapeActuelle(ETAPES.ATTENTE_VERIFICATION);
+      const paymentData = {
+        conversationId,
+        aidantId: stableParams.profileId,
+        clientId: user.uid,
+        pricingData: {
+          finalPrice: pricingData.finalPrice,
+          hours: pricingData.hours,
+          discount: pricingData.discount,
+        },
+        serviceDetails: {
+          secteur: stableParams.secteur,
+          jour: stableParams.jour,
+          heureDebut: stableParams.heureDebut,
+          heureFin: stableParams.heureFin,
+          adresse: adresseService,
+        },
+        isDeposit: true,
+      };
       
-      // 🆕 MESSAGE DE CONFIRMATION AVEC MONTANTS RÉELS
-      Alert.alert(
-        '✅ Service confirmé !', 
-        `Acompte versé : ${PricingService.formatPrice(getAcompteAmount())}\nReste à payer sur place : ${PricingService.formatPrice(getMontantRestant())}`
-      );
-    } catch (error) {
-      console.error('Erreur lors de la confirmation du service:', error);
-      Alert.alert('Erreur', 'Impossible de confirmer le service.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const lancerVerifications = async () => {
-    if (!conversationId) return;
-    try {
-      setLoading(true);
-      setTimeout(async () => {
-        await chatService.updateConversationStatus(conversationId, 'en_cours');
-        setEtapeActuelle(ETAPES.SERVICE_EN_COURS);
-        setLoading(false);
-      }, 1500);
+      await chatService.updateConversationMetadata(conversationId, {
+        adresseService: adresseService,
+        status: 'acompte_en_cours',
+      });
+      
+      router.push({
+        pathname: '/paiement',
+        params: {
+          paymentData: JSON.stringify(paymentData),
+          paymentType: 'deposit',
+          r_profileId: stableParams.profileId,
+          r_profileName: stableParams.profileName,
+          r_secteur: stableParams.secteur,
+          r_jour: stableParams.jour,
+          r_heureDebut: stableParams.heureDebut,
+          r_heureFin: stableParams.heureFin,
+          r_adresse: adresseService,
+        },
+      });
     } catch (e) {
-      console.error('Erreur vérifications', e);
+      console.error('Erreur navigation paiement:', e);
+      Alert.alert('Erreur', 'Impossible d\'accéder au paiement');
       setLoading(false);
-      Alert.alert('Erreur', 'Impossible de lancer les vérifications.');
     }
   };
 
-  const terminerService = async () => {
-    if (!conversationId) return;
-    try {
-      await chatService.updateConversationStatus(conversationId, 'termine');
-      setEtapeActuelle(ETAPES.EVALUATION);
-    } catch (error) {
-      console.error('Erreur lors de la terminaison du service:', error);
-      Alert.alert('Erreur', 'Impossible de terminer le service.');
-    }
+  const terminerService = () => {
+    setEtapeActuelle(ETAPES.EVALUATION);
   };
 
-  const confirmerEvaluation = () => {
+  const confirmerEvaluation = async () => {
     if (evaluation === 0) {
       Alert.alert('Erreur', 'Veuillez donner une note de 1 à 5 étoiles.');
       return;
@@ -225,39 +258,86 @@ export default function ConversationScreen() {
     if (evaluation < 3) {
       setEtapeActuelle(ETAPES.AVIS_OBLIGATOIRE);
     } else {
-      naviguerVersPaiement();
+      await sauvegarderAvis('Service satisfaisant.');
     }
   };
 
-  const confirmerAvis = () => {
+  const confirmerAvis = async () => {
     if (avisTexte.trim() === '') {
       Alert.alert('Erreur', 'Un avis détaillé est obligatoire pour une note < 3 étoiles.');
       return;
     }
-    naviguerVersPaiement();
+    await sauvegarderAvis(avisTexte.trim());
+  };
+
+  const sauvegarderAvis = async (commentaire: string) => {
+    if (!user || !conversationId || !stableParams.profileId || !pricingData) {
+      naviguerVersPaiement();
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      await avisService.createAvis({
+        aidantId: stableParams.profileId,
+        clientId: user.uid,
+        conversationId,
+        rating: evaluation,
+        comment: commentaire,
+        serviceDate: String(stableParams.jour || new Date().toISOString().split('T')[0]),
+        secteur: String(stableParams.secteur || ''),
+        dureeService: pricingData.hours,
+        montantService: pricingData.finalPrice,
+        clientName: user.displayName || 'Client anonyme',
+      });
+    } catch (error) {
+      console.error('❌ Erreur sauvegarde avis:', error);
+      Alert.alert('Info', 'Avis non sauvegardé, le paiement va continuer.');
+    } finally {
+      setLoading(false);
+      naviguerVersPaiement();
+    }
   };
 
   const naviguerVersPaiement = () => {
-    // 🆕 PASSER LES VRAIES DONNÉES DE TARIFICATION
-    const pricing = pricingData || PricingService.calculatePrice(1);
+    if (!conversationId || !pricingData || !user) return;
+    
+    const paymentData = {
+      conversationId,
+      aidantId: stableParams.profileId,
+      clientId: user.uid,
+      pricingData: {
+        finalPrice: getMontantRestant(), // solde (80 %)
+        hours: pricingData.hours,
+        discount: 0,
+      },
+      serviceDetails: {
+        secteur: stableParams.secteur,
+        jour: stableParams.jour,
+        heureDebut: stableParams.heureDebut,
+        heureFin: stableParams.heureFin,
+        adresse: adresseService,
+      },
+      isDeposit: false,
+    };
     
     router.push({
       pathname: '/paiement',
       params: {
-        aidantName: (profileName as string) || '',
-        secteur: (secteur as string) || '',
-        dureeService: pricing.hours.toString(),
-        tarifTotal: pricing.finalPrice.toString(),
-        tarifHoraire: pricing.hourlyRate.toString(),
-        reduction: pricing.discount.toString(),
-        acompteVerse: getAcompteAmount().toString(),
-        avisClient: avisTexte || "Service d'accompagnement satisfaisant.",
-        noteService: evaluation.toString(),
+        paymentData: JSON.stringify(paymentData),
+        paymentType: 'final',
+        r_profileId: stableParams.profileId,
+        r_profileName: stableParams.profileName,
+        r_secteur: stableParams.secteur,
+        r_jour: stableParams.jour,
+        r_heureDebut: stableParams.heureDebut,
+        r_heureFin: stableParams.heureFin,
+        r_adresse: adresseService,
       },
     });
   };
 
-  // ---------- RENDUS ----------
+  // ----------------------------- rendu UI -----------------------------
   const renderMessage = ({ item }: { item: Message }) => {
     const isClient = item.expediteurId === user?.uid;
     return (
@@ -280,10 +360,8 @@ export default function ConversationScreen() {
     </View>
   );
 
-  // 🆕 COMPOSANT TARIFICATION DANS LA CONVERSATION
   const renderTarificationInfo = () => {
     if (!pricingData) return null;
-
     return (
       <View style={styles.tarificationContainer}>
         <Text style={styles.tarificationTitle}>💰 Tarification</Text>
@@ -292,7 +370,7 @@ export default function ConversationScreen() {
             <Text style={styles.tarificationLabel}>Durée :</Text>
             <Text style={styles.tarificationValue}>{pricingData.hours}h</Text>
           </View>
-          
+
           {pricingData.discount > 0 && (
             <>
               <View style={styles.tarificationRow}>
@@ -303,20 +381,26 @@ export default function ConversationScreen() {
               </View>
               <View style={styles.tarificationRow}>
                 <Text style={styles.reductionLabel}>Réduction :</Text>
-                <Text style={styles.reductionValue}>
-                  -{PricingService.formatPrice(pricingData.discount)}
-                </Text>
+                <Text style={styles.reductionValue}>-{PricingService.formatPrice(pricingData.discount)}</Text>
               </View>
             </>
           )}
-          
+
           <View style={[styles.tarificationRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total :</Text>
-            <Text style={styles.totalValue}>
-              {PricingService.formatPrice(pricingData.finalPrice)}
-            </Text>
+            <Text style={styles.totalValue}>{PricingService.formatPrice(pricingData.finalPrice)}</Text>
           </View>
-          
+
+          {/* 👇 Acompte et reste à payer visibles dans la fiche */}
+          <View style={styles.tarificationRow}>
+            <Text style={styles.acompteLabel}>Acompte (20%) :</Text>
+            <Text style={styles.acompteValue}>{PricingService.formatPrice(getAcompteAmount())}</Text>
+          </View>
+          <View style={styles.tarificationRow}>
+            <Text style={styles.tarificationLabel}>Reste à payer :</Text>
+            <Text style={styles.tarificationValue}>{PricingService.formatPrice(getMontantRestant())}</Text>
+          </View>
+
           {pricingData.discount > 0 && (
             <Text style={styles.economieText}>
               🎉 Vous économisez {PricingService.formatPrice(pricingData.discount)} !
@@ -328,6 +412,15 @@ export default function ConversationScreen() {
   };
 
   const renderContenuPrincipal = () => {
+    if (!isConversationReady) {
+      return (
+        <View style={styles.centeredContent}>
+          <ActivityIndicator size="large" color={Colors.light.primary} />
+          <Text style={styles.loadingText}>Chargement de la conversation...</Text>
+        </View>
+      );
+    }
+    
     switch (etapeActuelle) {
       case ETAPES.CONVERSATION:
         return (
@@ -340,17 +433,14 @@ export default function ConversationScreen() {
               style={styles.messagesList}
               onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
             />
-            
-            {/* 🆕 AFFICHAGE DE LA TARIFICATION */}
             {renderTarificationInfo()}
-            
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.messageInput}
                   value={nouveauMessage}
                   onChangeText={setNouveauMessage}
-                  placeholder="Tapez votre message..."
+                  placeholder="Tapez votre message…"
                   multiline
                 />
                 <TouchableOpacity onPress={envoyerMessage} style={styles.sendButton} disabled={loading}>
@@ -363,43 +453,44 @@ export default function ConversationScreen() {
             </KeyboardAvoidingView>
           </>
         );
-      case ETAPES.ATTENTE_VERIFICATION:
+        
+      case ETAPES.ATTENTE_SERVICE:
         return (
           <View style={styles.centeredContent}>
-            <Text style={styles.etapeTitle}>🔄 Service confirmé !</Text>
+            <Text style={styles.etapeTitle}>⏳ Service confirmé</Text>
             <Text style={styles.etapeDescription}>
-              L&apos;acompte de {PricingService.formatPrice(getAcompteAmount())} a été versé. Préparez-vous pour le jour J !
+              L&apos;acompte a été versé avec succès.{'\n'}
+              Le service est prévu le {stableParams.jour} de {stableParams.heureDebut} à {stableParams.heureFin}.
             </Text>
-            <TouchableOpacity style={styles.verificationButton} onPress={lancerVerifications} disabled={loading}>
-              <Text style={styles.buttonText}>{loading ? 'Vérification…' : '🔍 Lancer les vérifications'}</Text>
-            </TouchableOpacity>
-          </View>
-        );
-      case ETAPES.SERVICE_EN_COURS:
-        return (
-          <View style={styles.centeredContent}>
-            <Text style={styles.etapeTitle}>🤝 Service en cours</Text>
-            <Text style={styles.etapeDescription}>
-              Le service est en cours à l&apos;adresse : {adresseService}
-            </Text>
-            <Text style={styles.etapeDescription}>
-              Montant restant à régler : {PricingService.formatPrice(getMontantRestant())}
-            </Text>
+            {adresseService ? (
+              <View style={styles.adresseConfirmee}>
+                <Text style={styles.adresseLabel}>📍 Adresse du service :</Text>
+                <Text style={styles.adresseTexte}>{adresseService}</Text>
+              </View>
+            ) : null}
             <TouchableOpacity style={styles.terminerButton} onPress={terminerService}>
-              <Text style={styles.buttonText}>✅ Service terminé</Text>
+              <Text style={styles.buttonText}>✅ Terminer le service</Text>
             </TouchableOpacity>
+            <Text style={styles.infoText}>
+              Cliquez sur Terminer le service une fois que le service a été réalisé.
+            </Text>
           </View>
         );
+        
       case ETAPES.EVALUATION:
         return (
           <View style={styles.centeredContent}>
             <Text style={styles.etapeTitle}>⭐ Évaluez le service</Text>
+            <Text style={styles.etapeDescription}>
+              Comment s&apos;est passé le service avec {stableParams.profileName} ?
+            </Text>
             {renderEtoiles()}
-            <TouchableOpacity style={styles.evaluerButton} onPress={confirmerEvaluation}>
-              <Text style={styles.buttonText}>Confirmer</Text>
+            <TouchableOpacity style={styles.evaluerButton} onPress={confirmerEvaluation} disabled={loading}>
+              <Text style={styles.buttonText}>{loading ? 'Chargement...' : 'Confirmer'}</Text>
             </TouchableOpacity>
           </View>
         );
+        
       case ETAPES.AVIS_OBLIGATOIRE:
         return (
           <ScrollView contentContainerStyle={styles.avisContainer}>
@@ -412,19 +503,20 @@ export default function ConversationScreen() {
               style={styles.avisInput}
               value={avisTexte}
               onChangeText={setAvisTexte}
-              placeholder="Décrivez votre expérience..."
+              placeholder="Décrivez votre expérience…"
               multiline
             />
-            <TouchableOpacity style={styles.confirmerAvisButton} onPress={confirmerAvis}>
-              <Text style={styles.buttonText}>Envoyer l&apos;avis</Text>
+            <TouchableOpacity style={styles.confirmerAvisButton} onPress={confirmerAvis} disabled={loading}>
+              <Text style={styles.buttonText}>{loading ? 'Envoi...' : 'Envoyer l\'avis'}</Text>
             </TouchableOpacity>
           </ScrollView>
         );
+        
       default:
         return (
           <View style={styles.centeredContent}>
             <ActivityIndicator size="large" color={Colors.light.primary} />
-            <Text style={styles.loadingText}>Chargement...</Text>
+            <Text style={styles.loadingText}>Chargement…</Text>
           </View>
         );
     }
@@ -436,60 +528,80 @@ export default function ConversationScreen() {
         <TouchableOpacity onPress={retournerEnArriere}>
           <Text style={styles.backButton}>← Retour</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>💬 {String(profileName || '')}</Text>
+
+        <Text style={styles.headerTitle}>💬 {stableParams.profileName || ''}</Text>
+
         <Text style={styles.headerSubtitle}>
-          {String(secteur || '')} • {String(jour || '')} ({String(heureDebut || '')} - {String(heureFin || '')})
+          {stableParams.secteur || ''} • {stableParams.jour || ''} ({stableParams.heureDebut || ''} - {stableParams.heureFin || ''})
         </Text>
-        {/* 🆕 AFFICHAGE RAPIDE DU PRIX DANS L'EN-TÊTE */}
+
         {pricingData && (
-          <Text style={styles.headerPrice}>
-            Prix : {PricingService.formatPrice(pricingData.finalPrice)}
-            {pricingData.discount > 0 && ` (économie : ${PricingService.formatPrice(pricingData.discount)})`}
-          </Text>
+          <>
+            <Text style={styles.headerPrice}>
+              Prix : {PricingService.formatPrice(pricingData.finalPrice)}
+              {pricingData.discount > 0 &&
+                ` (économie : ${PricingService.formatPrice(pricingData.discount)})`}
+            </Text>
+
+            {/* 👇 Affichage acompte + solde dans le header */}
+            <Text style={styles.headerSubPrice}>
+              Acompte : {PricingService.formatPrice(getAcompteAmount())} • Reste : {PricingService.formatPrice(getMontantRestant())}
+            </Text>
+          </>
         )}
       </View>
 
       {renderContenuPrincipal()}
-
-      {/* MODAL ADRESSE AVEC TARIFICATION */}
+      
+      {/* Modal confirmation adresse */}
       <Modal visible={showConfirmationModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>📍 Confirmer le service</Text>
-            
-            {/* 🆕 RÉCAPITULATIF TARIFICATION DANS LE MODAL */}
             {pricingData && (
-              <View style={styles.modalPricingSection}>
-                <Text style={styles.modalPricingTitle}>💰 Récapitulatif</Text>
-                <View style={styles.modalPricingRow}>
-                  <Text style={styles.modalPricingLabel}>Service :</Text>
-                  <Text style={styles.modalPricingValue}>{pricingData.hours}h</Text>
+              <>
+                <View style={styles.modalPricingSection}>
+                  <Text style={styles.modalPricingTitle}>💰 Récapitulatif</Text>
+                  <View style={styles.modalPricingRow}>
+                    <Text style={styles.modalPricingLabel}>Service :</Text>
+                    <Text style={styles.modalPricingValue}>{pricingData.hours}h</Text>
+                  </View>
+                  {pricingData.discount > 0 && (
+                    <>
+                      <View style={styles.modalPricingRow}>
+                        <Text style={styles.modalPricingLabel}>Prix normal :</Text>
+                        <Text style={[styles.modalPricingValue, styles.prixBarre]}>
+                          {PricingService.formatPrice(pricingData.basePrice)}
+                        </Text>
+                      </View>
+                      <View style={styles.modalPricingRow}>
+                        <Text style={styles.modalPricingLabel}>Réduction :</Text>
+                        <Text style={styles.reductionValue}>
+                          -{PricingService.formatPrice(pricingData.discount)}
+                        </Text>
+                      </View>
+                    </>
+                  )}
+                  <View style={[styles.modalPricingRow, styles.totalRow]}>
+                    <Text style={styles.totalLabel}>Total :</Text>
+                    <Text style={styles.totalValue}>{PricingService.formatPrice(pricingData.finalPrice)}</Text>
+                  </View>
                 </View>
-                {pricingData.discount > 0 && (
-                  <>
-                    <View style={styles.modalPricingRow}>
-                      <Text style={styles.modalPricingLabel}>Prix normal :</Text>
-                      <Text style={[styles.modalPricingValue, styles.prixBarre]}>
-                        {PricingService.formatPrice(pricingData.basePrice)}
-                      </Text>
-                    </View>
-                    <View style={styles.modalPricingRow}>
-                      <Text style={styles.reductionLabel}>Réduction :</Text>
-                      <Text style={styles.reductionValue}>
-                        -{PricingService.formatPrice(pricingData.discount)}
-                      </Text>
-                    </View>
-                  </>
-                )}
-                <View style={[styles.modalPricingRow, styles.totalRow]}>
-                  <Text style={styles.totalLabel}>Total :</Text>
-                  <Text style={styles.totalValue}>
-                    {PricingService.formatPrice(pricingData.finalPrice)}
-                  </Text>
+
+                {/* Commission 60/40 (informatif) */}
+                <View style={styles.modalCommissionSection}>
+                  <Text style={styles.modalCommissionTitle}>💼 Répartition après service</Text>
+                  <View style={styles.modalCommissionRow}>
+                    <Text style={styles.modalCommissionLabel}>👤 L&apos;aidant recevra (60%) :</Text>
+                    <Text style={styles.modalCommissionValue}>{formatMontant(getMontantAidant())}</Text>
+                  </View>
+                  <View style={styles.modalCommissionRow}>
+                    <Text style={styles.modalCommissionLabel}>🏢 Commission plateforme (40%) :</Text>
+                    <Text style={styles.modalCommissionValue}>{formatMontant(getCommissionPlateforme())}</Text>
+                  </View>
                 </View>
-              </View>
+              </>
             )}
-            
             <Text style={styles.modalDescription}>
               Veuillez saisir l&apos;adresse où le service doit être réalisé :
             </Text>
@@ -512,13 +624,11 @@ export default function ConversationScreen() {
         </View>
       </Modal>
 
-      {/* MODAL ACOMPTE AVEC MONTANTS RÉELS */}
+      {/* Modal acompte */}
       <Modal visible={showAcompteModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>💳 Acompte de confirmation</Text>
-            
-            {/* 🆕 DÉTAILS DE L'ACOMPTE */}
             {pricingData && (
               <View style={styles.acompteDetails}>
                 <View style={styles.acompteRow}>
@@ -529,30 +639,24 @@ export default function ConversationScreen() {
                 </View>
                 <View style={styles.acompteRow}>
                   <Text style={styles.acompteLabel}>Acompte (20%) :</Text>
-                  <Text style={styles.acompteAmount}>
-                    {PricingService.formatPrice(getAcompteAmount())}
-                  </Text>
+                  <Text style={styles.acompteAmount}>{PricingService.formatPrice(getAcompteAmount())}</Text>
                 </View>
                 <View style={styles.acompteRow}>
                   <Text style={styles.acompteLabel}>Reste à payer :</Text>
-                  <Text style={styles.acompteValue}>
-                    {PricingService.formatPrice(getMontantRestant())}
-                  </Text>
+                  <Text style={styles.acompteValue}>{PricingService.formatPrice(getMontantRestant())}</Text>
                 </View>
               </View>
             )}
-            
             <Text style={styles.modalDescription}>
               L&apos;acompte confirme votre réservation et sera déduit du montant total.
             </Text>
-            
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalCancelButton} onPress={() => setShowAcompteModal(false)}>
                 <Text style={styles.modalCancelText}>Annuler</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalConfirmButton} onPress={payerAcompte} disabled={loading}>
                 <Text style={styles.modalConfirmText}>
-                  {loading ? 'Paiement...' : `Payer ${PricingService.formatPrice(getAcompteAmount())}`}
+                  {loading ? 'Paiement…' : `Payer ${PricingService.formatPrice(getAcompteAmount())}`}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -564,183 +668,67 @@ export default function ConversationScreen() {
 }
 
 const styles = StyleSheet.create({
-  // 🎨 UTILISATION DE VOTRE STRUCTURE EXISTANTE
-  container: { 
-    flex: 1, 
-    backgroundColor: Colors.light.background 
-  },
-  
-  header: { 
+  container: { flex: 1, backgroundColor: Colors.light.background },
+  header: {
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
-    padding: 20, 
-    paddingTop: 10
+    padding: 20,
+    paddingTop: 10,
   },
-  
-  backButton: { 
-    color: Colors.light.primary, 
-    fontSize: 16,
-    fontWeight: '500' 
-  },
-  
-  headerTitle: { 
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#11181C', 
-    marginTop: 5 
-  },
-  
-  headerSubtitle: { 
-    fontSize: 14,
-    color: '#687076', 
-    marginTop: 5 
-  },
-  
-  headerPrice: { 
-    fontSize: 12, 
-    color: Colors.light.primary, 
-    fontWeight: '600', 
-    marginTop: 3 
-  },
-  
-  // 💬 MESSAGES
-  messagesList: { 
-    flex: 1, 
-    paddingHorizontal: 15, 
-    paddingVertical: 10 
-  },
-  
-  messageContainer: { 
-    padding: 12, 
-    marginVertical: 5, 
-    borderRadius: 18, 
-    maxWidth: '80%' 
-  },
-  
-  messageClient: { 
-    alignSelf: 'flex-end', 
-    backgroundColor: Colors.light.primary 
-  },
-  
-  messageAidant: { 
-    alignSelf: 'flex-start', 
-    backgroundColor: '#f0f2f5' 
-  },
-  
-  messageTexte: { 
-    fontSize: 16,
-    lineHeight: 22,
-    color: '#11181C' 
-  },
-  
-  messageTexteClient: { 
-    color: '#ffffff' 
-  },
-  
-  messageHeure: { 
-    fontSize: 12,
-    color: '#687076', 
-    marginTop: 5, 
-    textAlign: 'right' 
-  },
-  
-  messageHeureClient: { 
-    color: 'rgba(255, 255, 255, 0.7)' 
-  },
-  
-  // 💰 TARIFICATION AVEC VOTRE STRUCTURE
-  tarificationContainer: { 
+  backButton: { color: Colors.light.primary, fontSize: 16, fontWeight: '500' },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#11181C', marginTop: 5 },
+  headerSubtitle: { fontSize: 14, color: '#687076', marginTop: 5 },
+  headerPrice: { fontSize: 12, color: Colors.light.primary, fontWeight: '600', marginTop: 3 },
+  // 👇 nouvelle ligne sous le prix
+  headerSubPrice: { fontSize: 12, color: '#856404', fontWeight: '600', marginTop: 2 },
+
+  messagesList: { flex: 1, paddingHorizontal: 15, paddingVertical: 10 },
+  messageContainer: { padding: 12, marginVertical: 5, borderRadius: 18, maxWidth: '80%' },
+  messageClient: { alignSelf: 'flex-end', backgroundColor: Colors.light.primary },
+  messageAidant: { alignSelf: 'flex-start', backgroundColor: '#f0f2f5' },
+  messageTexte: { fontSize: 16, lineHeight: 22, color: '#11181C' },
+  messageTexteClient: { color: '#ffffff' },
+  messageHeure: { fontSize: 12, color: '#687076', marginTop: 5, textAlign: 'right' },
+  messageHeureClient: { color: 'rgba(255,255,255,0.7)' },
+
+  tarificationContainer: {
     backgroundColor: '#f8f9fa',
     borderColor: '#e9ecef',
     borderRadius: 12,
     borderWidth: 1,
     padding: 15,
-    margin: 15
+    margin: 15,
   },
-  
-  tarificationTitle: { 
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#212529', 
-    marginBottom: 10 
-  },
-  
+  tarificationTitle: { fontSize: 16, fontWeight: 'bold', color: '#212529', marginBottom: 10 },
   tarificationDetails: {},
-  
-  tarificationRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginBottom: 5 
+  tarificationRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 },
+  tarificationLabel: { fontSize: 14, color: '#495057' },
+  tarificationValue: { fontSize: 14, fontWeight: '500', color: '#212529' },
+  prixBarre: { textDecorationLine: 'line-through', color: '#6c757d' },
+  reductionLabel: { fontSize: 14, color: '#28a745', fontWeight: '500' },
+  reductionValue: { fontSize: 14, color: '#28a745', fontWeight: 'bold' },
+  totalRow: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#dee2e6' },
+  totalLabel: { fontSize: 16, fontWeight: 'bold', color: '#212529' },
+  totalValue: { fontSize: 16, fontWeight: 'bold', color: Colors.light.primary },
+  economieText: { textAlign: 'center', marginTop: 8, fontSize: 12, color: '#28a745', fontWeight: '500' },
+
+  // Styles acompte (réutilisés)
+  acompteDetails: { backgroundColor: '#fff3cd', padding: 15, borderRadius: 8, marginBottom: 15 },
+  acompteRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  acompteLabel: { fontSize: 14, color: '#856404' },
+  acompteValue: { fontSize: 14, fontWeight: '500', color: '#856404' },
+  acompteAmount: { fontSize: 16, fontWeight: 'bold', color: Colors.light.primary },
+
+  inputContainer: {
+    flexDirection: 'row',
+    padding: 10,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    alignItems: 'center',
   },
-  
-  tarificationLabel: { 
-    fontSize: 14, 
-    color: '#495057' 
-  },
-  
-  tarificationValue: { 
-    fontSize: 14, 
-    fontWeight: '500', 
-    color: '#212529' 
-  },
-  
-  prixBarre: { 
-    textDecorationLine: 'line-through', 
-    color: '#6c757d' 
-  },
-  
-  reductionLabel: { 
-    fontSize: 14, 
-    color: '#28a745', 
-    fontWeight: '500' 
-  },
-  
-  reductionValue: { 
-    fontSize: 14, 
-    color: '#28a745', 
-    fontWeight: 'bold' 
-  },
-  
-  totalRow: { 
-    marginTop: 8, 
-    paddingTop: 8, 
-    borderTopWidth: 1, 
-    borderTopColor: '#dee2e6' 
-  },
-  
-  totalLabel: { 
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#212529' 
-  },
-  
-  totalValue: { 
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.light.primary 
-  },
-  
-  economieText: { 
-    textAlign: 'center', 
-    marginTop: 8, 
-    fontSize: 12, 
-    color: '#28a745', 
-    fontWeight: '500' 
-  },
-  
-  // 📝 INPUT & BOUTONS
-  inputContainer: { 
-    flexDirection: 'row', 
-    padding: 10, 
-    backgroundColor: '#ffffff', 
-    borderTopWidth: 1, 
-    borderTopColor: '#f0f0f0', 
-    alignItems: 'center' 
-  },
-  
-  messageInput: { 
+  messageInput: {
     flex: 1,
     borderRadius: 20,
     borderWidth: 1,
@@ -749,133 +737,38 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
     marginRight: 10,
     backgroundColor: '#f8f9fa',
-    fontSize: 16
-  },
-  
-  sendButton: { 
-    backgroundColor: Colors.light.primary, 
-    width: 40, 
-    height: 40, 
-    borderRadius: 20, 
-    justifyContent: 'center', 
-    alignItems: 'center' 
-  },
-  
-  sendButtonText: { 
-    color: '#ffffff', 
-    fontSize: 18 
-  },
-  
-  confirmerButton: { 
-    backgroundColor: Colors.light.success,
-    borderRadius: 8,
-    paddingVertical: 15,
-    paddingHorizontal: 24,
-    margin: 15, 
-    alignItems: 'center' 
-  },
-  
-  confirmerButtonText: { 
-    color: '#ffffff',
     fontSize: 16,
-    fontWeight: 'bold'
   },
-  
-  // 🎯 ÉTAPES
-  centeredContent: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    padding: 20 
-  },
-  
-  etapeTitle: { 
-    fontSize: 24, 
-    fontWeight: 'bold', 
-    color: Colors.light.primary, 
-    textAlign: 'center', 
-    marginBottom: 15 
-  },
-  
-  etapeDescription: { 
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#687076', 
-    textAlign: 'center', 
-    marginBottom: 30 
-  },
-  
-  verificationButton: { 
+  sendButton: {
     backgroundColor: Colors.light.primary,
-    borderRadius: 8,
-    paddingVertical: 15,
-    paddingHorizontal: 30 
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  
-  terminerButton: { 
-    backgroundColor: Colors.light.success, 
-    borderRadius: 8,
-    paddingVertical: 15,
-    paddingHorizontal: 30 
-  },
-  
-  evaluerButton: { 
-    backgroundColor: Colors.light.primary,
-    borderRadius: 8,
-    paddingVertical: 15,
-    paddingHorizontal: 30 
-  },
-  
-  confirmerAvisButton: { 
-    backgroundColor: Colors.light.danger, 
-    borderRadius: 8,
-    paddingVertical: 15,
-    paddingHorizontal: 24,
-    alignItems: 'center' 
-  },
-  
-  buttonText: { 
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold'
-  },
-  
-  loadingText: { 
-    fontSize: 16,
-    color: Colors.light.primary, 
-    marginTop: 20 
-  },
-  
-  // ⭐ ÉTOILES
-  etoilesContainer: { 
-    flexDirection: 'row', 
-    justifyContent: 'center', 
-    marginVertical: 20 
-  },
-  
-  etoileButton: { 
-    padding: 5 
-  },
-  
-  etoile: { 
-    fontSize: 40 
-  },
-  
-  etoilePleine: { 
-    color: Colors.light.primary 
-  },
-  
-  etoileVide: { 
-    color: '#e0e0e0' 
-  },
-  
-  // 📝 AVIS
-  avisContainer: { 
-    flex: 1, 
-    padding: 20 
-  },
-  
-  avisInput: { 
+  sendButtonText: { color: '#ffffff', fontSize: 18 },
+
+  centeredContent: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  etapeTitle: { fontSize: 24, fontWeight: 'bold', color: Colors.light.primary, textAlign: 'center', marginBottom: 15 },
+  etapeDescription: { fontSize: 16, lineHeight: 24, color: '#687076', textAlign: 'center', marginBottom: 30 },
+
+  evaluerButton: { backgroundColor: Colors.light.primary, borderRadius: 8, paddingVertical: 15, paddingHorizontal: 30 },
+  confirmerButton: { backgroundColor: Colors.light.success, borderRadius: 8, paddingVertical: 15, paddingHorizontal: 24, margin: 15, alignItems: 'center' },
+  confirmerButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
+  terminerButton: { backgroundColor: Colors.light.success, borderRadius: 8, paddingVertical: 15, paddingHorizontal: 30, marginBottom: 20 },
+
+  buttonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
+  loadingText: { fontSize: 16, color: Colors.light.primary, marginTop: 20 },
+
+  etoilesContainer: { flexDirection: 'row', justifyContent: 'center', marginVertical: 20 },
+  etoileButton: { padding: 5 },
+  etoile: { fontSize: 40 },
+  etoilePleine: { color: Colors.light.primary },
+  etoileVide: { color: '#e0e0e0' },
+
+  avisContainer: { flexGrow: 1, justifyContent: 'center', padding: 20 },
+  avisInput: {
     borderRadius: 8,
     borderWidth: 1,
     paddingVertical: 15,
@@ -885,151 +778,53 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     backgroundColor: '#f8f9fa',
     fontSize: 16,
-    minHeight: 120
+    minHeight: 120,
   },
-  
-  // 📱 MODALS
-  modalOverlay: { 
-    flex: 1, 
-    backgroundColor: 'rgba(0,0,0,0.5)', 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+  confirmerAvisButton: { backgroundColor: Colors.light.primary, borderRadius: 8, paddingVertical: 15, paddingHorizontal: 24, alignItems: 'center' },
+
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  modalContent: { backgroundColor: '#ffffff', borderRadius: 12, padding: 20, width: '90%', maxWidth: 400 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#11181C', textAlign: 'center', marginBottom: 15 },
+  modalDescription: { fontSize: 16, lineHeight: 22, color: '#687076', textAlign: 'center', marginBottom: 20 },
+
+  modalPricingSection: { backgroundColor: '#f8f9fa', padding: 12, borderRadius: 8, marginBottom: 15 },
+  modalPricingTitle: { fontSize: 14, fontWeight: 'bold', color: '#212529', marginBottom: 8 },
+  modalPricingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  modalPricingLabel: { fontSize: 13, color: '#495057' },
+  modalPricingValue: { fontSize: 13, fontWeight: '500', color: '#212529' },
+
+  // section commission
+  modalCommissionSection: {
+    backgroundColor: '#fff8f0',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#ffd4a3',
   },
-  
-  modalContent: { 
-    backgroundColor: '#ffffff', 
-    borderRadius: 12, 
-    padding: 20, 
-    width: '90%', 
-    maxWidth: 400, 
-    maxHeight: '80%' 
-  },
-  
-  modalTitle: { 
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#11181C', 
-    textAlign: 'center', 
-    marginBottom: 15 
-  },
-  
-  modalDescription: { 
-    fontSize: 16,
-    lineHeight: 22,
-    color: '#687076', 
-    textAlign: 'center', 
-    marginBottom: 20 
-  },
-  
-  // 💰 TARIFICATION DANS MODALS
-  modalPricingSection: { 
-    backgroundColor: '#f8f9fa', 
-    padding: 12, 
-    borderRadius: 8, 
-    marginBottom: 15 
-  },
-  
-  modalPricingTitle: { 
-    fontSize: 14, 
-    fontWeight: 'bold', 
-    color: '#212529', 
-    marginBottom: 8 
-  },
-  
-  modalPricingRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginBottom: 4 
-  },
-  
-  modalPricingLabel: { 
-    fontSize: 13, 
-    color: '#495057' 
-  },
-  
-  modalPricingValue: { 
-    fontSize: 13, 
-    fontWeight: '500', 
-    color: '#212529' 
-  },
-  
-  // 💳 ACOMPTE
-  acompteDetails: { 
-    backgroundColor: '#fff3cd', 
-    padding: 15, 
-    borderRadius: 8, 
-    marginBottom: 15
-  },
-  
-  acompteRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginBottom: 8 
-  },
-  
-  acompteLabel: { 
-    fontSize: 14, 
-    color: '#856404' 
-  },
-  
-  acompteValue: { 
-    fontSize: 14, 
-    fontWeight: '500', 
-    color: '#856404' 
-  },
-  
-  acompteAmount: { 
-    fontSize: 16, 
-    fontWeight: 'bold', 
-    color: Colors.light.primary 
-  },
-  
-  // 📍 ADRESSE
-  adresseInput: { 
+  modalCommissionTitle: { fontSize: 13, fontWeight: '600', color: '#2c3e50', marginBottom: 8 },
+  modalCommissionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  modalCommissionLabel: { fontSize: 12, color: '#495057', flex: 1 },
+  modalCommissionValue: { fontSize: 13, fontWeight: '600', color: Colors.light.primary },
+
+  adresseInput: {
     borderRadius: 8,
     borderWidth: 1,
     paddingVertical: 15,
     paddingHorizontal: 15,
     borderColor: '#e0e0e0',
     marginBottom: 20,
-    fontSize: 16
+    fontSize: 16,
   },
-  
-  // 🔘 BOUTONS MODAL
-  modalButtons: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between' 
-  },
-  
-  modalCancelButton: { 
-    flex: 1, 
-    borderRadius: 8,
-    paddingVertical: 15,
-    marginRight: 10, 
-    backgroundColor: '#f0f2f5', 
-    alignItems: 'center'
-  },
-  
-  modalConfirmButton: { 
-    flex: 1, 
-    borderRadius: 8,
-    paddingVertical: 15,
-    marginLeft: 10, 
-    backgroundColor: Colors.light.success, 
-    alignItems: 'center' 
-  },
-  
-  modalCancelText: { 
-    color: '#687076', 
-    fontSize: 16, 
-    fontWeight: '500' 
-  },
-  
-  modalConfirmText: { 
-    color: '#ffffff', 
-    fontSize: 16, 
-    fontWeight: 'bold' 
-  },
+
+  modalButtons: { flexDirection: 'row', justifyContent: 'space-between' },
+  modalCancelButton: { flex: 1, borderRadius: 8, paddingVertical: 15, marginRight: 10, backgroundColor: '#f0f2f5', alignItems: 'center' },
+  modalConfirmButton: { flex: 1, borderRadius: 8, paddingVertical: 15, marginLeft: 10, backgroundColor: Colors.light.success, alignItems: 'center' },
+  modalCancelText: { color: '#687076', fontSize: 16, fontWeight: '500' },
+  modalConfirmText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
+
+  adresseConfirmee: { backgroundColor: '#f8f9fa', padding: 15, borderRadius: 8, marginBottom: 20, width: '100%' },
+  adresseLabel: { fontSize: 14, fontWeight: '600', color: '#495057', marginBottom: 5 },
+  adresseTexte: { fontSize: 15, color: '#212529', lineHeight: 20 },
+  infoText: { fontSize: 13, color: '#6c757d', textAlign: 'center', marginTop: 10, fontStyle: 'italic' },
 });

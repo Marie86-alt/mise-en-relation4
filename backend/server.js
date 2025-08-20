@@ -32,7 +32,12 @@ const PORT = process.env.PORT || 3000;
 
 // 📝 Middleware
 app.use(cors({
-  origin: ['http://localhost:8081', 'http://localhost:19006', 'exp://192.168.1.100:8081'],
+  origin: [ 'http://localhost:8081', 
+    'http://localhost:19006', 
+    'exp://192.168.1.155:8081',
+    'http://192.168.1.155:8081',
+    'http://192.168.1.155:3000'
+  ],
   credentials: true
 }));
 app.use(express.json());
@@ -833,7 +838,7 @@ app.use((error, req, res, next) => {
 // 🚀 DÉMARRAGE SERVEUR
 // ===========================================
 
-app.listen(PORT, async () => {
+app.listen(PORT,'0.0.0.0', async () => {
   console.log(`
 🚀 ==========================================
    Serveur démarré avec succès !
@@ -844,7 +849,7 @@ app.listen(PORT, async () => {
 🔥 Firebase: ${process.env.FIREBASE_PROJECT_ID ? '✅' : '❌'}
 ⏰ ${new Date().toLocaleString()}
 
-🔧 Pour tester: curl http://localhost:${PORT}
+🔧 Test mobile: curl http://192.168.1.155:${PORT}
   `);
 
   // Test de connexion Firebase

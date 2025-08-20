@@ -1,259 +1,367 @@
-// Fichier: app/paiement.tsx
-
-import React, { useState, useEffect, useCallback } from 'react';
+// app/paiement.tsx
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
+  ActivityIndicator,
+  Alert,
   SafeAreaView,
   ScrollView,
-  Alert,
-  Modal,
-  ActivityIndicator
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { StripeProvider } from '@stripe/stripe-react-native';
 import { Colors } from '@/constants/Colors';
+import { STRIPE_CONFIG } from '../src/config/stripe';
+import { PaymentData, PaymentResult, PaymentService } from '../src/stripe/paymentService';
 
-// --- TYPES ET CONSTANTES SPÉCIALISÉS SENIORS ---
-
-interface PaiementDetailsSeniors {
-  serviceId: string;
-  aidantName: string;
-  secteur: string;
-  dureeService: number;
-  tarifHoraire: number;
-  montantBrut: number;
-  avisClient: string;
-  noteService: number;
-  reduction: number;
-  montantFinal: number;
-  commissionPlateforme: number;
-  montantAidant: number;
-}
-
-interface MotCleReductionSeniors {
-  mots: string[];
-  reduction: number;
-  description: string;
-}
-
-const MOTS_CLES_SENIORS: MotCleReductionSeniors[] = [
-  { mots: ['excellent', 'parfait', 'exceptionnel', 'formidable'], reduction: 10, description: 'Service exceptionnel' },
-  { mots: ['ponctuel', 'à l\'heure', 'rapide', 'efficace'], reduction: 5, description: 'Ponctualité exemplaire' },
-  { mots: ['professionnel', 'qualité', 'compétent', 'expérimenté'], reduction: 8, description: 'Professionnalisme reconnu' },
-  { mots: ['gentil', 'aimable', 'souriant', 'patient', 'bienveillant'], reduction: 6, description: 'Excellent relationnel' },
-  { mots: ['soigné', 'propre', 'attentif', 'délicat'], reduction: 7, description: 'Soin et attention' },
-  { mots: ['gérontologie', 'alzheimer', 'seniors', 'personnes âgées'], reduction: 12, description: 'Expertise spécialisée' }
-];
+const round2 = (n: number) => Math.round(n * 100) / 100;
+const formatMontant = (montant: number) => `${montant.toFixed(2)}€`;
 
 export default function PaiementScreen() {
-  // --- ÉTATS ---
-  const [details, setDetails] = useState<PaiementDetailsSeniors | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [showRecapModal, setShowRecapModal] = useState(false);
-  const [moyenPaiement, setMoyenPaiement] = useState<'carte' | 'paypal' | 'virement'>('carte');
-  
-  // --- HOOKS ---
   const router = useRouter();
   const params = useLocalSearchParams();
-  
-  const { aidantName = "Aidant Senior", secteur = "Service Senior", dureeService = "2", tarifHoraire = "25", avisClient = "", noteService = "5" } = params;
 
-  // --- LOGIQUE MÉTIER ---
+  // 🔒 Parse des params
+  const paymentDataStr = typeof params.paymentData === 'string' ? params.paymentData : '';
+  const paymentData: PaymentData | null = useMemo(() => {
+    if (!paymentDataStr) return null;
+    try {
+      return JSON.parse(paymentDataStr) as PaymentData;
+    } catch {
+      return null;
+    }
+  }, [paymentDataStr]);
 
-  const analyserAvisSeniors = (avis: string): { reduction: number; motifs: string[] } => {
-    let reductionTotale = 0;
-    const motifsReduction: string[] = [];
-    const avisLower = avis.toLowerCase();
-    
-    MOTS_CLES_SENIORS.forEach(({ mots, reduction, description }) => {
-      if (mots.some(mot => avisLower.includes(mot))) {
-        reductionTotale += reduction;
-        motifsReduction.push(description);
-      }
-    });
-    
-    return { reduction: Math.min(reductionTotale, 30), motifs: motifsReduction };
-  };
+  const paymentType: 'deposit' | 'final' =
+    (params.paymentType as 'deposit' | 'final') ?? 'deposit';
 
-  const calculerMontants = useCallback((): PaiementDetailsSeniors => {
-    const duree = parseFloat(dureeService as string);
-    const tarif = parseFloat(tarifHoraire as string);
-    const montantBrut = duree * tarif;
-    
-    const { reduction: pourcentageReduction } = analyserAvisSeniors(avisClient as string);
-    const reduction = (montantBrut * pourcentageReduction) / 100;
-    const montantFinal = montantBrut - reduction;
-    
-    const commissionPlateforme = montantFinal * 0.40; // Commission de 40%
-    const montantAidant = montantFinal - commissionPlateforme;
-    
-    return {
-      serviceId: Date.now().toString(), aidantName: aidantName as string, secteur: secteur as string,
-      dureeService: duree, tarifHoraire: tarif, montantBrut, avisClient: avisClient as string,
-      noteService: parseFloat(noteService as string), reduction, montantFinal, commissionPlateforme, montantAidant
+  const [loading, setLoading] = useState(false);
+  const [paymentReady, setPaymentReady] = useState(false);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const initDoneRef = useRef(false);
+
+  // --- Montants d'affichage (et logiques) ---
+  // Si on arrive pour le paiement final, dans ton flux tu passes 80% dans paymentData.pricingData.finalPrice.
+  // Pour afficher (et pour Stripe via initializeFinalPayment), on reconstruit le total (100%).
+  const originalTotalAmount = useMemo(() => {
+    const provided = paymentData?.pricingData?.finalPrice ?? 0;
+    return paymentType === 'final' ? round2(provided / 0.8) : round2(provided);
+  }, [paymentData, paymentType]);
+
+  const depositAmount = useMemo(() => round2(originalTotalAmount * 0.2), [originalTotalAmount]);
+  const finalAmount = useMemo(
+    () => round2(originalTotalAmount - depositAmount),
+    [originalTotalAmount, depositAmount]
+  );
+
+  // ✅ CORRECTION demandée : montant à payer maintenant dépend du type
+  const currentAmount = paymentType === 'deposit' ? depositAmount : finalAmount;
+
+  const handleCancel = useCallback(() => {
+    Alert.alert('Annuler le paiement', 'Êtes-vous sûr de vouloir annuler ?', [
+      { text: 'Non', style: 'cancel' },
+      { text: 'Oui, annuler', style: 'destructive', onPress: () => router.back() },
+    ]);
+  }, [router]);
+
+  // Navigation de retour vers l'écran conversation avec les bons params
+  const navigateBackWithSuccess = useCallback(() => {
+    const baseParams: Record<string, string> = {
+      paymentSuccess: 'true',
+      paymentType,
+      profileId: String(params.r_profileId || ''),
+      profileName: String(params.r_profileName || ''),
+      secteur: String(params.r_secteur || ''),
+      jour: String(params.r_jour || ''),
+      heureDebut: String(params.r_heureDebut || ''),
+      heureFin: String(params.r_heureFin || ''),
+      adresse: String(params.r_adresse || ''),
     };
-  }, [aidantName, secteur, dureeService, tarifHoraire, avisClient, noteService]);
+    router.replace({ pathname: '/conversation' as const, params: baseParams });
+  }, [params, router, paymentType]);
 
-  useEffect(() => {
-    setDetails(calculerMontants());
-  }, [calculerMontants]);
-
-  const procederPaiement = async () => {
-    if (!details) return;
+  // --- Initialisation du Payment Sheet ---
+  const initializePayment = useCallback(async () => {
+    if (!paymentData) return;
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulation API
-      setShowRecapModal(true);
-    } catch (error: any) {
-      Alert.alert('Erreur', `Le paiement a échoué. ${error.message}`);
+      let result: PaymentResult;
+
+      if (paymentType === 'deposit') {
+        // Dépôt : pricingData.finalPrice = 100% (déjà le cas dans ton flux)
+        result = await PaymentService.initializeDepositPayment(paymentData);
+      } else {
+        // Final : on passe à Stripe le TOTAL (100%) pour que la méthode interne
+        // calcule 80% (= total - 20%) correctement.
+        const adjusted: PaymentData = {
+          ...paymentData,
+          pricingData: {
+            ...paymentData.pricingData,
+            finalPrice: originalTotalAmount, // 👈 très important
+          },
+        };
+        result = await PaymentService.initializeFinalPayment(adjusted);
+      }
+
+      if (result.success && result.paymentIntentId) {
+        setPaymentIntentId(result.paymentIntentId);
+        setPaymentReady(true);
+      } else {
+        Alert.alert(
+          "Erreur d'initialisation",
+          result.error ?? "Impossible d'initialiser le paiement",
+          [{ text: 'Retour', onPress: handleCancel }],
+        );
+      }
+    } catch {
+      Alert.alert('Erreur', 'Problème de connexion au service de paiement', [
+        { text: 'Retour', onPress: handleCancel },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }, [paymentData, paymentType, originalTotalAmount, handleCancel]);
+
+  useEffect(() => {
+    if (!paymentData) {
+      Alert.alert('Erreur', 'Données de paiement manquantes', [
+        { text: 'Retour', onPress: () => router.back() },
+      ]);
+      return;
+    }
+    if (initDoneRef.current) return;
+    initDoneRef.current = true;
+    initializePayment();
+  }, [paymentData, initializePayment, router]);
+
+  // --- Paiement ---
+  const handlePayment = async () => {
+    if (!paymentReady || !paymentIntentId) {
+      Alert.alert('Erreur', "Le paiement n'est pas prêt");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const result = await PaymentService.presentPaymentSheet();
+
+      if (result.success) {
+        const confirmResult = await PaymentService.confirmPayment(paymentIntentId);
+
+        if (confirmResult.success) {
+          const message =
+            paymentType === 'deposit'
+              ? `L'acompte de ${formatMontant(currentAmount)} a été prélevé avec succès.`
+              : `Le paiement final de ${formatMontant(currentAmount)} a été effectué.`;
+          Alert.alert('✅ Paiement réussi !', message, [
+            { text: 'Continuer', onPress: navigateBackWithSuccess },
+          ]);
+        } else {
+          Alert.alert('Paiement effectué', "Confirmation serveur indisponible.", [
+            { text: 'OK', onPress: navigateBackWithSuccess },
+          ]);
+        }
+      } else {
+        Alert.alert(
+          'Erreur de paiement',
+          result.error ?? "Une erreur inattendue s'est produite",
+        );
+      }
+    } catch {
+      Alert.alert('Erreur', 'Problème lors du paiement');
     } finally {
       setLoading(false);
     }
   };
 
-  const confirmerPaiement = () => {
-    Alert.alert('Confirmer le paiement', `Vous allez payer ${details?.montantFinal.toFixed(2)}€.\n\nContinuer ?`,
-      [{ text: 'Annuler', style: 'cancel' }, { text: 'Payer', onPress: procederPaiement }]
-    );
-  };
+  const getPaymentTitle = () =>
+    paymentType === 'deposit' ? '💳 Acompte de réservation (20%)' : '💳 Paiement final du service';
 
-  // --- FONCTIONS DE RENDU ---
+  const getPaymentDescription = () =>
+    paymentType === 'deposit'
+      ? 'Versez 20% du montant total pour confirmer votre réservation. Le solde sera à régler après le service.'
+      : 'Réglez le solde restant maintenant que le service est terminé.';
 
-  const renderReductions = () => {
-    if (!details || details.reduction <= 0) return null;
-    const { motifs } = analyserAvisSeniors(details.avisClient);
-    if (motifs.length === 0) return null;
-    
+  if (!paymentData) {
     return (
-      <View style={styles.reductionsContainer}>
-        <Text style={styles.reductionsTitle}>🎉 Réductions appliquées :</Text>
-        {motifs.map((motif, index) => <Text key={index} style={styles.reductionItem}>• {motif}</Text>)}
-      </View>
-    );
-  };
-
-  const renderMoyensPaiement = () => {
-    const moyens = [
-      { id: 'carte', label: 'Carte bancaire', icon: '💳' },
-      { id: 'paypal', label: 'PayPal', icon: '🅿️' },
-      { id: 'virement', label: 'Virement', icon: '🏦' }
-    ] as const;
-    
-    return (
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>Moyen de paiement</Text>
-        {moyens.map(({ id, label, icon }) => (
-          <TouchableOpacity key={id} style={[styles.paymentMethod, moyenPaiement === id && styles.paymentMethodSelected]} onPress={() => setMoyenPaiement(id)}>
-            <Text style={styles.paymentIcon}>{icon}</Text>
-            <Text style={[styles.paymentLabel, moyenPaiement === id && styles.paymentLabelSelected]}>{label}</Text>
-            {moyenPaiement === id && <Text style={styles.checkmark}>✅</Text>}
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Données de paiement manquantes</Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Text style={styles.backButtonText}>Retour</Text>
           </TouchableOpacity>
-        ))}
-      </View>
+        </View>
+      </SafeAreaView>
     );
-  };
-
-  if (!details) {
-    return <SafeAreaView style={styles.container}><ActivityIndicator style={{ flex: 1 }} size="large" color={Colors.light.primary} /></SafeAreaView>;
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}><Text style={styles.backButton}>← Retour</Text></TouchableOpacity>
-          <Text style={styles.headerTitle}>Paiement du Service</Text>
-          <Text style={styles.headerSubtitle}>Service d&apos;accompagnement terminé</Text>
-        </View>
-
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Récapitulatif</Text>
-          <Text style={styles.serviceItem}>• Aidant : {details.aidantName}</Text>
-          <Text style={styles.serviceItem}>• Service : {details.secteur}</Text>
-          <Text style={styles.serviceItem}>• Durée : {details.dureeService}h pour {details.tarifHoraire}€/h</Text>
-          <Text style={styles.serviceItem}>• Votre note : {details.noteService}/5 ⭐</Text>
-        </View>
-
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Détail des montants</Text>
-          <View style={styles.montantRow}><Text style={styles.montantLabel}>Montant brut :</Text><Text style={styles.montantValue}>{details.montantBrut.toFixed(2)}€</Text></View>
-          {details.reduction > 0 && <View style={styles.montantRow}><Text style={[styles.montantLabel, styles.reductionText]}>Réduction obtenue :</Text><Text style={[styles.montantValue, styles.reductionText]}>-{details.reduction.toFixed(2)}€</Text></View>}
-          <View style={styles.montantTotal}><Text style={styles.montantTotalLabel}>TOTAL À PAYER :</Text><Text style={styles.montantTotalValue}>{details.montantFinal.toFixed(2)}€</Text></View>
-        </View>
-
-        {renderReductions()}
-
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Répartition des fonds</Text>
-          <View style={styles.repartitionRow}><Text style={styles.repartitionLabel}>Pour {details.aidantName} (60%) :</Text><Text style={styles.repartitionValue}>{details.montantAidant.toFixed(2)}€</Text></View>
-          <View style={styles.repartitionRow}><Text style={styles.repartitionLabel}>Commission plateforme (40%) :</Text><Text style={styles.repartitionValue}>{details.commissionPlateforme.toFixed(2)}€</Text></View>
-        </View>
-
-        {renderMoyensPaiement()}
-
-        <TouchableOpacity style={[styles.payButton, loading && styles.payButtonDisabled]} onPress={confirmerPaiement} disabled={loading}>
-          <Text style={styles.payButtonText}>{loading ? 'Paiement en cours...' : `Payer ${details.montantFinal.toFixed(2)}€`}</Text>
-        </TouchableOpacity>
-        
-        <View style={{ height: 20 }} />
-      </ScrollView>
-
-      <Modal visible={showRecapModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>🎉 Paiement réussi !</Text>
-            <Text style={styles.modalDescription}>
-              Votre paiement de {details.montantFinal.toFixed(2)}€ a été traité.
-              {'\n\n'}Merci d&apos;avoir utilisé notre plateforme !
-            </Text>
-            <TouchableOpacity style={styles.modalButton} onPress={() => router.replace('/(tabs)')}>
-              <Text style={styles.modalButtonText}>✅ Retour à l&apos;accueil</Text>
-            </TouchableOpacity>
+    <StripeProvider publishableKey={STRIPE_CONFIG.PUBLISHABLE_KEY}>
+      <SafeAreaView style={styles.container}>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <Text style={styles.title}>{getPaymentTitle()}</Text>
+            <Text style={styles.description}>{getPaymentDescription()}</Text>
           </View>
+
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>📋 Détails du service</Text>
+            <Row label="Secteur" value={paymentData.serviceDetails?.secteur || '—'} />
+            <Row label="Date" value={paymentData.serviceDetails?.jour || '—'} />
+            <Row
+              label="Horaires"
+              value={`${paymentData.serviceDetails?.heureDebut || '00:00'} - ${
+                paymentData.serviceDetails?.heureFin || '00:00'
+              }`}
+            />
+            <Row label="Durée" value={`${paymentData.pricingData?.hours || 0}h`} />
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>💰 Récapitulatif financier</Text>
+            <Row label="Prix total du service" value={formatMontant(originalTotalAmount)} />
+            {paymentData.pricingData?.discount ? (
+              <Row
+                label="Réduction appliquée"
+                value={`-${formatMontant(paymentData.pricingData.discount)}`}
+                accent
+              />
+            ) : null}
+            <Separator />
+            <Row label="Acompte (20%)" value={formatMontant(depositAmount)} />
+            <Row label="Solde restant" value={formatMontant(finalAmount)} />
+            <Separator />
+            <View style={styles.currentRow}>
+              <Text style={styles.currentLabel}>
+                {paymentType === 'deposit' ? 'À payer maintenant' : 'Solde à régler'}
+              </Text>
+              <Text style={styles.currentAmount}>{formatMontant(currentAmount)}</Text>
+            </View>
+          </View>
+
+          <View style={styles.infoCard}>
+            <Text style={styles.infoTitle}>🔒 Paiement sécurisé</Text>
+            <Text style={styles.infoText}>
+              Vos données bancaires sont protégées par Stripe, leader mondial de la sécurité des paiements en ligne.
+            </Text>
+          </View>
+        </ScrollView>
+
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel} disabled={loading}>
+            <Text style={styles.cancelButtonText}>Annuler</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.payButton, (!paymentReady || loading) && styles.payButtonDisabled]}
+            onPress={handlePayment}
+            disabled={!paymentReady || loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.payButtonText}>Payer {formatMontant(currentAmount)}</Text>
+            )}
+          </TouchableOpacity>
         </View>
-      </Modal>
-    </SafeAreaView>
+      </SafeAreaView>
+    </StripeProvider>
   );
 }
 
-// --- STYLES ---
+function Row({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <View className="row" style={styles.row}>
+      <Text style={[styles.rowLabel, accent && styles.accent]}>{label}:</Text>
+      <Text style={[styles.rowValue, accent && styles.accent]}>{value}</Text>
+    </View>
+  );
+}
+
+function Separator() {
+  return <View style={styles.separator} />;
+}
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.light.background },
-  header: { backgroundColor: '#ffffff', padding: 20, paddingTop: 10, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-  backButton: { color: Colors.light.primary, fontSize: 16, marginBottom: 10, fontWeight: '500' },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#11181C' },
-  headerSubtitle: { fontSize: 14, color: '#687076', marginTop: 5 },
-  sectionContainer: { backgroundColor: '#ffffff', margin: 15, padding: 20, borderRadius: 12, borderWidth: 1, borderColor: '#f0f0f0' },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: Colors.light.primary, marginBottom: 15 },
-  serviceItem: { fontSize: 16, color: '#34495e', lineHeight: 24 },
-  montantRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
-  montantLabel: { fontSize: 16, color: '#34495e' },
-  montantValue: { fontSize: 16, fontWeight: '500', color: '#2c3e50' },
-  reductionText: { color: Colors.light.primary },
-  montantTotal: { borderTopWidth: 1, borderTopColor: '#f0f0f0', marginTop: 10, paddingTop: 15 },
-  montantTotalLabel: { fontSize: 18, fontWeight: 'bold', color: '#11181C' },
-  montantTotalValue: { fontSize: 20, fontWeight: 'bold', color: Colors.light.primary },
-  reductionsContainer: { backgroundColor: '#FFF8F5', marginHorizontal: 15, marginBottom: 15, padding: 15, borderRadius: 12, borderLeftWidth: 4, borderLeftColor: Colors.light.primary },
-  reductionsTitle: { fontSize: 16, fontWeight: 'bold', color: Colors.light.primary, marginBottom: 8 },
-  reductionItem: { fontSize: 14, color: '#34495e', lineHeight: 20 },
-  repartitionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8f9fa', padding: 12, borderRadius: 8, marginBottom: 5 },
-  repartitionLabel: { fontSize: 15, color: '#34495e', fontWeight: '500' },
-  repartitionValue: { fontSize: 15, fontWeight: 'bold', color: '#2c3e50' },
-  paymentMethod: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8f9fa', padding: 15, borderRadius: 8, marginBottom: 10, borderWidth: 2, borderColor: 'transparent' },
-  paymentMethodSelected: { borderColor: Colors.light.primary, backgroundColor: '#FFF8F5' },
-  paymentIcon: { fontSize: 20, marginRight: 12 },
-  paymentLabel: { flex: 1, fontSize: 16, color: '#34495e' },
-  paymentLabelSelected: { color: Colors.light.primary, fontWeight: '500' },
-  checkmark: { fontSize: 16, color: Colors.light.success },
-  payButton: { backgroundColor: Colors.light.primary, marginHorizontal: 15, marginBottom: 20, padding: 18, borderRadius: 12, alignItems: 'center' },
-  payButtonDisabled: { backgroundColor: Colors.light.grey },
-  payButtonText: { color: '#ffffff', fontSize: 18, fontWeight: 'bold' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { backgroundColor: '#ffffff', borderRadius: 12, padding: 25, width: '90%', maxWidth: 400, alignItems: 'center' },
-  modalTitle: { fontSize: 22, fontWeight: 'bold', color: Colors.light.success, textAlign: 'center', marginBottom: 15 },
-  modalDescription: { fontSize: 16, color: '#34495e', textAlign: 'center', lineHeight: 24, marginBottom: 25 },
-  modalButton: { backgroundColor: Colors.light.primary, paddingHorizontal: 30, paddingVertical: 15, borderRadius: 8 },
-  modalButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
+  container: { flex: 1, backgroundColor: '#f8f9fa' },
+  content: { flex: 1, padding: 16 },
+  header: { marginBottom: 24, marginTop: 16 },
+  title: { fontSize: 24, fontWeight: '700', color: '#2c3e50', textAlign: 'center', marginBottom: 8 },
+  description: { fontSize: 16, color: '#6c757d', textAlign: 'center', lineHeight: 22 },
+
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  cardTitle: { fontSize: 18, fontWeight: '600', color: '#2c3e50', marginBottom: 12 },
+
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
+  rowLabel: { fontSize: 14, color: '#6c757d' },
+  rowValue: { fontSize: 14, color: '#2c3e50', fontWeight: '500' },
+  accent: { color: '#28a745' },
+
+  separator: { height: 1, backgroundColor: '#e9ecef', marginVertical: 8 },
+
+  currentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  currentLabel: { fontSize: 16, color: '#2c3e50', fontWeight: '600' },
+  currentAmount: { fontSize: 20, color: Colors.light.primary, fontWeight: '700' },
+
+  infoCard: {
+    backgroundColor: '#e8f4fd',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#b8daff',
+  },
+  infoTitle: { fontSize: 16, fontWeight: '600', color: '#004085', marginBottom: 8 },
+  infoText: { fontSize: 14, color: '#004085', lineHeight: 20 },
+
+  actions: {
+    flexDirection: 'row',
+    padding: 16,
+    gap: 12,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e9ecef',
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#6c757d',
+    alignItems: 'center',
+  },
+  cancelButtonText: { color: '#6c757d', fontSize: 16, fontWeight: '600' },
+
+  payButton: {
+    flex: 2,
+    backgroundColor: Colors.light.primary,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  payButtonDisabled: { backgroundColor: '#ccc' },
+  payButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+
+  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
+  errorText: { fontSize: 18, color: '#dc3545', textAlign: 'center', marginBottom: 24 },
+  backButton: { backgroundColor: '#6c757d', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
+  backButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });

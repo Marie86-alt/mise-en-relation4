@@ -1,5 +1,4 @@
 // src/utils/pricing.ts
-
 export interface PricingResult {
   hours: number;
   basePrice: number;
@@ -12,7 +11,7 @@ export interface PricingResult {
 export class PricingService {
   // 🎯 Taux horaire fixe
   private static readonly HOURLY_RATE = 22;
-
+  
   // 🎁 Réductions spéciales
   private static readonly SPECIAL_OFFERS = {
     3: 60, // 3h = 60€ au lieu de 66€
@@ -22,18 +21,67 @@ export class PricingService {
   };
 
   /**
+   * 🛡️ Valide le format d'une heure (HH:MM ou HHhMM)
+   */
+  private static isValidTimeFormat(timeString: string): boolean {
+    if (!timeString || typeof timeString !== 'string') {
+      return false;
+    }
+    
+    const cleanTime = timeString.trim();
+    
+    // Format HH:MM (ex: "10:00", "14:30")
+    const colonFormat = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    
+    // Format HHhMM (ex: "10h00", "14h30", "10H00")
+    const hFormat = /^([0-1]?[0-9]|2[0-3])[hH][0-5][0-9]$/;
+    
+    return colonFormat.test(cleanTime) || hFormat.test(cleanTime);
+  }
+
+  /**
+   * 🛡️ Convertit une chaîne d'heure en objet Date sécurisé
+   */
+  private static parseTimeToDate(timeString: string): Date {
+    if (!this.isValidTimeFormat(timeString)) {
+      throw new Error(`Format d'heure invalide: "${timeString}". Attendu: HH:MM ou HHhMM`);
+    }
+    
+    let cleanTime = timeString.trim();
+    
+    // Convertir "10h00" en "10:00" pour le parsing
+    if (/^([0-1]?[0-9]|2[0-3])[hH][0-5][0-9]$/.test(cleanTime)) {
+      cleanTime = cleanTime.replace(/[hH]/, ':');
+    }
+    
+    const date = new Date(`2000-01-01T${cleanTime}:00`);
+    
+    if (isNaN(date.getTime())) {
+      throw new Error(`Impossible de parser l'heure: "${timeString}"`);
+    }
+    
+    return date;
+  }
+
+  /**
    * Calcule le prix total selon la durée
    */
   static calculatePrice(hours: number): PricingResult {
+    // 🛡️ Validation de l'entrée
+    if (typeof hours !== 'number' || isNaN(hours) || hours <= 0) {
+      throw new Error(`Durée invalide: ${hours}. Doit être un nombre positif.`);
+    }
+
     const basePrice = hours * this.HOURLY_RATE;
-    
-    // Vérifier s'il y a une offre spéciale
-    const specialPrice = this.SPECIAL_OFFERS[hours as keyof typeof this.SPECIAL_OFFERS];
-    
-    if (specialPrice) {
+   
+    // Vérifier s'il y a une offre spéciale (seulement pour les heures entières)
+    const wholeHours = Math.floor(hours);
+    const specialPrice = this.SPECIAL_OFFERS[wholeHours as keyof typeof this.SPECIAL_OFFERS];
+   
+    if (specialPrice && hours === wholeHours) {
       const discount = basePrice - specialPrice;
       const discountPercentage = Math.round((discount / basePrice) * 100);
-      
+     
       return {
         hours,
         basePrice,
@@ -43,7 +91,7 @@ export class PricingService {
         hourlyRate: this.HOURLY_RATE
       };
     }
-
+    
     // Pas d'offre spéciale = prix normal
     return {
       hours,
@@ -56,26 +104,83 @@ export class PricingService {
   }
 
   /**
-   * Calcule le prix à partir d'heures de début/fin
+   * 🔧 Calcule le prix à partir d'heures de début/fin (VERSION SÉCURISÉE)
    */
   static calculatePriceFromTimeRange(startTime: string, endTime: string): PricingResult {
-    const start = new Date(`2000-01-01 ${startTime}`);
-    const end = new Date(`2000-01-01 ${endTime}`);
-    
-    if (end <= start) {
-      throw new Error('L\'heure de fin doit être après l\'heure de début');
-    }
+    try {
+      // 🛡️ Validation des entrées
+      if (!startTime || !endTime) {
+        throw new Error('Heures de début et de fin requises');
+      }
 
-    const diffMs = end.getTime() - start.getTime();
-    const hours = diffMs / (1000 * 60 * 60);
-    
-    return this.calculatePrice(hours);
+      console.log('🔍 Calcul pricing pour:', { startTime, endTime });
+
+      // 🛡️ Parsing sécurisé des heures
+      const start = this.parseTimeToDate(startTime);
+      const end = this.parseTimeToDate(endTime);
+
+      console.log('✅ Heures parsées:', { 
+        start: start.toTimeString(), 
+        end: end.toTimeString() 
+      });
+
+      // 🛡️ Vérification que l'heure de fin est après le début
+      if (end <= start) {
+        throw new Error('L\'heure de fin doit être après l\'heure de début');
+      }
+
+      // 🧮 Calcul de la durée en heures
+      const diffMs = end.getTime() - start.getTime();
+      const hours = diffMs / (1000 * 60 * 60);
+
+      console.log('🕐 Durée calculée:', { 
+        diffMs, 
+        hours: hours.toFixed(2) 
+      });
+
+      // 🛡️ Validation du résultat
+      if (isNaN(hours) || hours <= 0) {
+        throw new Error(`Durée invalide calculée: ${hours}h`);
+      }
+
+      const result = this.calculatePrice(hours);
+      
+      console.log('💰 Pricing final:', result);
+      
+      return result;
+
+    } catch (error) {
+      console.error('❌ Erreur dans calculatePriceFromTimeRange:', error);
+      throw error; // Re-lancer l'erreur pour qu'elle soit gérée par l'appelant
+    }
+  }
+
+  /**
+   * 🛡️ Version fallback qui retourne un prix par défaut en cas d'erreur
+   */
+  static calculatePriceFromTimeRangeSafe(
+    startTime: string, 
+    endTime: string, 
+    fallbackHours: number = 1
+  ): PricingResult {
+    try {
+      return this.calculatePriceFromTimeRange(startTime, endTime);
+    } catch (error) {
+      console.warn('⚠️ Utilisation du fallback pricing:', error);
+      return this.calculatePrice(fallbackHours);
+    }
   }
 
   /**
    * Formate le prix pour l'affichage
    */
   static formatPrice(price: number): string {
+    // 🛡️ Validation
+    if (typeof price !== 'number' || isNaN(price)) {
+      console.warn('⚠️ Prix invalide pour formatage:', price);
+      return '0,00€';
+    }
+    
     return `${price.toFixed(2).replace('.', ',')}€`;
   }
 
@@ -83,13 +188,23 @@ export class PricingService {
    * Génère un résumé de prix lisible
    */
   static getPricingSummary(pricingResult: PricingResult): string {
-    const { hours, basePrice, finalPrice, discount, discountPercentage } = pricingResult;
-    
-    if (discount > 0) {
-      return `${hours}h → ${this.formatPrice(finalPrice)} (au lieu de ${this.formatPrice(basePrice)}) - Économie : ${this.formatPrice(discount)} (${discountPercentage}%)`;
+    try {
+      const { hours, basePrice, finalPrice, discount, discountPercentage } = pricingResult;
+   
+      // 🛡️ Validation des données
+      if (isNaN(hours) || isNaN(finalPrice)) {
+        return 'Prix non disponible';
+      }
+
+      if (discount > 0) {
+        return `${hours}h → ${this.formatPrice(finalPrice)} (au lieu de ${this.formatPrice(basePrice)}) - Économie : ${this.formatPrice(discount)} (${discountPercentage}%)`;
+      }
+   
+      return `${hours}h → ${this.formatPrice(finalPrice)}`;
+    } catch (error) {
+      console.error('❌ Erreur dans getPricingSummary:', error);
+      return 'Prix non disponible';
     }
-    
-    return `${hours}h → ${this.formatPrice(finalPrice)}`;
   }
 
   /**
@@ -100,14 +215,46 @@ export class PricingService {
     appCommission: number;
     commissionRate: number;
   } {
+    // 🛡️ Validation
+    if (typeof finalPrice !== 'number' || isNaN(finalPrice) || finalPrice < 0) {
+      console.warn('⚠️ Prix invalide pour commission:', finalPrice);
+      return {
+        helperAmount: 0,
+        appCommission: 0,
+        commissionRate: 0.40
+      };
+    }
+
     const commissionRate = 0.40; // 40%
     const appCommission = finalPrice * commissionRate;
     const helperAmount = finalPrice - appCommission;
-
+    
     return {
       helperAmount,
       appCommission,
       commissionRate
     };
+  }
+
+  /**
+   * 🧪 Fonction de test pour vérifier le bon fonctionnement
+   */
+  static test(): void {
+    console.log('🧪 Test PricingService...');
+    
+    const tests = [
+      { start: '14:00', end: '17:00', expected: 3 },
+      { start: '09:30', end: '11:00', expected: 1.5 },
+      { start: '10:00', end: '12:00', expected: 2 },
+    ];
+
+    tests.forEach(({ start, end, expected }) => {
+      try {
+        const result = this.calculatePriceFromTimeRange(start, end);
+        console.log(`✅ ${start}-${end}: ${result.hours}h (attendu: ${expected}h)`);
+      } catch (error) {
+        console.error(`❌ ${start}-${end}:`, error);
+      }
+    });
   }
 }
