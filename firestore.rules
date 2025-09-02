@@ -1,0 +1,75 @@
+// firestore.rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    match /aidant_stats/{document=**} {
+      allow read: if true;
+      allow create, update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /admin_logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /services/{serviceId} {
+      allow read, write, delete: if isAdmin();
+      allow read, write: if isSignedIn() &&
+        (request.auth.uid == resource.data.clientId || request.auth.uid == resource.data.aidantId);
+      allow create: if isSignedIn();
+    }
+
+    match /transactions/{transactionId} {
+      allow read, write, delete: if isAdmin();
+      allow read, write: if isSignedIn() &&
+        (request.auth.uid == resource.data.clientId || request.auth.uid == resource.data.aidantId);
+      allow create: if isSignedIn();
+    }
+
+    match /avis/{avisId} {
+      allow read: if true;
+      allow write, delete: if isAdmin();
+      allow create, update: if isSignedIn();
+    }
+
+    match /conversations/{convId} {
+      allow read, write, delete: if isAdmin();
+      allow read, write: if isSignedIn() &&
+        request.auth.uid in resource.data.participants;
+      allow create: if isSignedIn();
+
+      match /messages/{msgId} {
+        allow read, write, delete: if isAdmin();
+        allow read, write: if isSignedIn() &&
+          request.auth.uid in get(/databases/$(database)/documents/conversations/$(convId)).data.participants;
+      }
+    }
+
+    match /profiles/{profileId} {
+      allow read: if true;
+      allow write, delete: if isAdmin() || (isSignedIn() && request.auth.uid == profileId);
+    }
+
+    match /notifications/{notifId} {
+      allow read, write: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

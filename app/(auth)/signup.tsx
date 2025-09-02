@@ -112,6 +112,7 @@ function SignupScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Votre nom et prénom"
+                placeholderTextColor="#999999"
                 value={formData.displayName}
                 onChangeText={(value) => updateFormData('displayName', value)}
                 editable={!isLoading}
@@ -126,6 +127,8 @@ function SignupScreen() {
                 value={formData.email}
                 onChangeText={(value) => updateFormData('email', value)}
                 keyboardType="email-address"
+                placeholderTextColor="#999999"
+                autoCorrect={false}
                 autoCapitalize="none"
                 editable={!isLoading}
               />
@@ -136,6 +139,7 @@ function SignupScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Au moins 6 caractères"
+                placeholderTextColor="#999999"
                 value={formData.password}
                 onChangeText={(value) => updateFormData('password', value)}
                 secureTextEntry
@@ -148,6 +152,7 @@ function SignupScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Répétez votre mot de passe"
+                placeholderTextColor="#999999"
                 value={formData.confirmPassword}
                 onChangeText={(value) => updateFormData('confirmPassword', value)}
                 secureTextEntry
@@ -232,15 +237,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#dee2e6',
+    //borderWidth: 1,
+    //borderColor: '#dee2e6',
     borderRadius: 8,
     paddingHorizontal: 15,
     paddingVertical: 12,
     fontSize: 16,
+      color: '#000000', // Forcer le texte en noir
+      backgroundColor: '#ffffff', // Fond blanc
+      borderWidth: 2, // Border visible pour debug
+      borderColor: '#ff0000', // Couleur rouge pour debug
   },
   signupButton: {
-    backgroundColor: Colors.light.success,
+    backgroundColor: Colors.light.primary,
     paddingVertical: 15,
     borderRadius: 8,
     alignItems: 'center',

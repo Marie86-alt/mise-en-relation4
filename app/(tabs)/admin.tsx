@@ -12,6 +12,7 @@ import {
 import { db } from '@/firebase.config';
 import { statisticsService } from '../../src/services/firebase/statisticsService';
 
+// 📊 Types
 type UserRow = {
   id: string;
   email?: string | null;
@@ -44,20 +45,51 @@ type MessageRow = {
   expediteurName?: string;
 };
 
+// 📊 Type pour les stats RÉELLES
 type StatsData = {
+  // Utilisateurs
   totalAidants: number;
   totalClients: number;
-  servicesRealises: number;
-  servicesEnCours: number;
-  chiffreAffaires: number;
-  commissionPerçue: number;
-  evaluationMoyenne: number;
   aidantsVerifies: number;
   aidantsEnAttente: number;
   comptesSuspendus: number;
+  nouveauxUtilisateurs?: number;
+  
+  // Services
+  servicesRealises: number;
+  servicesEnCours: number;
+  servicesAnnules?: number;
+  tauxConversion?: number;
+  
+  // Finances
+  chiffreAffaires: number;
+  commissionPerçue: number;
+  panierMoyen?: number;
+  
+  // Qualité
+  evaluationMoyenne: number;
+  totalAvis?: number;
+  
+  // Activité
   conversationsActives: number;
-  secteursPopulaires: { secteur: string; count: number; revenue: number }[];
-  evolutionMensuelle: { mois: string; services: number; revenue: number }[];
+  
+  // Analytics
+  secteursPopulaires: { 
+    secteur: string; 
+    count: number; 
+    revenue: number;
+    services?: number;
+  }[];
+  
+  // Évolution temporelle
+  evolutionMensuelle: { 
+    mois: string; 
+    services: number; 
+    revenue: number;
+  }[];
+  
+  // Méta
+  lastUpdate?: string;
 };
 
 export default function AdminScreen() {
@@ -72,18 +104,23 @@ export default function AdminScreen() {
   const [filter, setFilter] = useState('');
   const [showMessagesModal, setShowMessagesModal] = useState(false);
 
-  // 📊 Stats
+  // 📊 Stats avec valeurs par défaut complètes
   const [stats, setStats] = useState<StatsData>({
     totalAidants: 0,
     totalClients: 0,
-    servicesRealises: 0,
-    servicesEnCours: 0,
-    chiffreAffaires: 0,
-    commissionPerçue: 0,
-    evaluationMoyenne: 0,
     aidantsVerifies: 0,
     aidantsEnAttente: 0,
     comptesSuspendus: 0,
+    nouveauxUtilisateurs: 0,
+    servicesRealises: 0,
+    servicesEnCours: 0,
+    servicesAnnules: 0,
+    tauxConversion: 0,
+    chiffreAffaires: 0,
+    commissionPerçue: 0,
+    panierMoyen: 0,
+    evaluationMoyenne: 0,
+    totalAvis: 0,
     conversationsActives: 0,
     secteursPopulaires: [],
     evolutionMensuelle: []
@@ -262,14 +299,20 @@ export default function AdminScreen() {
               }
 
               await logAdminAction('DELETE_USER_SOFT', u.id, {
-                email: u.email,
-                displayName: u.displayName
+                email: u.email || 'Email non renseigné',
+  displayName: u.displayName || 'Nom non renseigné'
               });
 
               Alert.alert('✅ Utilisateur supprimé', "L'utilisateur a été désactivé et ne peut plus se connecter.");
-            } catch {
-              Alert.alert('Erreur', 'Impossible de supprimer cet utilisateur.');
-            }
+            // } catch {
+            //   Alert.alert('Erreur', 'Impossible de supprimer cet utilisateur.');
+            // }
+            } catch (error: any) {
+  console.error('❌ Erreur complète:', error);
+  console.error('❌ Message:', error.message);
+  console.error('❌ Code:', error.code);
+  Alert.alert('Erreur', `Impossible de supprimer cet utilisateur: ${error.message}`);
+}
           }
         }
       ]
@@ -333,53 +376,52 @@ export default function AdminScreen() {
     );
   };
 
-  // 📊 Calcul des statistiques (useCallback pour dépendances stables)
-  // ✅ NOUVELLE FONCTION calculateStats (remplace l'ancienne) :
+  // 📊 FONCTION POUR CALCULER LES STATS RÉELLES
+  const calculateStats = useCallback(async () => {
+    if (!isAdmin) return;
+    setLoadingStats(true);
+    
+    try {
+      console.log('📊 Chargement statistiques réelles...');
+      
+      // 🔥 Utilise le service externe pour les vraies stats
+      const statsData = await statisticsService.calculateStats();
+      
+      console.log('✅ Stats réelles chargées:', {
+        aidants: statsData.totalAidants,
+        clients: statsData.totalClients,
+        services: statsData.servicesRealises,
+        ca: statsData.chiffreAffaires
+      });
+      
+      // Met à jour l'état avec les vraies données
+      setStats(statsData);
+      
+    } catch (error) {
+      console.error('❌ Erreur stats réelles:', error);
+      Alert.alert('Erreur', 'Impossible de charger les statistiques');
+      
+      // 🔄 Fallback avec données locales disponibles
+      setStats({
+        totalAidants: users.filter(u => u.isAidant && !u.isDeleted).length,
+        totalClients: users.filter(u => !u.isAidant && !u.isDeleted).length,
+        aidantsVerifies: users.filter(u => u.isAidant && u.isVerified && !u.isDeleted).length,
+        aidantsEnAttente: users.filter(u => u.isAidant && !u.isVerified && !u.isDeleted).length,
+        comptesSuspendus: users.filter(u => u.isSuspended && !u.isDeleted).length,
+        servicesRealises: 0,
+        servicesEnCours: 0,
+        chiffreAffaires: 0,
+        commissionPerçue: 0,
+        evaluationMoyenne: 0,
+        conversationsActives: conversations.filter(c => c.status !== 'termine').length,
+        secteursPopulaires: [],
+        evolutionMensuelle: []
+      });
+    } finally {
+      setLoadingStats(false);
+    }
+  }, [isAdmin, users, conversations]);
 
-const calculateStats = useCallback(async () => {
-  if (!isAdmin) return;
-  setLoadingStats(true);
-  
-  try {
-    console.log('📊 Chargement statistiques réelles...');
-    
-    // 🔥 Utilise le service dédié au lieu des calculs manuels
-    const statsData = await statisticsService.calculateStats();
-    
-    console.log('✅ Stats réelles chargées:', {
-      aidants: statsData.totalAidants,
-      clients: statsData.totalClients,
-      services: statsData.servicesRealises,
-      ca: statsData.chiffreAffaires
-    });
-    
-    // Met à jour l'état avec les vraies données
-    setStats(statsData);
-    
-  } catch (error) {
-    console.error('❌ Erreur stats réelles:', error);
-    Alert.alert('Erreur', 'Impossible de charger les statistiques');
-    
-    // 🔄 Fallback avec données locales disponibles
-    setStats({
-      totalAidants: users.filter(u => u.isAidant && !u.isDeleted).length,
-      totalClients: users.filter(u => !u.isAidant && !u.isDeleted).length,
-      aidantsVerifies: users.filter(u => u.isAidant && u.isVerified && !u.isDeleted).length,
-      aidantsEnAttente: users.filter(u => u.isAidant && !u.isVerified && !u.isDeleted).length,
-      comptesSuspendus: users.filter(u => u.isSuspended && !u.isDeleted).length,
-      servicesRealises: 0,
-      servicesEnCours: 0,
-      chiffreAffaires: 0,
-      commissionPerçue: 0,
-      evaluationMoyenne: 0,
-      conversationsActives: conversations.filter(c => c.status !== 'termine').length,
-      secteursPopulaires: [],
-      evolutionMensuelle: []
-    });
-  } finally {
-    setLoadingStats(false);
-  }
-}, [isAdmin, users, conversations]);
   // 📊 Charger les stats quand on arrive sur l'onglet
   useEffect(() => {
     if (tab === 'stats' && isAdmin) {
@@ -558,7 +600,7 @@ const calculateStats = useCallback(async () => {
           />
         </View>
       ) : (
-        // 📊 SECTION STATISTIQUES
+        // 📊 SECTION STATISTIQUES COMPLÈTE
         <ScrollView style={{ flex: 1, padding: 12 }}>
           <View style={s.statsHeader}>
             <Text style={s.sectionTitle}>📊 Tableau de bord - Statistiques</Text>
@@ -605,11 +647,15 @@ const calculateStats = useCallback(async () => {
                 <Text style={s.subsectionTitle}>💰 Finances</Text>
                 <View style={s.financeGrid}>
                   <View style={[s.statCard, s.financeCard]}>
-                    <Text style={[s.statNumber, s.financeNumber]}>{stats.chiffreAffaires}€</Text>
+                    <Text style={[s.statNumber, s.financeNumber]}>
+                      {stats.chiffreAffaires.toFixed(2)}€
+                    </Text>
                     <Text style={s.statLabel}>💵 Chiffre d&apos;affaires</Text>
                   </View>
                   <View style={[s.statCard, s.financeCard]}>
-                    <Text style={[s.statNumber, s.financeNumber]}>{Math.round(stats.commissionPerçue)}€</Text>
+                    <Text style={[s.statNumber, s.financeNumber]}>
+                      {stats.commissionPerçue.toFixed(2)}€
+                    </Text>
                     <Text style={s.statLabel}>🏛️ Commission (40%)</Text>
                   </View>
                 </View>
@@ -640,47 +686,53 @@ const calculateStats = useCallback(async () => {
 
               {/* 📍 Secteurs populaires */}
               <View style={s.sectorsSection}>
-                <Text style={s.subsectionTitle}>📍 Secteurs populaires</Text>
+                <Text style={s.subsectionTitle}>📍 Top 5 Secteurs par revenus</Text>
                 {stats.secteursPopulaires.length > 0 ? (
                   stats.secteursPopulaires.map((secteur, index) => (
                     <View key={secteur.secteur} style={s.sectorCard}>
-                      <View style={s.sectorRank}>
+                      <View style={[s.sectorRank, index === 0 && s.goldRank]}>
                         <Text style={s.rankNumber}>{index + 1}</Text>
                       </View>
                       <View style={s.sectorInfo}>
                         <Text style={s.sectorName}>{secteur.secteur}</Text>
                         <Text style={s.sectorStats}>
-                          {secteur.count} aidants • {secteur.revenue}€ revenus
+                          {secteur.count} aidants
+                          {secteur.services && ` • ${secteur.services} services`}
+                          {` • ${secteur.revenue}€`}
                         </Text>
                       </View>
-                      <View style={s.sectorBar}>
-                        <View
-                          style={[
-                            s.sectorBarFill,
-                            { width: `${(secteur.count / Math.max(...stats.secteursPopulaires.map(s => s.count))) * 100}%` }
-                          ]}
-                        />
+                      <View style={s.sectorBarContainer}>
+                        <View style={s.sectorBar}>
+                          <View
+                            style={[
+                              s.sectorBarFill,
+                              { 
+                                width: `${(secteur.revenue / Math.max(...stats.secteursPopulaires.map(s => s.revenue))) * 100}%` 
+                              }
+                            ]}
+                          />
+                        </View>
+                        {stats.chiffreAffaires > 0 && (
+                          <Text style={s.sectorPercent}>
+                            {((secteur.revenue / stats.chiffreAffaires) * 100).toFixed(1)}%
+                          </Text>
+                        )}
                       </View>
                     </View>
                   ))
                 ) : (
-                  <Text style={s.muted}>Aucun secteur disponible</Text>
+                  <Text style={s.muted}>Aucune donnée disponible</Text>
                 )}
               </View>
 
-              {/* 📊 Évolution mensuelle */}
-              <View style={s.evolutionSection}>
-                <Text style={s.subsectionTitle}>📊 Évolution des 6 derniers mois</Text>
-                <View style={s.monthlyGrid}>
-                  {stats.evolutionMensuelle.map((month) => (
-                    <View key={month.mois} style={s.monthCard}>
-                      <Text style={s.monthName}>{month.mois}</Text>
-                      <Text style={s.monthServices}>{month.services} services</Text>
-                      <Text style={s.monthRevenue}>{month.revenue}€</Text>
-                    </View>
-                  ))}
+              {/* 🕐 Dernière mise à jour */}
+              {stats.lastUpdate && (
+                <View style={s.updateInfo}>
+                  <Text style={s.updateText}>
+                    Dernière mise à jour : {new Date(stats.lastUpdate).toLocaleString('fr-FR')}
+                  </Text>
                 </View>
-              </View>
+              )}
 
               {/* 📱 Actions rapides */}
               <View style={s.actionsSection}>
@@ -813,7 +865,7 @@ const s = StyleSheet.create({
     borderRadius: 6
   },
 
-  // 📊 Styles stats
+  // 📊 Styles stats COMPLETS
   statsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -888,6 +940,7 @@ const s = StyleSheet.create({
   financeNumber: {
     color: '#28a745'
   },
+  
   managementSection: {
     marginBottom: 20
   },
@@ -913,6 +966,9 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
+  goldRank: {
+    backgroundColor: '#fbbf24'
+  },
   rankNumber: {
     color: '#fff',
     fontSize: 12,
@@ -931,6 +987,9 @@ const s = StyleSheet.create({
     color: '#687076',
     marginTop: 2
   },
+  sectorBarContainer: {
+    alignItems: 'flex-end'
+  },
   sectorBar: {
     width: 60,
     height: 4,
@@ -942,39 +1001,24 @@ const s = StyleSheet.create({
     backgroundColor: Colors.light.primary,
     borderRadius: 2
   },
-  evolutionSection: {
-    marginBottom: 20
+  sectorPercent: {
+    fontSize: 11,
+    color: '#64748b',
+    marginTop: 4
   },
-  monthlyGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8
-  },
-  monthCard: {
-    flex: 1,
-    minWidth: '30%',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 8,
+  
+  updateInfo: {
+    marginTop: 20,
     padding: 12,
-    alignItems: 'center'
+    backgroundColor: '#f9fafb',
+    borderRadius: 8
   },
-  monthName: {
+  updateText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#2c3e50',
-    marginBottom: 4
+    color: '#6b7280',
+    textAlign: 'center'
   },
-  monthServices: {
-    fontSize: 11,
-    color: Colors.light.primary,
-    fontWeight: '600'
-  },
-  monthRevenue: {
-    fontSize: 11,
-    color: '#687076'
-  },
+  
   actionsSection: {
     marginBottom: 20
   },

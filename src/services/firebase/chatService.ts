@@ -1,7 +1,7 @@
 // src/services/firebase/chatService.ts
 import {
   collection, addDoc, query, orderBy, onSnapshot, serverTimestamp,
-  doc, setDoc, where, updateDoc, getDoc,
+  doc, setDoc, where, updateDoc,
   DocumentData
 } from 'firebase/firestore';
 import { db } from '../../../firebase.config';
@@ -38,31 +38,29 @@ const getConversationId = (uid1: string, uid2: string): string =>
 export const chatService = {
   getConversationId,
 
-  ensureConversationExists: async (
-    conversationId: string,
-    participants: string[],
-    participantDetails: { [uid: string]: { displayName?: string | null } }
-  ): Promise<void> => {
-    const convRef = doc(db, 'conversations', conversationId);
-    try {
-      const convSnap = await getDoc(convRef);
-      if (!convSnap.exists()) {
-        await setDoc(
-          convRef,
-          {
-            participants,
-            participantDetails,
-            status: 'conversation' as StatutServiceType,
-            createdAt: serverTimestamp(),
-          },
-          { merge: true }
-        );
-      }
-    } catch (error) {
-      console.error("❌ Erreur lors de la vérification/création de la conversation:", error);
-      throw error;
-    }
-  },
+ensureConversationExists: async (
+  conversationId: string,
+  participants: string[],
+  participantDetails: { [uid: string]: { displayName?: string | null } }
+): Promise<void> => {
+  const convRef = doc(db, 'conversations', conversationId);
+  try {
+    // ❌ pas de getDoc() ici (read interdit si le doc n’existe pas encore)
+    await setDoc(
+      convRef,
+      {
+        participants,
+        participantDetails,
+        status: 'conversation' as StatutServiceType,
+        createdAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  } catch (error) {
+    console.error('❌ ensureConversationExists setDoc failed:', error);
+    throw error;
+  }
+},
 
   sendMessage: async (
     conversationId: string,

@@ -8,6 +8,8 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
+.expo-shared/
+.expo/devices.json
 
 # Native
 .kotlin/
@@ -39,3 +41,42 @@ yarn-error.*
 app-example
 backend/.env
 backend/.env.example
+
+# iOS
+ios/build/
+ios/Pods/
+ios/*.xcodeproj/project.xcworkspace/
+ios/*.xcworkspace/
+ios/DerivedData/
+*.ipa
+
+# Android
+android/app/build/
+android/.gradle/
+android/.idea/
+android/local.properties
+android/keystores/
+*.apk
+*.aab
+
+# Coverage & tests
+coverage/
+*.log
+*.tmp
+
+# Firebase Functions
+functions/lib/
+functions/node_modules/
+functions/.runtimeconfig.json
+functions/.env
+functions/.env.*
+
+# Google/Firebase config files
+**/google-services.json
+**/GoogleService-Info.plist
+
+# IDEs & OS files
+.vscode/
+.idea/
+*.iml
+Thumbs.db

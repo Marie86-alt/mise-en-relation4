@@ -1,0 +1,7 @@
+# Hérite déjà de .gitignore
+# Ajoute si besoin:
+android/app/build/
+ios/build/
+*.aab
+*.apk
+*.ipa

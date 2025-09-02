@@ -22,6 +22,7 @@ import {
   getDoc,
   serverTimestamp,
   Timestamp,
+  onSnapshot,
 } from 'firebase/firestore';
 import { auth, db } from '@/firebase.config';
 import {Alert} from 'react-native';
@@ -33,6 +34,7 @@ export interface User {
   displayName?: string | null;
 
   role?: 'user' | 'admin';
+  isAdmin?: boolean;
 
   // Profil aidant (facultatif)
   experience?: number | null;
@@ -98,6 +100,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           return;
         }
 
+        
+
         const userRef = doc(db, 'users', firebaseUser.uid);
         let snap = await getDoc(userRef);
 
@@ -109,6 +113,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               email: firebaseUser.email ?? null,
               displayName: firebaseUser.displayName ?? null,
               role: 'user',
+              isAdmin: false,
               isVerified: false,
               isSuspended: false,
               isDeleted: false,
@@ -127,6 +132,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           displayName: firebaseUser.displayName ?? data.displayName ?? null,
 
           role: (data.role as User['role']) ?? 'user',
+          isAdmin: data.isAdmin === true || data.role === 'admin',
 
           // état du compte
           isVerified: data.isVerified ?? false,
@@ -184,6 +190,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+  if (!user?.uid) return;
+
+  const ref = doc(db, 'users', user.uid);
+  const unsub = onSnapshot(ref, (snap) => {
+    const data = snap.data() as Partial<User> | undefined;
+    if (!data) return;
+
+    setUser((prev) =>
+      prev
+        ? {
+            ...prev,
+            role: (data.role as User['role']) ?? prev.role,
+            isAdmin: data.isAdmin === true || data.role === 'admin',
+            isSuspended: typeof data.isSuspended === 'boolean' ? data.isSuspended : prev.isSuspended,
+            isDeleted: typeof data.isDeleted === 'boolean' ? data.isDeleted : prev.isDeleted,
+          }
+        : prev
+    );
+  });
+
+  return unsub;
+}, [user?.uid]); // ✅ dépend de l’uid actuel
 
   // ---------- Actions (stables via useCallback) ----------
 
@@ -298,7 +328,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const clearError = useCallback(() => setError(null), []);
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = !! user?.isAdmin || user?.role === 'admin';
 
   const value = useMemo<AuthContextType>(
     () => ({

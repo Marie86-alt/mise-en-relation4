@@ -161,6 +161,7 @@ export default function ProfileScreen() {
             <TextInput
               style={styles.input}
               placeholder="Ex: 5"
+              placeholderTextColor="#9CA3AF"
               keyboardType="numeric"
               value={experience}
               onChangeText={setExperience}
@@ -172,6 +173,7 @@ export default function ProfileScreen() {
             <TextInput
               style={styles.input}
               placeholder="Ex: 15"
+              placeholderTextColor="#9CA3AF"
               keyboardType="numeric"
               value={tarif}
               onChangeText={setTarif}
@@ -183,6 +185,7 @@ export default function ProfileScreen() {
             <TextInput
               style={[styles.input, styles.textArea]}
               placeholder="Décrivez votre expérience, vos spécialités..."
+              placeholderTextColor="#9CA3AF"
               multiline
               value={description}
               onChangeText={setDescription}
@@ -292,6 +295,7 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1, borderColor: '#dee2e6', borderRadius: 8,
     paddingHorizontal: 15, paddingVertical: 12, fontSize: 16, backgroundColor: '#f8f9fa',
+    color: '#11181C'
   },
   textArea: { minHeight: 100, textAlignVertical: 'top' },
 

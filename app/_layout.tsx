@@ -1,14 +1,18 @@
 // app/_layout.tsx
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { Platform } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import '../firebase.config';
 import { AuthProvider, useAuth } from '@/src/contexts/AuthContext';
+import { applyTextInputDefaults } from '@/src/ui/applyTextInputDefaults';
+applyTextInputDefaults();
 
 function RootLayoutNav() {
   const { user, loading } = useAuth();
@@ -17,21 +21,26 @@ function RootLayoutNav() {
 
   useEffect(() => {
     if (loading) return;
-    const inAuth = segments[0] === '(auth)';
-    if (!user && !inAuth) router.replace('/(auth)/login');
-    else if (user && inAuth) router.replace('/(tabs)');
-  }, [user, loading, segments, router]);
+    const seg0 = segments?.[0]; // '(auth)', '(tabs)' ou undefined pour '/'
+    const inAuth = seg0 === '(auth)';
+    const inTabs = seg0 === '(tabs)';
+    const atLanding = seg0 === undefined;
 
-  if (loading) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#e67e22" />
-      </View>
-    );
-  }
+    // LOGIQUE DE REDIRECTION FIABLE
+    // Déconnecté → va sur la landing
+    if (!user && inTabs) {
+      router.dismissAll?.(); // Vide la pile navigation si besoin (Expo Router v2+)
+      router.replace('/');
+    }
+    // Connecté → onglets principaux
+    else if (user && (inAuth || atLanding)) {
+      router.replace('/(tabs)');
+    }
+  }, [user, loading, segments, router]);
 
   return (
     <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="paiement" options={{ headerShown: false }} />
@@ -50,15 +59,17 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
-    <AuthProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <RootLayoutNav />
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <ThemeProvider value={DefaultTheme}>
+          <RootLayoutNav />
+          {/* Sur Android edge-to-edge, garde une barre lisible */}
+          <StatusBar
+            style={colorScheme === 'dark' ? 'light' : 'dark'}
+            translucent={Platform.OS === 'android'}
+          />
+        </ThemeProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8f9fa' },
-});

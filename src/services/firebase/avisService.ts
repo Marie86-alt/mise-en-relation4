@@ -5,9 +5,7 @@ import {
   query, 
   where, 
   getDocs, 
-  orderBy, 
-  limit,
-  updateDoc,
+  setDoc,
   doc,
   serverTimestamp,
 } from 'firebase/firestore';
@@ -25,8 +23,6 @@ export interface Avis {
   dureeService: number;
   montantService: number;
   createdAt: any;
-  
-  // Métadonnées
   clientName?: string;
   isVerified?: boolean;
 }
@@ -34,184 +30,183 @@ export interface Avis {
 export interface AvisStats {
   totalAvis: number;
   moyenneRating: number;
-  repartition: { [key: number]: number }; // { 1: 2, 2: 1, 3: 5, 4: 10, 5: 15 }
+  repartition: { [key: number]: number };
 }
 
 export const avisService = {
-  /**
-   * 💾 Sauvegarde un nouvel avis
-   */
+  /** 💾 Sauvegarde un nouvel avis */
   async createAvis(avisData: Omit<Avis, 'id' | 'createdAt'>): Promise<string> {
     try {
       console.log('💾 Sauvegarde nouvel avis:', avisData);
-      
-      // 📝 Données complètes de l'avis
+
       const avisComplet: Omit<Avis, 'id'> = {
         ...avisData,
         createdAt: serverTimestamp(),
-        isVerified: true
+        isVerified: true,
       };
-      
-      // 💾 Sauvegarde en base
+
       const docRef = await addDoc(collection(db, 'avis'), avisComplet);
-      
-      // 📊 Mise à jour des stats de l'aidant
+
       await this.updateAidantStats(avisData.aidantId, avisData.rating);
-      
+
       console.log('✅ Avis sauvegardé avec ID:', docRef.id);
-      
       return docRef.id;
-      
     } catch (error) {
       console.error('❌ Erreur sauvegarde avis:', error);
       throw error;
     }
   },
 
-  /**
-   * 📊 Met à jour les statistiques de l'aidant
-   */
+  /** 📊 Met à jour les statistiques de l'aidant */
   async updateAidantStats(aidantId: string, newRating: number): Promise<void> {
     try {
-      const aidantRef = doc(db, 'users', aidantId);
-      
-      // Récupérer les avis existants pour recalculer la moyenne
-      const avisQuery = query(
+      const aidantStatsRef = doc(db, 'aidant_stats', aidantId);
+
+      // Recalcule à partir des avis existants
+      const avisQueryRef = query(
         collection(db, 'avis'),
-        where('aidantId', '==', aidantId)
+        where('aidantId', '==', aidantId),
+        where('isVerified', '==', true)
       );
-      const avisSnap = await getDocs(avisQuery);
-      
+      const avisSnap = await getDocs(avisQueryRef);
+
       const totalAvis = avisSnap.docs.length + 1; // +1 pour le nouvel avis
       let sommeRatings = newRating;
-      
-      avisSnap.docs.forEach(doc => {
-        const avis = doc.data() as Avis;
-        sommeRatings += avis.rating;
+
+      avisSnap.docs.forEach((d) => {
+        const a = d.data() as Avis;
+        sommeRatings += a.rating;
       });
-      
+
       const moyenneRating = Math.round((sommeRatings / totalAvis) * 10) / 10;
-      
-      // Mise à jour du profil aidant
-      await updateDoc(aidantRef, {
-        averageRating: moyenneRating,
-        totalReviews: totalAvis,
-        lastReviewAt: serverTimestamp()
-      });
-      
+
+      await setDoc(
+        aidantStatsRef,
+        {
+          averageRating: moyenneRating,
+          totalReviews: totalAvis,
+          lastReviewAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
       console.log('📊 Stats aidant mises à jour:', {
         aidantId,
         moyenneRating,
-        totalAvis
+        totalAvis,
       });
-      
     } catch (error) {
       console.error('❌ Erreur mise à jour stats aidant:', error);
+      // on n’interrompt pas le flux côté client
     }
   },
 
-  /**
-   * 📖 Récupère les avis d'un aidant
-   */
+  /** 📖 Récupère les avis d'un aidant (tri côté client, pas d’index requis) */
   async getAvisAidant(aidantId: string, limitCount: number = 10): Promise<Avis[]> {
     try {
-      const avisQuery = query(
+      const avisQueryRef = query(
         collection(db, 'avis'),
         where('aidantId', '==', aidantId),
-        where('isVerified', '==', true),
-        orderBy('createdAt', 'desc'),
-        limit(limitCount)
+        where('isVerified', '==', true)
       );
-      
-      const avisSnap = await getDocs(avisQuery);
-      
-      const avisList: Avis[] = avisSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Avis));
-      
-      console.log(`📖 ${avisList.length} avis récupérés pour aidant ${aidantId}`);
-      return avisList;
-      
+
+      const avisSnap = await getDocs(avisQueryRef);
+
+      const avisList: Avis[] = avisSnap.docs.map((d) => ({
+        id: d.id,
+        ...(d.data() as Avis),
+      }));
+
+      // tri desc par createdAt côté client
+      avisList.sort((a, b) => {
+        const ta =
+          (a.createdAt?.toMillis?.() ?? new Date(a.createdAt || 0).getTime()) || 0;
+        const tb =
+          (b.createdAt?.toMillis?.() ?? new Date(b.createdAt || 0).getTime()) || 0;
+        return tb - ta;
+      });
+
+      // applique le limit côté client
+      const limited = avisList.slice(0, limitCount);
+
+      console.log(`📖 ${limited.length}/${avisList.length} avis récupérés pour aidant ${aidantId}`);
+      return limited;
     } catch (error) {
       console.error('❌ Erreur récupération avis:', error);
       return [];
     }
   },
 
-  /**
-   * 📊 Calcule les statistiques d'avis d'un aidant
-   */
+  /** 📊 Calcule les stats (sans orderBy) */
   async getAvisStats(aidantId: string): Promise<AvisStats> {
     try {
-      const avisQuery = query(
+      const avisQueryRef = query(
         collection(db, 'avis'),
         where('aidantId', '==', aidantId),
         where('isVerified', '==', true)
       );
-      
-      const avisSnap = await getDocs(avisQuery);
-      
+
+      const avisSnap = await getDocs(avisQueryRef);
+
       const stats: AvisStats = {
         totalAvis: avisSnap.docs.length,
         moyenneRating: 0,
-        repartition: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+        repartition: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
       };
-      
+
       if (stats.totalAvis === 0) return stats;
-      
+
       let sommeRatings = 0;
-      avisSnap.docs.forEach(doc => {
-        const avis = doc.data() as Avis;
-        sommeRatings += avis.rating;
-        stats.repartition[avis.rating]++;
+      avisSnap.docs.forEach((d) => {
+        const a = d.data() as Avis;
+        sommeRatings += a.rating;
+        stats.repartition[a.rating] = (stats.repartition[a.rating] || 0) + 1;
       });
-      
+
       stats.moyenneRating = Math.round((sommeRatings / stats.totalAvis) * 10) / 10;
-      
+
       return stats;
-      
     } catch (error) {
       console.error('❌ Erreur calcul stats avis:', error);
       return {
         totalAvis: 0,
         moyenneRating: 0,
-        repartition: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+        repartition: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
       };
     }
   },
 
-  /**
-   * 🔍 Recherche d'avis par mots-clés
-   */
+  /** 🔍 Recherche par mots-clés (tri côté client) */
   async searchAvisByKeywords(keywords: string[]): Promise<Avis[]> {
     try {
-      // Firebase ne permet pas de recherche full-text, donc on récupère tous les avis récents
-      // et on filtre côté client (pour une vraie app, utiliser Algolia ou Elasticsearch)
-      const avisQuery = query(
+      // on récupère un lot et on filtre côté client
+      const avisQueryRef = query(
         collection(db, 'avis'),
-        where('isVerified', '==', true),
-        orderBy('createdAt', 'desc'),
-        limit(100)
+        where('isVerified', '==', true)
       );
-      
-      const avisSnap = await getDocs(avisQuery);
-      
+
+      const avisSnap = await getDocs(avisQueryRef);
+
       const avisList: Avis[] = avisSnap.docs
-        .map(doc => ({ id: doc.id, ...doc.data() } as Avis))
-        .filter(avis => {
-          const commentLower = avis.comment.toLowerCase();
-          return keywords.some(keyword => 
-            commentLower.includes(keyword.toLowerCase())
-          );
+        .map((d) => ({ id: d.id, ...(d.data() as Avis) }))
+        .filter((a) => {
+          const txt = (a.comment || '').toLowerCase();
+          return keywords.some((k) => txt.includes(k.toLowerCase()));
         });
-      
-      console.log(`🔍 ${avisList.length} avis trouvés avec mots-clés:`, keywords);
+
+      avisList.sort((a, b) => {
+        const ta =
+          (a.createdAt?.toMillis?.() ?? new Date(a.createdAt || 0).getTime()) || 0;
+        const tb =
+          (b.createdAt?.toMillis?.() ?? new Date(b.createdAt || 0).getTime()) || 0;
+        return tb - ta;
+      });
+
+      console.log(`🔍 ${avisList.length} avis trouvés pour`, keywords);
       return avisList;
-      
     } catch (error) {
       console.error('❌ Erreur recherche avis:', error);
       return [];
     }
-  }
+  },
 };

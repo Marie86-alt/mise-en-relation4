@@ -15,12 +15,12 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { Colors } from '@/constants/Colors';
 
+
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isConnecting, setIsConnecting] = useState(false);
 
-  // ✅ CORRECTION FINALE : 'error' est bien retiré de la déstructuration
   const { signIn, user, loading: authLoading } = useAuth() as any;
   const router = useRouter();
 
@@ -80,6 +80,7 @@ export default function LoginScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="votre@email.com"
+                placeholderTextColor="#9CA3AF"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -93,6 +94,7 @@ export default function LoginScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Votre mot de passe"
+                placeholderTextColor="#9CA3AF"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -178,7 +180,8 @@ const styles = StyleSheet.create({
     borderRadius: 8, 
     paddingHorizontal: 15, 
     paddingVertical: Platform.OS === 'ios' ? 14 : 10, 
-    fontSize: 16 
+    fontSize: 16,
+    color: '#11181C'
   },
   loginButton: { 
     backgroundColor: Colors.light.primary, 

@@ -1,52 +1,125 @@
+
+// // src/config/stripe.ts
+// const isDev = __DEV__;
+
+// export const STRIPE_CONFIG = {
+//   // 🔑 CLÉS STRIPE
+//   PUBLISHABLE_KEY: isDev
+//     ? 'pk_test_51Rw4TLK4P8PBhDaP4DLO3Pgt9yUvGFuF8dFn93z5xGhybVxZmw22Os3gwFHJ5TcT7Bwg7BBy4Xd71WvmEQrc4ma400zCTApKYb' // Test
+//     : 'pk_test_temporaire', // Production temporaire (remplacez par pk_live_ plus tard)
+ 
+//   // 🌐 URL BACKEND
+//   BACKEND_URL: isDev
+//     ? 'http://192.168.1.155:3000' // Dev
+//     : 'https://mise-en-relation-app-prod.web.app', // Production
+ 
+//   CURRENCY: 'eur',
+//   COUNTRY: 'FR',
+ 
+//   PAYMENT_METADATA: {
+//     source: 'mise-en-relation-app',
+//     version: '1.0',
+//   }
+// };
+
+// // Le reste de votre code reste identique
+// export const STRIPE_ENDPOINTS = {
+//   CREATE_PAYMENT_INTENT: '/create-payment-intent',
+//   CONFIRM_PAYMENT: '/confirm-payment',
+//   GET_PAYMENT_STATUS: '/payment-status',        
+//   PROCESS_REFUND: '/process-refund',
+// };
+
+// export const STRIPE_ERRORS = {
+//   'card_declined': 'Votre carte a été refusée',
+//   'insufficient_funds': 'Fonds insuffisants sur votre carte',
+//   'expired_card': 'Votre carte a expiré',      
+//   'incorrect_cvc': 'Code de sécurité incorrect',
+//   'processing_error': 'Erreur de traitement du paiement',
+//   'network_error': 'Erreur de connexion',      
+//   'unknown_error': 'Une erreur inattendue s\'est produite',
+// };
+
+// export const testBackendConnection = async () => {
+//   try {
+//     console.log('🔍 Test connexion backend:', STRIPE_CONFIG.BACKEND_URL);
+//     const response = await fetch(STRIPE_CONFIG.BACKEND_URL);
+//     const data = await response.json();
+//     console.log('✅ Backend accessible:', data);
+//     return true;
+//   } catch (error) {
+//     console.error('❌ Backend non accessible:', error);
+//     return false;
+//   }
+
+
 // src/config/stripe.ts
+const isDev = __DEV__;
+
+/**
+ * ⚠️ IMPORTANT
+ * - Si tu utilises les Cloud Functions, utilise l'URL :
+ *   https://europe-west1-<ID_PROJET>.cloudfunctions.net
+ * - Remplace <ID_PROJET> par ton vrai projectId Firebase (ex: mise-en-relation-app-prod)
+ */
+const FUNCTIONS_BASE_URL =
+  'https://europe-west1-mise-en-relation-app-prod.cloudfunctions.net';
+
 export const STRIPE_CONFIG = {
-  // 🔑 CLÉS STRIPE (À REMPLACER PAR VOS VRAIES CLÉS)
-  PUBLISHABLE_KEY: __DEV__
-    ? 'pk_test_51Rw4TLK4P8PBhDaP4DLO3Pgt9yUvGFuF8dFn93z5xGhybVxZmw22Os3gwFHJ5TcT7Bwg7BBy4Xd71WvmEQrc4ma400zCTApKYb' // 🧪 Remplacez par votre clé de test
-    : 'pk_live_...', // 🔴 Clé de production (plus tard)
-  
-  // 🌐 URL de votre backend (CORRIGÉE POUR MOBILE)
-  BACKEND_URL: __DEV__
-    ? 'http://192.168.1.155:3000' // ✅ IP locale pour mobile/émulateur
-    : 'https://votre-api.com', // 🔴 Serveur de production
-  
-  // 💰 CONFIGURATION DES PAIEMENTS
+  // 🔑 CLÉ PUBLIQUE STRIPE
+  PUBLISHABLE_KEY: isDev
+    ? 'pk_test_51Rw4TLK4P8PBhDaP4DLO3Pgt9yUvGFuF8dFn93z5xGhybVxZmw22Os3gwFHJ5TcT7Bwg7BBy4Xd71WvmEQrc4ma400zCTApKYb'
+    : 'pk_test_temporaire', // (remplace plus tard par ta pk_live_...)
+
+  /**
+   * 🌐 BACKEND_URL
+   * Si tu passes 100% par Cloud Functions → laisse FUNCTIONS_BASE_URL en dev & prod
+   * Si tu veux ton serveur Express local en dev, mets l’URL locale ici côté dev.
+   */
+  BACKEND_URL: FUNCTIONS_BASE_URL,
+
   CURRENCY: 'eur',
   COUNTRY: 'FR',
-  
-  // 📱 METADATA POUR LES PAIEMENTS
+
   PAYMENT_METADATA: {
     source: 'mise-en-relation-app',
     version: '1.0',
-  }
+  },
 };
 
-// 🎯 ENDPOINTS API
+/**
+ * ⚠️ Endpoints adaptés aux Cloud Functions (camelCase)
+ *   createPaymentIntent   -> /createPaymentIntent
+ *   confirmPayment        -> /confirmPayment
+ * (Tu n’as pas encore de fonctions pour payment-status / refund)
+ */
 export const STRIPE_ENDPOINTS = {
-  CREATE_PAYMENT_INTENT: '/create-payment-intent',
-  CONFIRM_PAYMENT: '/confirm-payment',
-  GET_PAYMENT_STATUS: '/payment-status',        
-  PROCESS_REFUND: '/process-refund',
+  CREATE_PAYMENT_INTENT: '/createPaymentIntent',
+  CONFIRM_PAYMENT: '/confirmPayment',
+
+  // Pas implémentés en Cloud Functions pour l’instant :
+  GET_PAYMENT_STATUS: '/payment-status',   // <-- si tu en crées une plus tard
+  PROCESS_REFUND: '/process-refund',       // <-- si tu en crées une plus tard
 };
 
-// 💡 MESSAGES D'ERREUR TRADUITS
 export const STRIPE_ERRORS = {
-  'card_declined': 'Votre carte a été refusée', 
-  'insufficient_funds': 'Fonds insuffisants sur votre carte',
-  'expired_card': 'Votre carte a expiré',       
-  'incorrect_cvc': 'Code de sécurité incorrect',
-  'processing_error': 'Erreur de traitement du paiement',
-  'network_error': 'Erreur de connexion',       
-  'unknown_error': 'Une erreur inattendue s\'est produite',
+  card_declined: 'Votre carte a été refusée',
+  insufficient_funds: 'Fonds insuffisants sur votre carte',
+  expired_card: 'Votre carte a expiré',
+  incorrect_cvc: 'Code de sécurité incorrect',
+  processing_error: 'Erreur de traitement du paiement',
+  network_error: 'Erreur de connexion',
+  unknown_error: "Une erreur inattendue s'est produite",
 };
 
-// 🧪 FONCTION DE TEST DE CONNEXION
 export const testBackendConnection = async () => {
   try {
     console.log('🔍 Test connexion backend:', STRIPE_CONFIG.BACKEND_URL);
-    const response = await fetch(STRIPE_CONFIG.BACKEND_URL);
-    const data = await response.json();
-    console.log('✅ Backend accessible:', data);
+    const res = await fetch(
+      STRIPE_CONFIG.BACKEND_URL + STRIPE_ENDPOINTS.CREATE_PAYMENT_INTENT,
+      { method: 'OPTIONS' } // ping simple (géré par notre CORS)
+    );
+    console.log('✅ Backend accessible:', res.status);
     return true;
   } catch (error) {
     console.error('❌ Backend non accessible:', error);

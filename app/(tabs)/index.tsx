@@ -45,18 +45,30 @@ export default function HomeScreen() {
   ];
 
   // Validation de la date en temps réel
-  const handleJourChange = (text: string) => {
-    setJour(text);
-    
-    if (text.length >= 8) {
-      const validation = validateDate(text);
-      setJourError(validation.error || '');
-    } else if (text.length > 0) {
-      setJourError('Format incomplet - utilisez JJ/MM/AAAA');
-    } else {
-      setJourError('');
-    }
-  };
+  // Remplacez cette fonction dans index.tsx
+const handleJourChange = (text: string) => {
+  // Supprimer tous les caractères non numériques
+  let cleanedText = text.replace(/\D/g, '');
+  
+  // Formater automatiquement avec des barres obliques
+  if (cleanedText.length >= 2) {
+    cleanedText = cleanedText.substring(0, 2) + '/' + cleanedText.substring(2);
+  }
+  if (cleanedText.length >= 5) {
+    cleanedText = cleanedText.substring(0, 5) + '/' + cleanedText.substring(5, 9);
+  }
+  
+  setJour(cleanedText);
+  
+  if (cleanedText.length >= 8) {
+    const validation = validateDate(cleanedText);
+    setJourError(validation.error || '');
+  } else if (cleanedText.length > 0) {
+    setJourError('Format incomplet - utilisez JJ/MM/AAAA');
+  } else {
+    setJourError('');
+  }
+};
 
   // Validation et formatage de l'heure de début
   const handleHeureDebutChange = (text: string) => {
@@ -256,7 +268,8 @@ export default function HomeScreen() {
               styles.input, 
               jourError ? styles.inputError : {}
             ]} 
-            placeholder="JJ/MM/AAAA (ex: 15/08/2025)" 
+            placeholder="JJ/MM/AAAA (ex: 15/08/2025)"
+            placeholderTextColor="#9CA3AF"
             value={jour} 
             onChangeText={handleJourChange}
             keyboardType="numeric"
@@ -282,7 +295,8 @@ export default function HomeScreen() {
                   styles.timeInput,
                   heureDebutError ? styles.inputError : {}
                 ]} 
-                placeholder="10h00" 
+                placeholder="10h00"
+                placeholderTextColor="#9CA3AF"
                 value={heureDebut} 
                 onChangeText={handleHeureDebutChange}
                 onBlur={handleHeureDebutBlur}
@@ -303,7 +317,8 @@ export default function HomeScreen() {
                   styles.timeInput,
                   heureFinError ? styles.inputError : {}
                 ]} 
-                placeholder="18h00" 
+                placeholder="18h00"
+                placeholderTextColor="#9CA3AF"
                 value={heureFin} 
                 onChangeText={handleHeureFinChange}
                 onBlur={handleHeureFinBlur}
@@ -422,8 +437,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
-  headerTop: { 
-    flexDirection: 'row', 
+  headerTop: {
+    flexDirection: 'row',
     justifyContent: 'space-between', 
     alignItems: 'center', 
     marginBottom: 20 
@@ -461,7 +476,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15, 
     paddingVertical: 12, 
     fontSize: 16, 
-    backgroundColor: '#ffffff' 
+    backgroundColor: '#ffffff',
+    color: '#11181C'
   },
   inputError: {
     borderColor: '#ff4444',

@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "mise-en-relation-app-fc187"
-  }
+    "default": "mise-en-relation-app-prod",
+    "prod": "mise-en-relation-app-prod"
+  },
+  "targets": {},
+  "etags": {}
 }

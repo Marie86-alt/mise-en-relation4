@@ -20,12 +20,16 @@ const ETAPES: Record<string, EtapeType> = {
   AVIS_OBLIGATOIRE: 'avis_obligatoire',
 };
 
+// --- helpers ---
+const round2 = (n: number) => Math.round(n * 100) / 100;
+const fmt = (n: number) => `${n.toFixed(2)}€`;
+
 export default function ConversationScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const flatListRef = useRef<FlatList<Message>>(null);
 
-  // --- params stables
+  // --- params stables (depuis la navigation)
   const rawParams = useLocalSearchParams();
   const getParam = (key: string): string => {
     const value = rawParams[key] || rawParams[`r_${key}`];
@@ -59,7 +63,7 @@ export default function ConversationScreen() {
       ? chatService.getConversationId(user.uid, stableParams.profileId)
       : null;
 
-  // --- tarification
+  // --- tarification initiale (si on a les heures dans les params)
   useEffect(() => {
     const { heureDebut, heureFin } = stableParams;
     if (heureDebut && heureFin) {
@@ -70,7 +74,8 @@ export default function ConversationScreen() {
         console.error('❌ Erreur calcul tarification:', error);
       }
     }
-  }, [stableParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // --- s’assurer que la conversation existe avant d’écouter les messages
   useEffect(() => {
@@ -94,7 +99,7 @@ export default function ConversationScreen() {
     setupConversation();
   }, [conversationId, user, stableParams.profileId, stableParams.profileName]);
 
-  // --- écoute messages quand prêt
+  // --- écoute des messages quand prêt
   useEffect(() => {
     if (!conversationId || !isConversationReady) return;
     const unsubscribe = chatService.listenToMessages(conversationId, setMessages);
@@ -125,7 +130,7 @@ export default function ConversationScreen() {
     }
   }, [rawParams.paymentSuccess, rawParams.paymentType, rawParams.adresse, rawParams.r_adresse, conversationId, router]);
 
-  // ----------------------------- utils prix -----------------------------
+  // ----------------------------- utils -----------------------------
   const formatHeure = (ts: any) => {
     try {
       let date: Date;
@@ -142,27 +147,24 @@ export default function ConversationScreen() {
 
   const getAcompteAmount = () => {
     if (!pricingData || isNaN(pricingData.finalPrice)) return 0;
-    return parseFloat((pricingData.finalPrice * 0.2).toFixed(2));
+    return round2(pricingData.finalPrice * 0.20);
   };
 
   const getMontantRestant = () => {
     if (!pricingData || isNaN(pricingData.finalPrice)) return 0;
-    const acompte = getAcompteAmount();
-    return parseFloat((pricingData.finalPrice - acompte).toFixed(2));
+    return round2(pricingData.finalPrice - getAcompteAmount());
   };
 
   // commission 40/60 (affichage informatif)
   const getCommissionPlateforme = () => {
     if (!pricingData || isNaN(pricingData.finalPrice)) return 0;
-    return parseFloat((pricingData.finalPrice * 0.4).toFixed(2));
+    return round2(pricingData.finalPrice * 0.40);
   };
 
   const getMontantAidant = () => {
     if (!pricingData || isNaN(pricingData.finalPrice)) return 0;
-    return parseFloat((pricingData.finalPrice * 0.6).toFixed(2));
+    return round2(pricingData.finalPrice * 0.60);
   };
-
-  const formatMontant = (montant: number): string => `${montant.toFixed(2)}€`;
 
   // ----------------------------- actions -----------------------------
   const envoyerMessage = async () => {
@@ -205,11 +207,7 @@ export default function ConversationScreen() {
         conversationId,
         aidantId: stableParams.profileId,
         clientId: user.uid,
-        pricingData: {
-          finalPrice: pricingData.finalPrice,
-          hours: pricingData.hours,
-          discount: pricingData.discount,
-        },
+        pricingData: { ...pricingData }, // ← objet complet attendu par TS
         serviceDetails: {
           secteur: stableParams.secteur,
           jour: stableParams.jour,
@@ -221,8 +219,13 @@ export default function ConversationScreen() {
       };
       
       await chatService.updateConversationMetadata(conversationId, {
-        adresseService: adresseService,
+        adresseService,
         status: 'acompte_en_cours',
+        // on persiste aussi le contexte pour futurs écrans/listes
+        secteur: stableParams.secteur,
+        jour: stableParams.jour,
+        heureDebut: stableParams.heureDebut,
+        heureFin: stableParams.heureFin,
       });
       
       router.push({
@@ -271,13 +274,36 @@ export default function ConversationScreen() {
   };
 
   const sauvegarderAvis = async (commentaire: string) => {
-    if (!user || !conversationId || !stableParams.profileId || !pricingData) {
+    // log utile pour debug
+    console.log('🔍 Params:', {
+      userId: user?.uid,
+      profileId: stableParams.profileId,
+      conversationId,
+      evaluation,
+      commentaire
+    });
+
+    if (!user || !conversationId || !stableParams.profileId) {
       naviguerVersPaiement();
       return;
     }
-    
+
     try {
       setLoading(true);
+
+      // si pas de pricingData (cas rare), on tente un fallback depuis les heures
+      let pricingForReview = pricingData;
+      if (!pricingForReview && stableParams.heureDebut && stableParams.heureFin) {
+        try {
+          pricingForReview = PricingService.calculatePriceFromTimeRangeSafe(
+            stableParams.heureDebut,
+            stableParams.heureFin,
+            1
+          );
+          setPricingData(pricingForReview);
+        } catch {}
+      }
+
       await avisService.createAvis({
         aidantId: stableParams.profileId,
         clientId: user.uid,
@@ -286,8 +312,8 @@ export default function ConversationScreen() {
         comment: commentaire,
         serviceDate: String(stableParams.jour || new Date().toISOString().split('T')[0]),
         secteur: String(stableParams.secteur || ''),
-        dureeService: pricingData.hours,
-        montantService: pricingData.finalPrice,
+        dureeService: pricingForReview?.hours ?? 0,
+        montantService: pricingForReview?.finalPrice ?? 0,
         clientName: user.displayName || 'Client anonyme',
       });
     } catch (error) {
@@ -300,17 +326,39 @@ export default function ConversationScreen() {
   };
 
   const naviguerVersPaiement = () => {
-    if (!conversationId || !pricingData || !user) return;
-    
+    if (!conversationId || !user) return;
+
+    // si on n'a pas de tarification, on tente un calcul simple
+    let pricing = pricingData;
+    if (!pricing && stableParams.heureDebut && stableParams.heureFin) {
+      try {
+        pricing = PricingService.calculatePriceFromTimeRangeSafe(
+          stableParams.heureDebut,
+          stableParams.heureFin,
+          1
+        );
+        setPricingData(pricing);
+      } catch {}
+    }
+
+    const total = pricing ? round2(pricing.finalPrice) : 0;
+    const solde = pricing ? round2(total - round2(total * 0.2)) : 0;
+
     const paymentData = {
       conversationId,
       aidantId: stableParams.profileId,
       clientId: user.uid,
-      pricingData: {
-        finalPrice: getMontantRestant(), // solde (80 %)
-        hours: pricingData.hours,
-        discount: 0,
-      },
+      // ⚠️ pour l'écran "paiement-final", `finalPrice` doit être le SOLDE (80%) à payer maintenant
+      pricingData: pricing
+        ? { ...pricing, finalPrice: solde }
+        : {
+            basePrice: total,
+            finalPrice: solde,
+            discount: 0,
+            hours: 0,
+            discountPercentage: 0,
+            hourlyRate: 0,
+          } as PricingResult,
       serviceDetails: {
         secteur: stableParams.secteur,
         jour: stableParams.jour,
@@ -320,9 +368,9 @@ export default function ConversationScreen() {
       },
       isDeposit: false,
     };
-    
+
     router.push({
-      pathname: '/paiement',
+      pathname: '/paiement-final',
       params: {
         paymentData: JSON.stringify(paymentData),
         paymentType: 'final',
@@ -391,14 +439,14 @@ export default function ConversationScreen() {
             <Text style={styles.totalValue}>{PricingService.formatPrice(pricingData.finalPrice)}</Text>
           </View>
 
-          {/* 👇 Acompte et reste à payer visibles dans la fiche */}
+          {/* acompte & solde */}
           <View style={styles.tarificationRow}>
             <Text style={styles.acompteLabel}>Acompte (20%) :</Text>
-            <Text style={styles.acompteValue}>{PricingService.formatPrice(getAcompteAmount())}</Text>
+            <Text style={styles.acompteValue}>{fmt(getAcompteAmount())}</Text>
           </View>
           <View style={styles.tarificationRow}>
             <Text style={styles.tarificationLabel}>Reste à payer :</Text>
-            <Text style={styles.tarificationValue}>{PricingService.formatPrice(getMontantRestant())}</Text>
+            <Text style={styles.tarificationValue}>{fmt(getMontantRestant())}</Text>
           </View>
 
           {pricingData.discount > 0 && (
@@ -543,9 +591,9 @@ export default function ConversationScreen() {
                 ` (économie : ${PricingService.formatPrice(pricingData.discount)})`}
             </Text>
 
-            {/* 👇 Affichage acompte + solde dans le header */}
+            {/* acompte + solde dans le header */}
             <Text style={styles.headerSubPrice}>
-              Acompte : {PricingService.formatPrice(getAcompteAmount())} • Reste : {PricingService.formatPrice(getMontantRestant())}
+              Acompte : {fmt(getAcompteAmount())} • Reste : {fmt(getMontantRestant())}
             </Text>
           </>
         )}
@@ -593,11 +641,11 @@ export default function ConversationScreen() {
                   <Text style={styles.modalCommissionTitle}>💼 Répartition après service</Text>
                   <View style={styles.modalCommissionRow}>
                     <Text style={styles.modalCommissionLabel}>👤 L&apos;aidant recevra (60%) :</Text>
-                    <Text style={styles.modalCommissionValue}>{formatMontant(getMontantAidant())}</Text>
+                    <Text style={styles.modalCommissionValue}>{fmt(getMontantAidant())}</Text>
                   </View>
                   <View style={styles.modalCommissionRow}>
                     <Text style={styles.modalCommissionLabel}>🏢 Commission plateforme (40%) :</Text>
-                    <Text style={styles.modalCommissionValue}>{formatMontant(getCommissionPlateforme())}</Text>
+                    <Text style={styles.modalCommissionValue}>{fmt(getCommissionPlateforme())}</Text>
                   </View>
                 </View>
               </>
@@ -639,11 +687,11 @@ export default function ConversationScreen() {
                 </View>
                 <View style={styles.acompteRow}>
                   <Text style={styles.acompteLabel}>Acompte (20%) :</Text>
-                  <Text style={styles.acompteAmount}>{PricingService.formatPrice(getAcompteAmount())}</Text>
+                  <Text style={styles.acompteAmount}>{fmt(getAcompteAmount())}</Text>
                 </View>
                 <View style={styles.acompteRow}>
                   <Text style={styles.acompteLabel}>Reste à payer :</Text>
-                  <Text style={styles.acompteValue}>{PricingService.formatPrice(getMontantRestant())}</Text>
+                  <Text style={styles.acompteValue}>{fmt(getMontantRestant())}</Text>
                 </View>
               </View>
             )}
@@ -656,7 +704,7 @@ export default function ConversationScreen() {
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalConfirmButton} onPress={payerAcompte} disabled={loading}>
                 <Text style={styles.modalConfirmText}>
-                  {loading ? 'Paiement…' : `Payer ${PricingService.formatPrice(getAcompteAmount())}`}
+                  {loading ? 'Paiement…' : `Payer ${fmt(getAcompteAmount())}`}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -680,7 +728,6 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#11181C', marginTop: 5 },
   headerSubtitle: { fontSize: 14, color: '#687076', marginTop: 5 },
   headerPrice: { fontSize: 12, color: Colors.light.primary, fontWeight: '600', marginTop: 3 },
-  // 👇 nouvelle ligne sous le prix
   headerSubPrice: { fontSize: 12, color: '#856404', fontWeight: '600', marginTop: 2 },
 
   messagesList: { flex: 1, paddingHorizontal: 15, paddingVertical: 10 },
@@ -713,7 +760,6 @@ const styles = StyleSheet.create({
   totalValue: { fontSize: 16, fontWeight: 'bold', color: Colors.light.primary },
   economieText: { textAlign: 'center', marginTop: 8, fontSize: 12, color: '#28a745', fontWeight: '500' },
 
-  // Styles acompte (réutilisés)
   acompteDetails: { backgroundColor: '#fff3cd', padding: 15, borderRadius: 8, marginBottom: 15 },
   acompteRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   acompteLabel: { fontSize: 14, color: '#856404' },
@@ -727,6 +773,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
     alignItems: 'center',
+    color: '#11181C',
   },
   messageInput: {
     flex: 1,
@@ -738,6 +785,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
     backgroundColor: '#f8f9fa',
     fontSize: 16,
+    color: '#11181C',
   },
   sendButton: {
     backgroundColor: Colors.light.primary,
@@ -754,7 +802,7 @@ const styles = StyleSheet.create({
   etapeDescription: { fontSize: 16, lineHeight: 24, color: '#687076', textAlign: 'center', marginBottom: 30 },
 
   evaluerButton: { backgroundColor: Colors.light.primary, borderRadius: 8, paddingVertical: 15, paddingHorizontal: 30 },
-  confirmerButton: { backgroundColor: Colors.light.success, borderRadius: 8, paddingVertical: 15, paddingHorizontal: 24, margin: 15, alignItems: 'center' },
+  confirmerButton: { backgroundColor: Colors.light.primary, borderRadius: 8, paddingVertical: 15, paddingHorizontal: 24, margin: 15, alignItems: 'center' },
   confirmerButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
   terminerButton: { backgroundColor: Colors.light.success, borderRadius: 8, paddingVertical: 15, paddingHorizontal: 30, marginBottom: 20 },
 
@@ -779,6 +827,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
     fontSize: 16,
     minHeight: 120,
+    color: '#11181C',
   },
   confirmerAvisButton: { backgroundColor: Colors.light.primary, borderRadius: 8, paddingVertical: 15, paddingHorizontal: 24, alignItems: 'center' },
 
@@ -815,11 +864,12 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
     marginBottom: 20,
     fontSize: 16,
+    color: '#11181C',
   },
 
   modalButtons: { flexDirection: 'row', justifyContent: 'space-between' },
   modalCancelButton: { flex: 1, borderRadius: 8, paddingVertical: 15, marginRight: 10, backgroundColor: '#f0f2f5', alignItems: 'center' },
-  modalConfirmButton: { flex: 1, borderRadius: 8, paddingVertical: 15, marginLeft: 10, backgroundColor: Colors.light.success, alignItems: 'center' },
+  modalConfirmButton: { flex: 1, borderRadius: 8, paddingVertical: 15, marginLeft: 10, backgroundColor: Colors.light.primary, alignItems: 'center' },
   modalCancelText: { color: '#687076', fontSize: 16, fontWeight: '500' },
   modalConfirmText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
 
