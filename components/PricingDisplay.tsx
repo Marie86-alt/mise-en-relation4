@@ -1,9 +1,9 @@
-// src/components/PricingDisplay.tsx
+// components/PricingDisplay.tsx
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { PricingService, PricingResult } from '../src/utils/pricing';
-import { Colors } from '@/constants/Colors';
+import { Colors } from '../constants/Colors';
 
 interface PricingDisplayProps {
   startTime?: string;
@@ -102,7 +102,7 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
               {PricingService.formatPrice(commission.appCommission)} ({Math.round(commission.commissionRate * 100)}%)
             </Text>
           </View>
-        </View>
+        </div>
       )}
 
       {/* ✨ Message d'économie */}
@@ -118,7 +118,6 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
 };
 
 const styles = StyleSheet.create({
-  // 🎨 UTILISATION DE VOTRE STRUCTURE Colors.light
   container: {
     backgroundColor: '#f8f9fa',
     borderColor: '#e9ecef',
@@ -127,49 +126,49 @@ const styles = StyleSheet.create({
     padding: 16,
     margin: 16,
   },
-  
+
   selectTime: {
     textAlign: 'center',
     color: '#6c757d',
     fontStyle: 'italic',
     fontSize: 16,
   },
-  
+
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
-  
+
   label: {
     fontSize: 14,
     color: '#495057',
   },
-  
+
   value: {
     fontSize: 14,
     fontWeight: '500',
     color: '#212529',
   },
-  
+
   crossed: {
     textDecorationLine: 'line-through',
     color: '#6c757d',
   },
-  
+
   discountLabel: {
     fontSize: 14,
     color: '#28a745',
     fontWeight: '500',
   },
-  
+
   discountValue: {
     fontSize: 14,
     color: '#28a745',
     fontWeight: 'bold',
   },
-  
+
   totalRow: {
     marginTop: 12,
     paddingTop: 12,
@@ -177,43 +176,43 @@ const styles = StyleSheet.create({
     borderTopColor: '#dee2e6',
     marginBottom: 0,
   },
-  
+
   totalLabel: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#212529',
   },
-  
+
   totalValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.light.primary, // 🧡 Votre orange carotte
+    color: Colors.light.primary,
   },
-  
+
   commissionSection: {
     marginTop: 16,
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#dee2e6',
   },
-  
+
   commissionTitle: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#495057',
     marginBottom: 8,
   },
-  
+
   commissionLabel: {
     fontSize: 13,
     color: '#6c757d',
   },
-  
+
   commissionValue: {
     fontSize: 13,
     color: '#495057',
   },
-  
+
   savingsBox: {
     marginTop: 12,
     paddingVertical: 8,
@@ -223,7 +222,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#c3e6cb',
   },
-  
+
   savingsText: {
     textAlign: 'center',
     color: '#155724',
