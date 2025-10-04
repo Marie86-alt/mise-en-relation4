@@ -609,13 +609,11 @@ app.post('/create-payment-intent', async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount),
       currency: currency.toLowerCase(),
+      payment_method_types: ['card'], // Spécifie explicitement les cartes
       metadata: {
         ...metadata,
         created_by: 'mise-en-relation-app',
         created_at: new Date().toISOString(),
-      },
-      automatic_payment_methods: {
-        enabled: true,
       },
     });
 
