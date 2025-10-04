@@ -1,4 +1,4 @@
-// src/components/AvisDisplay.tsx
+// components/AvisDisplay.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -9,7 +9,7 @@ import {
   TouchableOpacity
 } from 'react-native';
 import { avisService, Avis, AvisStats } from '../src/services/firebase/avisService';
-import { Colors } from '@/constants/Colors';
+import { Colors } from '../constants/Colors';
 
 interface AvisDisplayProps {
   aidantId: string;
@@ -17,10 +17,10 @@ interface AvisDisplayProps {
   maxAvis?: number;
 }
 
-export default function AvisDisplay({ 
-  aidantId, 
-  showTitle = true, 
-  maxAvis = 5 
+export default function AvisDisplay({
+  aidantId,
+  showTitle = true,
+  maxAvis = 5
 }: AvisDisplayProps) {
   const [avis, setAvis] = useState<Avis[]>([]);
   const [stats, setStats] = useState<AvisStats | null>(null);
@@ -30,20 +30,20 @@ export default function AvisDisplay({
   const loadAvis = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const [avisList, avisStats] = await Promise.all([
         avisService.getAvisAidant(aidantId, showMore ? 20 : maxAvis),
         avisService.getAvisStats(aidantId)
       ]);
-      
+
       setAvis(avisList);
       setStats(avisStats);
-      
+
       console.log('📖 Avis chargés:', {
         nombre: avisList.length,
         moyenne: avisStats.moyenneRating
       });
-      
+
     } catch (error) {
       console.error('❌ Erreur chargement avis:', error);
     } finally {
@@ -59,7 +59,7 @@ export default function AvisDisplay({
     return (
       <View style={styles.starsContainer}>
         {[1, 2, 3, 4, 5].map((star) => (
-          <Text 
+          <Text
             key={star}
             style={[
               styles.star,
@@ -93,9 +93,9 @@ export default function AvisDisplay({
           </View>
           {renderStars(item.rating, 14)}
         </View>
-        
+
         <Text style={styles.avisComment}>{item.comment}</Text>
-        
+
         <View style={styles.avisMetadata}>
           <Text style={styles.serviceInfo}>
             {item.secteur} • {item.dureeService}h • {item.montantService}€
@@ -121,21 +121,21 @@ export default function AvisDisplay({
             </Text>
           </View>
         </View>
-        
+
         <View style={styles.ratingDistribution}>
           {[5, 4, 3, 2, 1].map((rating) => {
             const count = stats.repartition[rating] || 0;
             const percentage = stats.totalAvis > 0 ? (count / stats.totalAvis) * 100 : 0;
-            
+
             return (
               <View key={rating} style={styles.distributionRow}>
                 <Text style={styles.distributionRating}>{rating}★</Text>
                 <View style={styles.distributionBar}>
-                  <View 
+                  <View
                     style={[
-                      styles.distributionFill, 
+                      styles.distributionFill,
                       { width: `${percentage}%` }
-                    ]} 
+                    ]}
                   />
                 </View>
                 <Text style={styles.distributionCount}>{count}</Text>
@@ -172,9 +172,9 @@ export default function AvisDisplay({
       {showTitle && (
         <Text style={styles.sectionTitle}>⭐ Avis clients ({stats.totalAvis})</Text>
       )}
-      
+
       {renderStats()}
-      
+
       <FlatList
         data={avis}
         renderItem={renderAvis}
@@ -183,7 +183,7 @@ export default function AvisDisplay({
         contentContainerStyle={styles.avisList}
         ListFooterComponent={
           stats.totalAvis > maxAvis && !showMore ? (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.showMoreButton}
               onPress={() => setShowMore(true)}
             >
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  
+
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -210,20 +210,20 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     paddingHorizontal: 16,
   },
-  
+
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 40,
   },
-  
+
   loadingText: {
     marginTop: 10,
     color: '#687076',
     fontSize: 14,
   },
-  
+
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
     paddingHorizontal: 20,
   },
-  
+
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
@@ -239,13 +239,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
   },
-  
+
   emptySubtext: {
     fontSize: 14,
     color: '#9ca3af',
     textAlign: 'center',
   },
-  
+
   // STATS
   statsContainer: {
     backgroundColor: '#f8f9fa',
@@ -254,62 +254,62 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 20,
   },
-  
+
   statsHeader: {
     alignItems: 'center',
     marginBottom: 15,
   },
-  
+
   ratingOverview: {
     alignItems: 'center',
   },
-  
+
   starsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  
+
   star: {
     marginHorizontal: 1,
   },
-  
+
   starFilled: {
     color: Colors.light.primary,
   },
-  
+
   starEmpty: {
     color: '#e0e0e0',
   },
-  
+
   averageRating: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#2c3e50',
     marginTop: 8,
   },
-  
+
   totalReviews: {
     fontSize: 14,
     color: '#687076',
     marginTop: 4,
   },
-  
+
   ratingDistribution: {
     gap: 6,
   },
-  
+
   distributionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  
+
   distributionRating: {
     fontSize: 12,
     color: '#495057',
     width: 20,
   },
-  
+
   distributionBar: {
     flex: 1,
     height: 6,
@@ -317,24 +317,24 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     overflow: 'hidden',
   },
-  
+
   distributionFill: {
     height: '100%',
     backgroundColor: Colors.light.primary,
   },
-  
+
   distributionCount: {
     fontSize: 12,
     color: '#6c757d',
     width: 20,
     textAlign: 'right',
   },
-  
+
   // AVIS
   avisList: {
     paddingHorizontal: 16,
   },
-  
+
   avisCard: {
     backgroundColor: '#ffffff',
     borderRadius: 12,
@@ -343,49 +343,49 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f0f0f0',
   },
-  
+
   avisHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
   },
-  
+
   avisUserInfo: {
     flex: 1,
   },
-  
+
   clientName: {
     fontSize: 15,
     fontWeight: '600',
     color: '#2c3e50',
     marginBottom: 2,
   },
-  
+
   avisDate: {
     fontSize: 12,
     color: '#9ca3af',
   },
-  
+
   avisComment: {
     fontSize: 14,
     lineHeight: 20,
     color: '#4b5563',
     marginBottom: 12,
   },
-  
+
   avisMetadata: {
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
     paddingTop: 12,
     gap: 8,
   },
-  
+
   serviceInfo: {
     fontSize: 12,
     color: '#6b7280',
   },
-  
+
   showMoreButton: {
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
-  
+
   showMoreText: {
     color: Colors.light.primary,
     fontSize: 14,
