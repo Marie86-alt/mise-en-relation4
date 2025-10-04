@@ -84,4 +84,7 @@ functions/.env.*
 .vscode/
 .idea/
 *.iml
-Thumbs.db
+Thumbs.db-e 
+# Environment files
+*.env
+*.env.*
