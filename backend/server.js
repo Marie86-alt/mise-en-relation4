@@ -98,6 +98,13 @@ app.get('/', async (req, res) => {
 // ===========================================
 
 app.post('/api/auth/register', async (req, res) => {
+  if (!firebaseInitialized) {
+    return res.status(503).json({
+      success: false,
+      error: 'Service indisponible - Firebase non configuré'
+    });
+  }
+  
   try {
     const { email, password, userType, nom, prenom, isAidant, secteur, genre } = req.body;
     
