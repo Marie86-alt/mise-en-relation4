@@ -11,7 +11,10 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const admin = require('firebase-admin');
 
 // Initialiser Firebase Admin avec VOTRE projet
-if (!admin.apps.length) {
+let db = null;
+let firebaseInitialized = false;
+
+if (!admin.apps.length && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
   try {
     admin.initializeApp({
       credential: admin.credential.cert({
@@ -20,10 +23,15 @@ if (!admin.apps.length) {
         privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
       })
     });
+    db = admin.firestore();
+    firebaseInitialized = true;
     console.log('✅ Firebase Admin initialisé');
   } catch (error) {
     console.error('❌ Erreur Firebase Admin:', error.message);
+    console.log('⚠️  Serveur démarré en mode dégradé (sans Firebase)');
   }
+} else {
+  console.log('⚠️  Configuration Firebase manquante - Serveur en mode dégradé');
 }
 
 const db = admin.firestore();
