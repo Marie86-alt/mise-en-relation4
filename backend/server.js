@@ -60,36 +60,37 @@ app.use((req, res, next) => {
 // ===========================================
 
 app.get('/', async (req, res) => {
-  try {
-    // Test de connexion Firebase
-    const testQuery = await db.collection('users').limit(1).get();
-    
-    res.json({ 
-      message: '🚀 API Stripe pour Mise en Relation',
-      status: 'running',
-      timestamp: new Date().toISOString(),
-      stripe_configured: !!process.env.STRIPE_SECRET_KEY,
-      firebase_configured: !!process.env.FIREBASE_PROJECT_ID,
-      firebase_connected: !testQuery.empty,
-      
-      endpoints: [
-        'POST /api/auth/register - Inscription',
-        'POST /api/auth/login - Connexion',
-        'POST /api/services/search - Rechercher aidants',
-        'GET /api/services/profile/:id - Profil aidant',
-        'POST /create-payment-intent - Créer Payment Intent',
-        'POST /confirm-payment - Confirmer paiement',
-        'GET /payment-status/:id - Statut paiement',
-        'GET /stats - Statistiques'
-      ]
-    });
-  } catch (error) {
-    res.json({
-      message: '🚀 API Stripe pour Mise en Relation',
-      status: 'running - Firebase non configuré',
-      error: error.message
-    });
+  let firebase_connected = false;
+  
+  if (firebaseInitialized && db) {
+    try {
+      // Test de connexion Firebase
+      const testQuery = await db.collection('users').limit(1).get();
+      firebase_connected = !testQuery.empty;
+    } catch (error) {
+      console.error('Erreur test Firebase:', error.message);
+    }
   }
+  
+  res.json({ 
+    message: '🚀 API Mise en Relation',
+    status: firebaseInitialized ? 'running' : 'running - mode dégradé',
+    timestamp: new Date().toISOString(),
+    stripe_configured: !!process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_placeholder',
+    firebase_configured: firebaseInitialized,
+    firebase_connected,
+    
+    endpoints: [
+      'POST /api/auth/register - Inscription' + (firebaseInitialized ? '' : ' (indisponible)'),
+      'POST /api/auth/login - Connexion' + (firebaseInitialized ? '' : ' (indisponible)'),
+      'POST /api/services/search - Rechercher aidants' + (firebaseInitialized ? '' : ' (indisponible)'),
+      'GET /api/services/profile/:id - Profil aidant' + (firebaseInitialized ? '' : ' (indisponible)'),
+      'POST /create-payment-intent - Créer Payment Intent',
+      'POST /confirm-payment - Confirmer paiement',
+      'GET /payment-status/:id - Statut paiement',
+      'GET /stats - Statistiques' + (firebaseInitialized ? '' : ' (indisponible)')
+    ]
+  });
 });
 
 // ===========================================
