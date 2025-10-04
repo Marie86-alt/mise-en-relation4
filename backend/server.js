@@ -34,7 +34,6 @@ if (!admin.apps.length && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREB
   console.log('⚠️  Configuration Firebase manquante - Serveur en mode dégradé');
 }
 
-const db = admin.firestore();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
