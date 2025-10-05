@@ -70,7 +70,7 @@ export const STRIPE_CONFIG = {
   // 🔑 CLÉ PUBLIQUE STRIPE LIVE
   PUBLISHABLE_KEY: STRIPE_PK,
 
-  /**
+  // 🌐 BACKEND_URL - Utilise ngrok pour les tests
    * 🌐 BACKEND_URL
    * Si tu passes 100% par Cloud Functions → laisse FUNCTIONS_BASE_URL en dev & prod
    * Si tu veux ton serveur Express local en dev, mets l’URL locale ici côté dev.
