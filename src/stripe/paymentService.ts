@@ -54,7 +54,7 @@ async function initializeDepositPayment(data: PaymentData): Promise<InitResult> 
     }
 
     const { error } = await initPaymentSheet({
-      paymentIntentClientSecret: dep.clientSecret,
+      paymentIntentClientSecret: dep.client_secret,
       merchantDisplayName: 'Mise en Relation',
       allowsDelayedPaymentMethods: false,
       returnURL: RETURN_URL,
