@@ -90,7 +90,7 @@ export const STRIPE_ENDPOINTS = {
   CONFIRM_PAYMENT: '/confirm-payment',
 
   GET_PAYMENT_STATUS: '/payment-status',
-  PROCESS_REFUND: '/process-refund',       // <-- si tu en crées une plus tard
+  PROCESS_REFUND: '/process-refund',
 };
 
 export const STRIPE_ERRORS = {
