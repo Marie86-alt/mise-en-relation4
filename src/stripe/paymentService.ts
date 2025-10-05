@@ -31,7 +31,12 @@ async function initializeDepositPayment(data: PaymentData): Promise<InitResult> 
     const total = Number(data.pricingData?.finalPrice || 0);
     if (!total || total <= 0) throw new Error('Montant invalide');
 
-    // Appel CF → la function calcule 20% elle-même
+    // Calculer l'acompte (20% du total)
+    const depositAmount = r2(total * 0.2);
+
+    console.log('💳 Création acompte:', { total, depositAmount });
+
+    // Appel HTTP vers votre serveur Express
     const dep: any = await callSecure(fnCreateDeposit, {
       amount: r2(total),                    // ⚠️ TOTAL en euros
       conversationId: data.conversationId,
