@@ -106,6 +106,7 @@ export const STRIPE_ERRORS = {
 export const testBackendConnection = async () => {
   try {
     console.log('🔍 Test connexion backend:', STRIPE_CONFIG.BACKEND_URL);
+    console.log('🔍 URL complète:', STRIPE_CONFIG.BACKEND_URL + STRIPE_ENDPOINTS.CREATE_PAYMENT_INTENT);
     const res = await fetch(
       STRIPE_CONFIG.BACKEND_URL + STRIPE_ENDPOINTS.CREATE_PAYMENT_INTENT,
       { method: 'OPTIONS' } // ping simple (géré par notre CORS)
