@@ -37,7 +37,11 @@ async function initializeDepositPayment(data: PaymentData): Promise<InitResult> 
     console.log('💳 Création acompte:', { total, depositAmount });
 
     // Appel HTTP vers votre serveur Express
-    const dep: any = await callSecure(fnCreateDeposit, {
+    const dep = await HttpPaymentService.createPaymentIntent(
+      depositAmount,
+      'eur',
+      {
+        type: 'deposit',
       amount: r2(total),                    // ⚠️ TOTAL en euros
       conversationId: data.conversationId,
       serviceDetails: data.serviceDetails ?? null,
