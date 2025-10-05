@@ -42,7 +42,6 @@ async function initializeDepositPayment(data: PaymentData): Promise<InitResult> 
       'eur',
       {
         type: 'deposit',
-      amount: r2(total),                    // ⚠️ TOTAL en euros
       conversationId: data.conversationId,
       serviceDetails: data.serviceDetails ?? null,
     });
