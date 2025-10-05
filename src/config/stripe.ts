@@ -89,7 +89,6 @@ export const STRIPE_ENDPOINTS = {
   CREATE_PAYMENT_INTENT: '/create-payment-intent',
   CONFIRM_PAYMENT: '/confirm-payment',
 
-  // Pas implémentés en Cloud Functions pour l’instant :
   GET_PAYMENT_STATUS: '/payment-status',   // <-- si tu en crées une plus tard
   PROCESS_REFUND: '/process-refund',       // <-- si tu en crées une plus tard
 };
