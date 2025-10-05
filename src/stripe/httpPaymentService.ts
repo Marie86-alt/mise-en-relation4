@@ -1,0 +1,74 @@
+// src/stripe/httpPaymentService.ts
+import { STRIPE_CONFIG, STRIPE_ENDPOINTS } from '../config/stripe';
+
+export interface HttpPaymentRequest {
+  amount: number;
+  currency: string;
+  metadata: Record<string, any>;
+}
+
+export interface HttpPaymentResponse {
+  id: string;
+  client_secret: string;
+  amount: number;
+  currency: string;
+  status: string;
+}
+
+export class HttpPaymentService {
+  private static async makeRequest<T>(endpoint: string, data: any): Promise<T> {
+    const url = STRIPE_CONFIG.BACKEND_URL + endpoint;
+    
+    console.log('🔍 Requête HTTP vers:', url);
+    console.log('📤 Données envoyées:', data);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    console.log('📥 Réponse status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Erreur HTTP:', errorText);
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Réponse reçue:', result);
+    
+    return result as T;
+  }
+
+  static async createPaymentIntent(
+    amount: number,
+    currency: string = 'eur',
+    metadata: Record<string, any> = {}
+  ): Promise<HttpPaymentResponse> {
+    return await this.makeRequest<HttpPaymentResponse>(
+      STRIPE_ENDPOINTS.CREATE_PAYMENT_INTENT,
+      {
+        amount: Math.round(amount * 100), // Convertir en centimes
+        currency,
+        metadata: {
+          ...metadata,
+          source: 'mise-en-relation-app',
+          timestamp: new Date().toISOString(),
+        },
+      }
+    );
+  }
+
+  static async confirmPayment(paymentIntentId: string): Promise<any> {
+    return await this.makeRequest(
+      STRIPE_ENDPOINTS.CONFIRM_PAYMENT,
+      {
+        paymentIntentId,
+      }
+    );
+  }
+}
