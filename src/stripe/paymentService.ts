@@ -42,8 +42,8 @@ async function initializeDepositPayment(data: PaymentData): Promise<InitResult> 
       'eur',
       {
         type: 'deposit',
-      conversationId: data.conversationId,
-      serviceDetails: data.serviceDetails ?? null,
+        conversationId: data.conversationId,
+        serviceDetails: data.serviceDetails ?? null,
     });
 
     if (!dep?.clientSecret || !dep?.paymentIntentId) {
