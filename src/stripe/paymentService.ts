@@ -61,7 +61,7 @@ async function initializeDepositPayment(data: PaymentData): Promise<InitResult> 
     });
     if (error) return { success: false, error: error.message, errorCode: error.code };
 
-    return { success: true, paymentIntentId: String(dep.paymentIntentId) };
+    return { success: true, paymentIntentId: String(dep.id) };
   } catch (e: any) {
     return { success: false, error: e?.message ?? "Erreur d'initialisation de l'acompte" };
   }
