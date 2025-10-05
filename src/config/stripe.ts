@@ -84,9 +84,6 @@ export const STRIPE_CONFIG = {
 
 /**
  * ⚠️ Endpoints pour le serveur Express.js (kebab-case)
- *   createPaymentIntent   -> /createPaymentIntent
- *   confirmPayment        -> /confirmPayment
- * (Tu n’as pas encore de fonctions pour payment-status / refund)
  */
 export const STRIPE_ENDPOINTS = {
   CREATE_PAYMENT_INTENT: '/create-payment-intent',
