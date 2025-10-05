@@ -54,6 +54,7 @@
 
 
 // src/config/stripe.ts
+import Constants from 'expo-constants';
 const isDev = __DEV__;
 
 /**
