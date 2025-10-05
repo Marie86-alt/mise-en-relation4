@@ -2,7 +2,7 @@
 import { initPaymentSheet, presentPaymentSheet } from '@stripe/stripe-react-native';
 import * as Linking from 'expo-linking';
 import { PricingResult } from '../utils/pricing';
-import { callSecure, fnConfirm, fnCreateDeposit, fnCreateFinal } from './firebaseFunctionsClient';
+import { HttpPaymentService } from './httpPaymentService';
 
 // --- Types alignés avec tes écrans ---
 export interface PaymentData {
