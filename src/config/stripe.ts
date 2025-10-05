@@ -66,6 +66,11 @@ const STRIPE_PK = Constants.expoConfig?.extra?.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KE
                  process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
                  'pk_live_51Rw4TC2egT4ENWecEsH5CKF9lfqH4MvW2YOYqDuikwRRTnCmu0hdvbIzW0YVNn9RAljc8KMiOPEIf2yQj7yYoSSh00XyQ4JX09';
 
+console.log('🐛 DEBUG - Variables env:', {
+  BACKEND_URL,
+  STRIPE_PK: STRIPE_PK?.substring(0, 20) + '...',
+});
+
 export const STRIPE_CONFIG = {
   // 🔑 CLÉ PUBLIQUE STRIPE LIVE
   PUBLISHABLE_KEY: STRIPE_PK,
