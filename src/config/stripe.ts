@@ -89,7 +89,7 @@ export const STRIPE_ENDPOINTS = {
   CREATE_PAYMENT_INTENT: '/create-payment-intent',
   CONFIRM_PAYMENT: '/confirm-payment',
 
-  GET_PAYMENT_STATUS: '/payment-status',   // <-- si tu en crées une plus tard
+  GET_PAYMENT_STATUS: '/payment-status',
   PROCESS_REFUND: '/process-refund',       // <-- si tu en crées une plus tard
 };
 
