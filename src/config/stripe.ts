@@ -89,7 +89,7 @@ export const STRIPE_CONFIG = {
  * (Tu n’as pas encore de fonctions pour payment-status / refund)
  */
 export const STRIPE_ENDPOINTS = {
-  CREATE_PAYMENT_INTENT: '/createPaymentIntent',
+  CREATE_PAYMENT_INTENT: '/create-payment-intent',
   CONFIRM_PAYMENT: '/confirmPayment',
 
   // Pas implémentés en Cloud Functions pour l’instant :
