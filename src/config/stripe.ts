@@ -57,14 +57,14 @@
 import Constants from 'expo-constants';
 const isDev = __DEV__;
 
-/**
- * ⚠️ IMPORTANT
- * - Si tu utilises les Cloud Functions, utilise l'URL :
- *   https://europe-west1-<ID_PROJET>.cloudfunctions.net
- * - Remplace <ID_PROJET> par ton vrai projectId Firebase (ex: mise-en-relation-app-prod)
- */
-const FUNCTIONS_BASE_URL =
-  'https://europe-west1-mise-en-relation-app-prod.cloudfunctions.net';
+// Utiliser les variables d'environnement Expo
+const BACKEND_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 
+                   process.env.EXPO_PUBLIC_BACKEND_URL || 
+                   'https://buffy-previsible-cooingly.ngrok-free.dev';
+
+const STRIPE_PK = Constants.expoConfig?.extra?.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+                 process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+                 'pk_live_51Rw4TC2egT4ENWecEsH5CKF9lfqH4MvW2YOYqDuikwRRTnCmu0hdvbIzW0YVNn9RAljc8KMiOPEIf2yQj7yYoSSh00XyQ4JX09';
 
 export const STRIPE_CONFIG = {
   // 🔑 CLÉ PUBLIQUE STRIPE
