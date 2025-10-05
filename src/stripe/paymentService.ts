@@ -49,7 +49,7 @@ async function initializeDepositPayment(data: PaymentData): Promise<InitResult> 
       }
     );
 
-    if (!dep?.clientSecret || !dep?.paymentIntentId) {
+    if (!dep?.client_secret || !dep?.id) {
       return { success: false, error: 'Réponse serveur incomplète (acompte)' };
     }
 
