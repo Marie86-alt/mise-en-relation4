@@ -13,7 +13,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { profilesService } from '@/src/services/firebase/profile';
 import { Colors } from '@/constants/Colors';
-import { ProfileCardSkeleton } from '@/components/ProfileCardSkeleton';
+import ProfileCardSkeleton from '@/components/ProfileCardSkeleton';
 
 // Ce type correspond aux données de la collection 'users'
 type Profile = {
