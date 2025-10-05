@@ -68,9 +68,7 @@ const STRIPE_PK = Constants.expoConfig?.extra?.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KE
 
 export const STRIPE_CONFIG = {
   // 🔑 CLÉ PUBLIQUE STRIPE
-  PUBLISHABLE_KEY: isDev
-    ? 'pk_test_51Rw4TLK4P8PBhDaP4DLO3Pgt9yUvGFuF8dFn93z5xGhybVxZmw22Os3gwFHJ5TcT7Bwg7BBy4Xd71WvmEQrc4ma400zCTApKYb'
-    : 'pk_test_temporaire', // (remplace plus tard par ta pk_live_...)
+  PUBLISHABLE_KEY: STRIPE_PK,
 
   /**
    * 🌐 BACKEND_URL
