@@ -1004,8 +1004,16 @@ const s = StyleSheet.create({
   managementSection: {
     marginBottom: 20
   },
-  sectorsSection: {
+  newMetricsSection: {
     marginBottom: 20
+  },
+  chartSection: {
+    marginBottom: 20,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#eee',
   },
   sectorCard: {
     flexDirection: 'row',
