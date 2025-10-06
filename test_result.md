@@ -77,9 +77,9 @@ backend:
 
   - task: "Statistics Route"
     implemented: true
-    working: true
+    working: false
     file: "backend/server.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -89,6 +89,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: Statistics route working correctly. Returns comprehensive data including payment statistics, user counts, conversation counts, and recent payment history. Data format matches frontend requirements for admin dashboard."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL: Backend /stats endpoint missing new metrics requested in review. Current endpoint only provides basic Stripe/Firebase stats (total_payments, total_users, total_conversations). Missing required metrics: tauxSatisfactionGlobal, evolutionRevenus, nouveauxUtilisateurs, evolutionMensuelle. Frontend statisticsService.ts contains these metrics but backend doesn't use it. Backend needs enhancement to include comprehensive statistics calculations."
 
   - task: "Error Handling"
     implemented: true
