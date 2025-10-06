@@ -150,7 +150,7 @@ if (result.success) {
   }
 
   return (
-    {/* <StripeProvider publishableKey={STRIPE_CONFIG.PUBLISHABLE_KEY}> */}
+    
       <SafeAreaView style={styles.container}>
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
