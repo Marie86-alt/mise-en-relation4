@@ -108,10 +108,18 @@ if (result.success) {
   }, [paymentData, initializePayment, router]);
 
   const handlePayment = async () => {
-    if (!paymentReady || !paymentIntentId || !paymentData) return;
+    if (!paymentReady || !paymentIntentId || !paymentData) {
+      console.log('❌ Conditions non remplies:', { paymentReady, paymentIntentId: !!paymentIntentId, paymentData: !!paymentData });
+      return;
+    }
+    
+    console.log('🎯 Début handlePayment - tentative de présentation Payment Sheet');
     setLoading(true);
     try {
+      console.log('📱 Appel de presentPaymentSheet...');
       const result = await PaymentService.presentPaymentSheet();
+      console.log('📥 Résultat presentPaymentSheet:', result);
+      
       if (result.success) {
         const confirmResult = await PaymentService.confirmPayment(paymentIntentId);
         if (confirmResult.success) {
