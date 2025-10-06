@@ -69,6 +69,7 @@ type StatsData = {
   // Qualité
   evaluationMoyenne: number;
   totalAvis?: number;
+  tauxSatisfactionGlobal?: number;
   
   // Activité
   conversationsActives: number;
