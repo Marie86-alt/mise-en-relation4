@@ -14,10 +14,34 @@ const CONTACT = {
 
 export default function ContactScreen() {
   const handleEmailPress = useCallback(async () => {
-    const url = `mailto:${CONTACT.email}`;
-    const can = await Linking.canOpenURL(url);
-    if (can) Linking.openURL(url);
-    else Alert.alert("Impossible d'ouvrir votre application e-mail.");
+    try {
+      const url = `mailto:${CONTACT.email}?subject=Contact depuis l'app Mise en Relation`;
+      console.log('📧 Tentative d\'ouverture email:', url);
+      
+      const can = await Linking.canOpenURL(url);
+      console.log('📧 CanOpenURL result:', can);
+      
+      if (can) {
+        await Linking.openURL(url);
+        console.log('✅ Email ouvert avec succès');
+      } else {
+        console.log('❌ Impossible d\'ouvrir l\'email');
+        Alert.alert(
+          "Aucune application e-mail", 
+          "Vous pouvez nous contacter directement à :\n\n" + CONTACT.email,
+          [
+            { text: "Copier l'email", onPress: () => {
+              // On pourrait ajouter Clipboard.setString(CONTACT.email) ici
+              Alert.alert("Email", CONTACT.email);
+            }},
+            { text: "OK" }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('❌ Erreur handleEmailPress:', error);
+      Alert.alert("Erreur", "Impossible d'ouvrir l'application e-mail.\n\nVous pouvez nous contacter à :\n" + CONTACT.email);
+    }
   }, []);
 
   const handlePhonePress = useCallback(async () => {
