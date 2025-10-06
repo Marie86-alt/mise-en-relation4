@@ -617,7 +617,7 @@ export default function AdminScreen() {
         // 📊 SECTION STATISTIQUES COMPLÈTE
         <ScrollView style={{ flex: 1, padding: 12 }}>
           <View style={s.statsHeader}>
-            <Text style={s.sectionTitle}>📊 Tableau de bord - Statistiques</Text>
+            <Text style={s.sectionTitle}>📊 Statistiques - Version améliorée</Text>
             <TouchableOpacity
               style={s.refreshBtn}
               onPress={calculateStats}
@@ -627,6 +627,13 @@ export default function AdminScreen() {
                 {loadingStats ? '⏳' : '🔄'} Actualiser
               </Text>
             </TouchableOpacity>
+          </View>
+          
+          {/* 🔍 Indicateur de test - nouvelles fonctionnalités */}
+          <View style={{backgroundColor: '#e3f2fd', padding: 12, borderRadius: 8, marginBottom: 16}}>
+            <Text style={{color: '#1565c0', fontWeight: 'bold'}}>
+              🆕 Nouvelles stats: {stats.nouveauxUtilisateurs || 0} nouveaux • Satisfaction: {(stats.tauxSatisfactionGlobal || 0).toFixed(1)}/5
+            </Text>
           </View>
 
           {loadingStats ? (
