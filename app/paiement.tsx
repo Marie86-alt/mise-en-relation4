@@ -144,10 +144,15 @@ if (result.success) {
           ]);
         }
       } else if (result.error) {
+        console.error('❌ Erreur result.error:', result.error);
         Alert.alert('Erreur de paiement', result.error);
+      } else {
+        console.error('❌ Résultat inconnu:', result);
+        Alert.alert('Erreur de paiement', 'Résultat inconnu');
       }
-    } catch {
-      Alert.alert('Erreur', 'Problème lors du paiement');
+    } catch (error) {
+      console.error('❌ Exception dans handlePayment:', error);
+      Alert.alert('Erreur', `Problème lors du paiement: ${error?.message || error}`);
     } finally {
       setLoading(false);
     }
