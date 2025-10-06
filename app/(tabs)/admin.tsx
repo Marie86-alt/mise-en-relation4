@@ -685,45 +685,6 @@ export default function AdminScreen() {
               </View>
 
               {/* Section retirée : Top 5 secteurs par revenus */}
-              <View style={s.sectorsSection}>
-                <Text style={s.subsectionTitle}>📍 Top 5 Secteurs par revenus</Text>
-                {stats.secteursPopulaires.length > 0 ? (
-                  stats.secteursPopulaires.map((secteur, index) => (
-                    <View key={secteur.secteur} style={s.sectorCard}>
-                      <View style={[s.sectorRank, index === 0 && s.goldRank]}>
-                        <Text style={s.rankNumber}>{index + 1}</Text>
-                      </View>
-                      <View style={s.sectorInfo}>
-                        <Text style={s.sectorName}>{secteur.secteur}</Text>
-                        <Text style={s.sectorStats}>
-                          {secteur.count} aidants
-                          {secteur.services && ` • ${secteur.services} services`}
-                          {` • ${secteur.revenue}€`}
-                        </Text>
-                      </View>
-                      <View style={s.sectorBarContainer}>
-                        <View style={s.sectorBar}>
-                          <View
-                            style={[
-                              s.sectorBarFill,
-                              { 
-                                width: `${(secteur.revenue / Math.max(...stats.secteursPopulaires.map(s => s.revenue))) * 100}%` 
-                              }
-                            ]}
-                          />
-                        </View>
-                        {stats.chiffreAffaires > 0 && (
-                          <Text style={s.sectorPercent}>
-                            {((secteur.revenue / stats.chiffreAffaires) * 100).toFixed(1)}%
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-                  ))
-                ) : (
-                  <Text style={s.muted}>Aucune donnée disponible</Text>
-                )}
-              </View>
 
               {/* 🕐 Dernière mise à jour */}
               {stats.lastUpdate && (
