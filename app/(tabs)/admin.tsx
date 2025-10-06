@@ -977,6 +977,38 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#eee',
   },
+  debugText: {
+    fontSize: 10,
+    color: '#666',
+    marginBottom: 8,
+    fontFamily: 'monospace'
+  },
+  evolutionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  monthLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2c3e50'
+  },
+  servicesCount: {
+    fontSize: 13,
+    color: Colors.light.primary,
+    marginHorizontal: 8
+  },
+  revenueAmount: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#28a745'
+  },
   // Styles pour secteurs supprimés - remplacés par graphiques
   
   updateInfo: {
