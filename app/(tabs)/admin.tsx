@@ -1015,65 +1015,7 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#eee',
   },
-  sectorCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-    gap: 12
-  },
-  sectorRank: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: Colors.light.primary,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  goldRank: {
-    backgroundColor: '#fbbf24'
-  },
-  rankNumber: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700'
-  },
-  sectorInfo: {
-    flex: 1
-  },
-  sectorName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2c3e50'
-  },
-  sectorStats: {
-    fontSize: 12,
-    color: '#687076',
-    marginTop: 2
-  },
-  sectorBarContainer: {
-    alignItems: 'flex-end'
-  },
-  sectorBar: {
-    width: 60,
-    height: 4,
-    backgroundColor: '#eee',
-    borderRadius: 2
-  },
-  sectorBarFill: {
-    height: '100%',
-    backgroundColor: Colors.light.primary,
-    borderRadius: 2
-  },
-  sectorPercent: {
-    fontSize: 11,
-    color: '#64748b',
-    marginTop: 4
-  },
+  // Styles pour secteurs supprimés - remplacés par graphiques
   
   updateInfo: {
     marginTop: 20,
