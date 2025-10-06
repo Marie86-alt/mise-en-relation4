@@ -399,7 +399,10 @@ export default function AdminScreen() {
         aidants: statsData.totalAidants,
         clients: statsData.totalClients,
         services: statsData.servicesRealises,
-        ca: statsData.chiffreAffaires
+        ca: statsData.chiffreAffaires,
+        nouveaux: statsData.nouveauxUtilisateurs,
+        satisfaction: statsData.tauxSatisfactionGlobal,
+        evolution: statsData.evolutionMensuelle?.length || 0
       });
       
       // Met à jour l'état avec les vraies données
