@@ -8,10 +8,12 @@ import 'react-native-reanimated';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StripeProvider } from '@stripe/stripe-react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import '../firebase.config';
 import { AuthProvider, useAuth } from '@/src/contexts/AuthContext';
 import { applyTextInputDefaults } from '@/src/ui/applyTextInputDefaults';
+import { STRIPE_CONFIG } from '@/src/config/stripe';
 applyTextInputDefaults();
 
 function RootLayoutNav() {
