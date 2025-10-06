@@ -10,8 +10,8 @@ import time
 import uuid
 from datetime import datetime
 
-# Configuration
-BASE_URL = "http://localhost:3000"
+# Configuration - Using the ngrok URL from frontend config
+BASE_URL = "https://buffy-previsible-cooingly.ngrok-free.dev"
 HEADERS = {"Content-Type": "application/json"}
 
 class BackendTester:
