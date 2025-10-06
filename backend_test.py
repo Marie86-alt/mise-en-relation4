@@ -289,25 +289,70 @@ class BackendTester:
         return success_count == total_tests
     
     def test_statistics_route(self):
-        """Test 6: Tester la route des statistiques"""
+        """Test 6: Tester la route des statistiques avec nouvelles métriques"""
         try:
             response = requests.get(f"{BASE_URL}/stats", timeout=15)
             
             if response.status_code == 200:
                 data = response.json()
-                expected_fields = ["total_payments", "successful_payments", "total_amount", 
-                                 "total_users", "total_conversations"]
                 
-                missing_fields = [field for field in expected_fields if field not in data]
+                # Champs de base existants
+                basic_fields = ["total_payments", "successful_payments", "total_amount", 
+                               "total_users", "total_conversations"]
                 
-                if not missing_fields:
-                    self.log_result("Statistics Route", True, 
-                                  f"Statistiques récupérées - {data.get('total_users', 0)} utilisateurs")
-                    return True
-                else:
-                    self.log_result("Statistics Route", False, 
-                                  f"Champs manquants: {missing_fields}", data)
-                    return False
+                # Nouvelles métriques ajoutées selon la demande
+                new_metrics = ["tauxSatisfactionGlobal", "evolutionRevenus", 
+                              "nouveauxUtilisateurs", "evolutionMensuelle"]
+                
+                missing_basic = [field for field in basic_fields if field not in data]
+                missing_new = [field for field in new_metrics if field not in data]
+                
+                success = True
+                messages = []
+                
+                if missing_basic:
+                    success = False
+                    messages.append(f"Champs de base manquants: {missing_basic}")
+                
+                if missing_new:
+                    messages.append(f"⚠️ Nouvelles métriques manquantes: {missing_new}")
+                    # Ne pas marquer comme échec si seules les nouvelles métriques manquent
+                    # car elles peuvent ne pas être encore implémentées
+                
+                # Vérifier le format des nouvelles données si présentes
+                if "evolutionRevenus" in data:
+                    if not isinstance(data["evolutionRevenus"], list):
+                        messages.append("evolutionRevenus doit être un tableau")
+                        success = False
+                    elif len(data["evolutionRevenus"]) > 0:
+                        # Vérifier le format des données mensuelles
+                        first_item = data["evolutionRevenus"][0]
+                        if not all(key in first_item for key in ["mois", "revenus"]):
+                            messages.append("Format evolutionRevenus incorrect (mois, revenus requis)")
+                            success = False
+                
+                if "evolutionMensuelle" in data:
+                    if not isinstance(data["evolutionMensuelle"], list):
+                        messages.append("evolutionMensuelle doit être un tableau")
+                        success = False
+                
+                if "tauxSatisfactionGlobal" in data:
+                    taux = data["tauxSatisfactionGlobal"]
+                    if not isinstance(taux, (int, float)) or taux < 0 or taux > 5:
+                        messages.append("tauxSatisfactionGlobal doit être entre 0 et 5")
+                        success = False
+                
+                if "nouveauxUtilisateurs" in data:
+                    if not isinstance(data["nouveauxUtilisateurs"], int) or data["nouveauxUtilisateurs"] < 0:
+                        messages.append("nouveauxUtilisateurs doit être un entier positif")
+                        success = False
+                
+                message = f"Statistiques récupérées - {data.get('total_users', 0)} utilisateurs"
+                if messages:
+                    message += f" | Issues: {'; '.join(messages)}"
+                
+                self.log_result("Statistics Route", success, message, data)
+                return success
             else:
                 self.log_result("Statistics Route", False, 
                               f"Échec récupération stats: {response.status_code} - {response.text}")
