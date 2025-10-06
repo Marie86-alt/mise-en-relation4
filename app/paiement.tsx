@@ -188,7 +188,6 @@ if (result.success) {
           </TouchableOpacity>
         </View>
       </SafeAreaView>
-    
   );
 }
 
