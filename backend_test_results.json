@@ -4,17 +4,17 @@
     "total": 9,
     "success_rate": 0.8888888888888888
   },
-  "timestamp": "2025-10-06T11:27:25.809573",
+  "timestamp": "2025-10-06T11:30:50.697105",
   "results": [
     {
       "test": "Server Startup",
       "success": true,
       "message": "Serveur démarré - Status: running",
-      "timestamp": "2025-10-06T11:27:17.125175",
+      "timestamp": "2025-10-06T11:30:45.615066",
       "details": {
         "message": "🚀 API Mise en Relation",
         "status": "running",
-        "timestamp": "2025-10-06T11:27:16.839Z",
+        "timestamp": "2025-10-06T11:30:45.614Z",
         "stripe_configured": true,
         "firebase_configured": true,
         "firebase_connected": true,
@@ -34,191 +34,214 @@
       "test": "Firebase Integration",
       "success": true,
       "message": "Firebase Admin SDK connecté et fonctionnel",
-      "timestamp": "2025-10-06T11:27:17.624301",
+      "timestamp": "2025-10-06T11:30:46.137771",
       "details": {}
     },
     {
       "test": "Auth Registration",
       "success": true,
-      "message": "Inscription réussie pour test_84bc00c4@example.com",
-      "timestamp": "2025-10-06T11:27:18.762707",
+      "message": "Inscription réussie pour test_21c3e091@example.com",
+      "timestamp": "2025-10-06T11:30:47.038835",
       "details": {}
     },
     {
       "test": "Auth Login",
       "success": true,
       "message": "Connexion réussie avec token",
-      "timestamp": "2025-10-06T11:27:19.419507",
+      "timestamp": "2025-10-06T11:30:47.543395",
       "details": {}
     },
     {
       "test": "Services Search",
       "success": true,
       "message": "Recherche réussie - 0 aidants trouvés",
-      "timestamp": "2025-10-06T11:27:19.902164",
+      "timestamp": "2025-10-06T11:30:47.731103",
       "details": {}
     },
     {
       "test": "Services Profile",
       "success": true,
       "message": "Gestion d'erreur correcte pour profil inexistant",
-      "timestamp": "2025-10-06T11:27:20.444410",
+      "timestamp": "2025-10-06T11:30:48.199862",
       "details": {}
     },
     {
       "test": "Stripe Payment Intent",
       "success": true,
-      "message": "Payment Intent créé: pi_3SFCZY2egT4ENWec13SKXDU2",
-      "timestamp": "2025-10-06T11:27:21.086478",
+      "message": "Payment Intent créé: pi_3SFCcu2egT4ENWec0sMmK5A7",
+      "timestamp": "2025-10-06T11:30:48.441187",
       "details": {}
     },
     {
       "test": "Stripe Payment Status",
       "success": true,
       "message": "Statut récupéré: requires_payment_method",
-      "timestamp": "2025-10-06T11:27:21.656926",
+      "timestamp": "2025-10-06T11:30:48.620757",
       "details": {}
     },
     {
       "test": "Statistics Route",
-      "success": true,
-      "message": "Statistiques récupérées - 18 utilisateurs | Issues: ⚠️ Nouvelles métriques manquantes: ['tauxSatisfactionGlobal', 'evolutionRevenus', 'nouveauxUtilisateurs', 'evolutionMensuelle']",
-      "timestamp": "2025-10-06T11:27:22.996148",
+      "success": false,
+      "message": "Statistiques récupérées - 0 utilisateurs | Issues: Champs de base manquants: ['total_payments', 'successful_payments', 'total_amount', 'total_users', 'total_conversations']",
+      "timestamp": "2025-10-06T11:30:49.606907",
       "details": {
-        "total_payments": 10,
-        "successful_payments": 0,
-        "total_amount": 0,
-        "total_users": 18,
-        "total_conversations": 6,
-        "recent_payments": [
+        "totalAidants": 0,
+        "totalClients": 4,
+        "aidantsVerifies": 0,
+        "aidantsEnAttente": 0,
+        "comptesSuspendus": 0,
+        "nouveauxUtilisateurs": 2,
+        "servicesRealises": 0,
+        "servicesEnCours": 0,
+        "servicesAnnules": 0,
+        "tauxConversion": 0,
+        "chiffreAffaires": 220,
+        "commissionPerçue": 88,
+        "panierMoyen": 0,
+        "evaluationMoyenne": 3.8,
+        "totalAvis": 5,
+        "conversationsActives": 1,
+        "secteursPopulaires": [],
+        "evolutionMensuelle": [
           {
-            "id": "pi_3SFCZY2egT4ENWec13SKXDU2",
-            "amount": 5000,
-            "status": "requires_payment_method",
-            "type": "deposit",
-            "created": "2025-10-06T11:27:20.000Z"
+            "mois": "Mai 2025",
+            "services": 0,
+            "revenue": 0
           },
           {
-            "id": "pi_3SFCXz2egT4ENWec1gBRo4XM",
-            "amount": 5000,
-            "status": "requires_payment_method",
-            "type": "deposit",
-            "created": "2025-10-06T11:25:43.000Z"
+            "mois": "Jun 2025",
+            "services": 0,
+            "revenue": 0
           },
           {
-            "id": "pi_3SFCSS2egT4ENWec0tOBbFGb",
-            "amount": 5000,
-            "status": "requires_payment_method",
-            "type": "deposit",
-            "created": "2025-10-06T11:20:00.000Z"
+            "mois": "Jul 2025",
+            "services": 0,
+            "revenue": 0
           },
           {
-            "id": "pi_3SFBxe2egT4ENWec0mTMuVZr",
-            "amount": 5000,
-            "status": "requires_payment_method",
-            "type": "deposit",
-            "created": "2025-10-06T10:48:10.000Z"
+            "mois": "Aoû 2025",
+            "services": 0,
+            "revenue": 0
           },
           {
-            "id": "pi_3SFBDo2egT4ENWec1Qzfi5Fm",
-            "amount": 220,
-            "status": "requires_payment_method",
-            "type": "deposit",
-            "created": "2025-10-06T10:00:48.000Z"
+            "mois": "Sep 2025",
+            "services": 0,
+            "revenue": 0
           },
           {
-            "id": "pi_3SFB8p2egT4ENWec1wNojSXJ",
-            "amount": 220,
-            "status": "requires_payment_method",
-            "type": "deposit",
-            "created": "2025-10-06T09:55:39.000Z"
-          },
-          {
-            "id": "pi_3SFAUr2egT4ENWec03T00S0X",
-            "amount": 220,
-            "status": "requires_payment_method",
-            "type": "deposit",
-            "created": "2025-10-06T09:14:21.000Z"
-          },
-          {
-            "id": "pi_3SFANT2egT4ENWec1IIzyIGx",
-            "amount": 220,
-            "status": "requires_payment_method",
-            "type": "deposit",
-            "created": "2025-10-06T09:06:43.000Z"
-          },
-          {
-            "id": "pi_3SF9lS2egT4ENWec0r7L7I7Q",
-            "amount": 220,
-            "status": "requires_payment_method",
-            "type": "deposit",
-            "created": "2025-10-06T08:27:26.000Z"
-          },
-          {
-            "id": "pi_3SEmGF2egT4ENWec1olCxrIs",
-            "amount": 440,
-            "status": "requires_payment_method",
-            "type": "standard",
-            "created": "2025-10-05T07:21:39.000Z"
+            "mois": "Oct 2025",
+            "services": 0,
+            "revenue": 0
           }
         ],
-        "total_amount_formatted": "0.00€"
+        "tauxSatisfactionGlobal": 3.8,
+        "evolutionRevenus": [
+          {
+            "mois": "Mai 2025",
+            "revenus": 0
+          },
+          {
+            "mois": "Jun 2025",
+            "revenus": 0
+          },
+          {
+            "mois": "Jul 2025",
+            "revenus": 0
+          },
+          {
+            "mois": "Aoû 2025",
+            "revenus": 0
+          },
+          {
+            "mois": "Sep 2025",
+            "revenus": 0
+          },
+          {
+            "mois": "Oct 2025",
+            "revenus": 0
+          }
+        ],
+        "lastUpdate": "2025-10-06T11:30:49.296Z",
+        "stripe_payments": {
+          "total": 10,
+          "successful": 0,
+          "recent": [
+            {
+              "id": "pi_3SFCcu2egT4ENWec0sMmK5A7",
+              "amount": 5000,
+              "status": "requires_payment_method",
+              "created": "2025-10-06T11:30:48.000Z"
+            },
+            {
+              "id": "pi_3SFCZY2egT4ENWec13SKXDU2",
+              "amount": 5000,
+              "status": "requires_payment_method",
+              "created": "2025-10-06T11:27:20.000Z"
+            },
+            {
+              "id": "pi_3SFCXz2egT4ENWec1gBRo4XM",
+              "amount": 5000,
+              "status": "requires_payment_method",
+              "created": "2025-10-06T11:25:43.000Z"
+            }
+          ]
+        }
       }
     },
     {
       "test": "Taux Satisfaction Global",
-      "success": false,
-      "message": "Métrique tauxSatisfactionGlobal manquante",
-      "timestamp": "2025-10-06T11:27:24.306930",
+      "success": true,
+      "message": "Taux de satisfaction: 3.8/5",
+      "timestamp": "2025-10-06T11:30:50.553149",
       "details": {}
     },
     {
       "test": "Evolution Revenus",
-      "success": false,
-      "message": "Métrique evolutionRevenus manquante",
-      "timestamp": "2025-10-06T11:27:24.306952",
+      "success": true,
+      "message": "Données d'évolution sur 6 mois",
+      "timestamp": "2025-10-06T11:30:50.553177",
       "details": {}
     },
     {
       "test": "Nouveaux Utilisateurs",
-      "success": false,
-      "message": "Métrique nouveauxUtilisateurs manquante",
-      "timestamp": "2025-10-06T11:27:24.306956",
+      "success": true,
+      "message": "Nouveaux utilisateurs ce mois: 2",
+      "timestamp": "2025-10-06T11:30:50.553183",
       "details": {}
     },
     {
       "test": "Evolution Services",
-      "success": false,
-      "message": "Métrique evolutionMensuelle manquante",
-      "timestamp": "2025-10-06T11:27:24.306959",
+      "success": true,
+      "message": "Données d'évolution services: 6 entrées",
+      "timestamp": "2025-10-06T11:30:50.553187",
       "details": {}
     },
     {
       "test": "Error Handling - 404",
       "success": true,
       "message": "Gestion correcte des routes inexistantes",
-      "timestamp": "2025-10-06T11:27:24.653516",
+      "timestamp": "2025-10-06T11:30:50.555334",
       "details": {}
     },
     {
       "test": "Error Handling - Invalid Data",
       "success": true,
       "message": "Gestion correcte des données invalides",
-      "timestamp": "2025-10-06T11:27:25.014882",
+      "timestamp": "2025-10-06T11:30:50.556829",
       "details": {}
     },
     {
       "test": "Error Handling - Payment",
       "success": true,
       "message": "Gestion correcte des montants invalides",
-      "timestamp": "2025-10-06T11:27:25.316675",
+      "timestamp": "2025-10-06T11:30:50.558132",
       "details": {}
     },
     {
       "test": "Environment Config",
       "success": true,
       "message": "Toutes les configurations d'environnement sont correctes",
-      "timestamp": "2025-10-06T11:27:25.808623",
+      "timestamp": "2025-10-06T11:30:50.696897",
       "details": {}
     }
   ]
