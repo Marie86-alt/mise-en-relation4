@@ -126,9 +126,11 @@ export default function AdminScreen() {
     panierMoyen: 0,
     evaluationMoyenne: 0,
     totalAvis: 0,
+    tauxSatisfactionGlobal: 0,
     conversationsActives: 0,
     secteursPopulaires: [],
-    evolutionMensuelle: []
+    evolutionMensuelle: [],
+    evolutionRevenus: []
   });
   const [loadingStats, setLoadingStats] = useState(false);
 
