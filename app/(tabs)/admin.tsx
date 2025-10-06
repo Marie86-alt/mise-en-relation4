@@ -692,7 +692,98 @@ export default function AdminScreen() {
                 </View>
               </View>
 
-              {/* Section retirée : Top 5 secteurs par revenus */}
+              {/* 📅 Nouvelles métriques et activité récente */}
+              <View style={s.newMetricsSection}>
+                <Text style={s.subsectionTitle}>📅 Activité récente</Text>
+                <View style={s.statsGrid}>
+                  <View style={s.statCard}>
+                    <Text style={s.statNumber}>{stats.nouveauxUtilisateurs || 0}</Text>
+                    <Text style={s.statLabel}>👤 Nouveaux ce mois</Text>
+                  </View>
+                  <View style={s.statCard}>
+                    <Text style={s.statNumber}>{(stats.tauxSatisfactionGlobal || 0).toFixed(1)}/5</Text>
+                    <Text style={s.statLabel}>⭐ Satisfaction globale</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* 📈 Graphique d'évolution des services */}
+              <View style={s.chartSection}>
+                <Text style={s.subsectionTitle}>📈 Évolution des services (6 derniers mois)</Text>
+                {stats.evolutionMensuelle.length > 0 ? (
+                  <LineChart
+                    data={{
+                      labels: stats.evolutionMensuelle.slice(-6).map(m => m.mois.split(' ')[0]),
+                      datasets: [
+                        {
+                          data: stats.evolutionMensuelle.slice(-6).map(m => m.services),
+                          color: (opacity = 1) => `rgba(36, 123, 160, ${opacity})`,
+                          strokeWidth: 2
+                        }
+                      ]
+                    }}
+                    width={Dimensions.get('window').width - 40}
+                    height={200}
+                    chartConfig={{
+                      backgroundColor: '#f8f9fa',
+                      backgroundGradientFrom: '#ffffff',
+                      backgroundGradientTo: '#f8f9fa',
+                      decimalPlaces: 0,
+                      color: (opacity = 1) => `rgba(36, 123, 160, ${opacity})`,
+                      labelColor: (opacity = 1) => `rgba(44, 62, 80, ${opacity})`,
+                      style: { borderRadius: 12 },
+                      propsForDots: {
+                        r: "4",
+                        strokeWidth: "2",
+                        stroke: "#247ba0"
+                      }
+                    }}
+                    bezier
+                    style={{
+                      marginVertical: 8,
+                      borderRadius: 12,
+                    }}
+                  />
+                ) : (
+                  <Text style={s.muted}>Aucune donnée disponible</Text>
+                )}
+              </View>
+
+              {/* 💰 Graphique d'évolution des revenus */}
+              <View style={s.chartSection}>
+                <Text style={s.subsectionTitle}>💰 Évolution des revenus (6 derniers mois)</Text>
+                {stats.evolutionMensuelle.length > 0 ? (
+                  <BarChart
+                    data={{
+                      labels: stats.evolutionMensuelle.slice(-6).map(m => m.mois.split(' ')[0]),
+                      datasets: [
+                        {
+                          data: stats.evolutionMensuelle.slice(-6).map(m => m.revenue || 0)
+                        }
+                      ]
+                    }}
+                    width={Dimensions.get('window').width - 40}
+                    height={220}
+                    chartConfig={{
+                      backgroundColor: '#f8f9fa',
+                      backgroundGradientFrom: '#ffffff',
+                      backgroundGradientTo: '#f8f9fa',
+                      decimalPlaces: 0,
+                      color: (opacity = 1) => `rgba(40, 167, 69, ${opacity})`,
+                      labelColor: (opacity = 1) => `rgba(44, 62, 80, ${opacity})`,
+                      style: { borderRadius: 12 },
+                      barPercentage: 0.7,
+                    }}
+                    style={{
+                      marginVertical: 8,
+                      borderRadius: 12,
+                    }}
+                    showValuesOnTopOfBars={true}
+                  />
+                ) : (
+                  <Text style={s.muted}>Aucune donnée disponible</Text>
+                )}
+              </View>
 
               {/* 🕐 Dernière mise à jour */}
               {stats.lastUpdate && (
