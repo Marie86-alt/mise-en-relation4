@@ -713,82 +713,38 @@ export default function AdminScreen() {
                 </View>
               </View>
 
-              {/* 📈 Graphique d'évolution des services */}
+              {/* 📈 Évolution des services - Version simplifiée */}
               <View style={s.chartSection}>
                 <Text style={s.subsectionTitle}>📈 Évolution des services (6 derniers mois)</Text>
-                {stats.evolutionMensuelle.length > 0 ? (
-                  <LineChart
-                    data={{
-                      labels: stats.evolutionMensuelle.slice(-6).map(m => m.mois.split(' ')[0]),
-                      datasets: [
-                        {
-                          data: stats.evolutionMensuelle.slice(-6).map(m => m.services),
-                          color: (opacity = 1) => `rgba(36, 123, 160, ${opacity})`,
-                          strokeWidth: 2
-                        }
-                      ]
-                    }}
-                    width={Dimensions.get('window').width - 40}
-                    height={200}
-                    chartConfig={{
-                      backgroundColor: '#f8f9fa',
-                      backgroundGradientFrom: '#ffffff',
-                      backgroundGradientTo: '#f8f9fa',
-                      decimalPlaces: 0,
-                      color: (opacity = 1) => `rgba(36, 123, 160, ${opacity})`,
-                      labelColor: (opacity = 1) => `rgba(44, 62, 80, ${opacity})`,
-                      style: { borderRadius: 12 },
-                      propsForDots: {
-                        r: "4",
-                        strokeWidth: "2",
-                        stroke: "#247ba0"
-                      }
-                    }}
-                    bezier
-                    style={{
-                      marginVertical: 8,
-                      borderRadius: 12,
-                    }}
-                  />
+                <Text style={s.debugText}>Données evolution: {JSON.stringify(stats.evolutionMensuelle?.slice(0, 2) || [])}</Text>
+                {stats.evolutionMensuelle && stats.evolutionMensuelle.length > 0 ? (
+                  <View>
+                    {stats.evolutionMensuelle.slice(-6).map((month, index) => (
+                      <View key={index} style={s.evolutionRow}>
+                        <Text style={s.monthLabel}>{month.mois}</Text>
+                        <Text style={s.servicesCount}>{month.services} services</Text>
+                        <Text style={s.revenueAmount}>{month.revenue}€</Text>
+                      </View>
+                    ))}
+                  </View>
                 ) : (
-                  <Text style={s.muted}>Aucune donnée disponible</Text>
+                  <Text style={s.muted}>Aucune donnée d'évolution disponible</Text>
                 )}
               </View>
 
-              {/* 💰 Graphique d'évolution des revenus */}
+              {/* 💰 Revenus totaux - Version simple */}
               <View style={s.chartSection}>
-                <Text style={s.subsectionTitle}>💰 Évolution des revenus (6 derniers mois)</Text>
-                {stats.evolutionMensuelle.length > 0 ? (
-                  <BarChart
-                    data={{
-                      labels: stats.evolutionMensuelle.slice(-6).map(m => m.mois.split(' ')[0]),
-                      datasets: [
-                        {
-                          data: stats.evolutionMensuelle.slice(-6).map(m => m.revenue || 0)
-                        }
-                      ]
-                    }}
-                    width={Dimensions.get('window').width - 40}
-                    height={220}
-                    chartConfig={{
-                      backgroundColor: '#f8f9fa',
-                      backgroundGradientFrom: '#ffffff',
-                      backgroundGradientTo: '#f8f9fa',
-                      decimalPlaces: 0,
-                      color: (opacity = 1) => `rgba(40, 167, 69, ${opacity})`,
-                      labelColor: (opacity = 1) => `rgba(44, 62, 80, ${opacity})`,
-                      style: { borderRadius: 12 },
-                      barPercentage: 0.7,
-                    }}
-                    style={{
-                      marginVertical: 8,
-                      borderRadius: 12,
-                    }}
-                    showValuesOnTopOfBars={true}
-                  />
-                ) : (
-                  <Text style={s.muted}>Aucune donnée disponible</Text>
-                )}
+                <Text style={s.subsectionTitle}>💰 Résumé financier</Text>
+                <View style={s.statsGrid}>
+                  <View style={s.statCard}>
+                    <Text style={s.statNumber}>{stats.chiffreAffaires?.toFixed(0) || 0}€</Text>
+                    <Text style={s.statLabel}>💵 Total revenus</Text>
+                  </View>
+                  <View style={s.statCard}>
+                    <Text style={s.statNumber}>{stats.panierMoyen?.toFixed(0) || 0}€</Text>
+                    <Text style={s.statLabel}>🛒 Panier moyen</Text>
+                  </View>
+                </View>
               </View>
 
               {/* 🕐 Dernière mise à jour */}
