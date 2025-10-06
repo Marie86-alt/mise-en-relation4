@@ -117,7 +117,7 @@ if (result.success) {
     setLoading(true);
     try {
       console.log('📱 Appel de presentPaymentSheet...');
-      const result = await PaymentService.presentPaymentSheet();
+      const result = await PaymentService.presentPayment();
       console.log('📥 Résultat presentPaymentSheet:', result);
       
       if (result.success) {
