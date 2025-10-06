@@ -53,13 +53,22 @@ async function initializeDepositPayment(data: PaymentData): Promise<InitResult> 
       return { success: false, error: 'Réponse serveur incomplète (acompte)' };
     }
 
+    console.log('🔄 Initialisation du Payment Sheet...');
+    console.log('🔑 Client Secret:', dep.client_secret?.substring(0, 20) + '...');
+    
     const { error } = await initPaymentSheet({
       paymentIntentClientSecret: dep.client_secret,
       merchantDisplayName: 'Mise en Relation',
       allowsDelayedPaymentMethods: false,
       returnURL: RETURN_URL,
     });
-    if (error) return { success: false, error: error.message, errorCode: error.code };
+    
+    if (error) {
+      console.error('❌ Erreur initPaymentSheet:', error);
+      return { success: false, error: error.message, errorCode: error.code };
+    }
+    
+    console.log('✅ Payment Sheet initialisé avec succès');
 
     return { success: true, paymentIntentId: String(dep.id) };
   } catch (e: any) {
