@@ -724,39 +724,26 @@ export default function AdminScreen() {
               <View style={s.chartSection}>
                 <Text style={s.subsectionTitle}>📈 Évolution des services (6 derniers mois)</Text>
                 {stats.evolutionMensuelle && stats.evolutionMensuelle.length > 0 ? (
-                  <LineChart
-                    data={{
-                      labels: stats.evolutionMensuelle.slice(-6).map(m => m.mois.split(' ')[0]),
-                      datasets: [
-                        {
-                          data: stats.evolutionMensuelle.slice(-6).map(m => Math.max(m.services, 0.1)), // Évite les valeurs 0 pour le graphique
-                          color: (opacity = 1) => `rgba(36, 123, 160, ${opacity})`,
-                          strokeWidth: 3
-                        }
-                      ]
-                    }}
-                    width={Dimensions.get('window').width - 40}
-                    height={220}
-                    chartConfig={{
-                      backgroundColor: '#ffffff',
-                      backgroundGradientFrom: '#ffffff',
-                      backgroundGradientTo: '#f8f9fa',
-                      decimalPlaces: 0,
-                      color: (opacity = 1) => `rgba(36, 123, 160, ${opacity})`,
-                      labelColor: (opacity = 1) => `rgba(44, 62, 80, ${opacity})`,
-                      style: { borderRadius: 16 },
-                      propsForDots: {
-                        r: "6",
-                        strokeWidth: "2",
-                        stroke: "#247ba0"
-                      }
-                    }}
-                    bezier
-                    style={{
-                      marginVertical: 8,
-                      borderRadius: 16,
-                    }}
-                  />
+                  <View style={s.simpleChart}>
+                    <Text style={s.chartTitle}>📈 Tendance des services</Text>
+                    {stats.evolutionMensuelle.slice(-6).map((month, index) => (
+                      <View key={index} style={s.chartRow}>
+                        <Text style={s.monthName}>{month.mois}</Text>
+                        <View style={s.barContainer}>
+                          <View 
+                            style={[
+                              s.serviceBar, 
+                              { 
+                                width: `${Math.max(10, (month.services / Math.max(...stats.evolutionMensuelle.map(m => m.services), 1)) * 100)}%`,
+                                backgroundColor: month.services > 0 ? '#247ba0' : '#e9ecef'
+                              }
+                            ]} 
+                          />
+                        </View>
+                        <Text style={s.serviceCount}>{month.services}</Text>
+                      </View>
+                    ))}
+                  </View>
                 ) : (
                   <Text style={s.muted}>Pas encore de données - Graphique affiché dès le premier service</Text>
                 )}
