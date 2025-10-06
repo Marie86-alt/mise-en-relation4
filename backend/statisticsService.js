@@ -1,5 +1,4 @@
-const admin = require('firebase-admin');
-const db = admin.firestore();
+// Firebase admin will be passed as parameter to avoid initialization issues
 
 const MONTHS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 const SERVICE_DONE = new Set(['termine','evalue','paiement_complet']);
