@@ -296,9 +296,9 @@ class BackendTester:
             if response.status_code == 200:
                 data = response.json()
                 
-                # Champs de base existants
-                basic_fields = ["total_payments", "successful_payments", "total_amount", 
-                               "total_users", "total_conversations"]
+                # Champs de base existants (nouveau format complet)
+                basic_fields = ["totalAidants", "totalClients", "chiffreAffaires", 
+                               "evaluationMoyenne", "conversationsActives"]
                 
                 # Nouvelles métriques ajoutées selon la demande
                 new_metrics = ["tauxSatisfactionGlobal", "evolutionRevenus", 
