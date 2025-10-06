@@ -49,16 +49,27 @@ export class HttpPaymentService {
     currency: string = 'eur',
     metadata: Record<string, any> = {}
   ): Promise<HttpPaymentResponse> {
+    // Convertir tous les objets en strings pour Stripe
+    const stripeMetadata: Record<string, string> = {};
+    
+    Object.entries(metadata).forEach(([key, value]) => {
+      if (typeof value === 'object' && value !== null) {
+        stripeMetadata[key] = JSON.stringify(value);
+      } else {
+        stripeMetadata[key] = String(value);
+      }
+    });
+
+    // Ajouter les métadonnées système
+    stripeMetadata.source = 'mise-en-relation-app';
+    stripeMetadata.timestamp = new Date().toISOString();
+
     return await this.makeRequest<HttpPaymentResponse>(
       STRIPE_ENDPOINTS.CREATE_PAYMENT_INTENT,
       {
         amount: Math.round(amount * 100), // Convertir en centimes
         currency,
-        metadata: {
-          ...metadata,
-          source: 'mise-en-relation-app',
-          timestamp: new Date().toISOString(),
-        },
+        metadata: stripeMetadata,
       }
     );
   }
