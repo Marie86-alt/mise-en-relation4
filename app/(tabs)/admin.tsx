@@ -88,6 +88,10 @@ type StatsData = {
     services: number; 
     revenue: number;
   }[];
+  evolutionRevenus?: {
+    mois: string;
+    revenus: number;
+  }[];
   
   // Méta
   lastUpdate?: string;
