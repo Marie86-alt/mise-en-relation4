@@ -1023,6 +1023,56 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#eee',
   },
+  simpleChart: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 8,
+  },
+  chartTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2c3e50',
+    marginBottom: 12,
+    textAlign: 'center'
+  },
+  chartRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingVertical: 4,
+  },
+  monthName: {
+    width: 70,
+    fontSize: 12,
+    color: '#495057',
+    fontWeight: '500'
+  },
+  barContainer: {
+    flex: 1,
+    height: 20,
+    backgroundColor: '#e9ecef',
+    borderRadius: 10,
+    marginHorizontal: 8,
+    overflow: 'hidden'
+  },
+  serviceBar: {
+    height: '100%',
+    borderRadius: 10,
+    minWidth: 4,
+  },
+  revenueBar: {
+    height: '100%',
+    borderRadius: 10,
+    minWidth: 4,
+  },
+  serviceCount: {
+    width: 30,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#247ba0',
+    textAlign: 'right'
+  },
   debugText: {
     fontSize: 10,
     color: '#666',
