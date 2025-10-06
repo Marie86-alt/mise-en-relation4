@@ -753,33 +753,26 @@ export default function AdminScreen() {
               <View style={s.chartSection}>
                 <Text style={s.subsectionTitle}>💰 Évolution des revenus (6 derniers mois)</Text>
                 {stats.evolutionMensuelle && stats.evolutionMensuelle.length > 0 ? (
-                  <BarChart
-                    data={{
-                      labels: stats.evolutionMensuelle.slice(-6).map(m => m.mois.split(' ')[0]),
-                      datasets: [
-                        {
-                          data: stats.evolutionMensuelle.slice(-6).map(m => Math.max(m.revenue || 0, 0.1)) // Évite les valeurs 0
-                        }
-                      ]
-                    }}
-                    width={Dimensions.get('window').width - 40}
-                    height={220}
-                    chartConfig={{
-                      backgroundColor: '#ffffff',
-                      backgroundGradientFrom: '#ffffff',
-                      backgroundGradientTo: '#f8f9fa',
-                      decimalPlaces: 0,
-                      color: (opacity = 1) => `rgba(40, 167, 69, ${opacity})`,
-                      labelColor: (opacity = 1) => `rgba(44, 62, 80, ${opacity})`,
-                      style: { borderRadius: 16 },
-                      barPercentage: 0.7,
-                    }}
-                    style={{
-                      marginVertical: 8,
-                      borderRadius: 16,
-                    }}
-                    showValuesOnTopOfBars={true}
-                  />
+                  <View style={s.simpleChart}>
+                    <Text style={s.chartTitle}>💰 Évolution des revenus</Text>
+                    {stats.evolutionMensuelle.slice(-6).map((month, index) => (
+                      <View key={index} style={s.chartRow}>
+                        <Text style={s.monthName}>{month.mois}</Text>
+                        <View style={s.barContainer}>
+                          <View 
+                            style={[
+                              s.revenueBar, 
+                              { 
+                                width: `${Math.max(10, ((month.revenue || 0) / Math.max(...stats.evolutionMensuelle.map(m => m.revenue || 0), 1)) * 100)}%`,
+                                backgroundColor: (month.revenue || 0) > 0 ? '#28a745' : '#e9ecef'
+                              }
+                            ]} 
+                          />
+                        </View>
+                        <Text style={s.revenueAmount}>{(month.revenue || 0)}€</Text>
+                      </View>
+                    ))}
+                  </View>
                 ) : (
                   <Text style={s.muted}>Graphique revenus disponible dès les premiers paiements</Text>
                 )}
