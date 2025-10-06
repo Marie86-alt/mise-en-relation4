@@ -421,9 +421,12 @@ export default function AdminScreen() {
         chiffreAffaires: 0,
         commissionPerçue: 0,
         evaluationMoyenne: 0,
+        tauxSatisfactionGlobal: 0,
+        nouveauxUtilisateurs: 0,
         conversationsActives: conversations.filter(c => c.status !== 'termine').length,
         secteursPopulaires: [],
-        evolutionMensuelle: []
+        evolutionMensuelle: [],
+        evolutionRevenus: []
       });
     } finally {
       setLoadingStats(false);
