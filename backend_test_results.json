@@ -4,17 +4,17 @@
     "total": 9,
     "success_rate": 0.8888888888888888
   },
-  "timestamp": "2025-10-06T11:20:04.966098",
+  "timestamp": "2025-10-06T11:25:48.370315",
   "results": [
     {
       "test": "Server Startup",
       "success": true,
       "message": "Serveur démarré - Status: running",
-      "timestamp": "2025-10-06T11:19:55.929766",
+      "timestamp": "2025-10-06T11:25:39.883798",
       "details": {
         "message": "🚀 API Mise en Relation",
         "status": "running",
-        "timestamp": "2025-10-06T11:19:55.651Z",
+        "timestamp": "2025-10-06T11:25:39.599Z",
         "stripe_configured": true,
         "firebase_configured": true,
         "firebase_connected": true,
@@ -34,63 +34,70 @@
       "test": "Firebase Integration",
       "success": true,
       "message": "Firebase Admin SDK connecté et fonctionnel",
-      "timestamp": "2025-10-06T11:19:56.431565",
+      "timestamp": "2025-10-06T11:25:40.378931",
       "details": {}
     },
     {
       "test": "Auth Registration",
       "success": true,
-      "message": "Inscription réussie pour test_1ed76acb@example.com",
-      "timestamp": "2025-10-06T11:19:58.043592",
+      "message": "Inscription réussie pour test_0ab805a6@example.com",
+      "timestamp": "2025-10-06T11:25:41.511648",
       "details": {}
     },
     {
       "test": "Auth Login",
       "success": true,
       "message": "Connexion réussie avec token",
-      "timestamp": "2025-10-06T11:19:58.702805",
+      "timestamp": "2025-10-06T11:25:42.168731",
       "details": {}
     },
     {
       "test": "Services Search",
       "success": true,
       "message": "Recherche réussie - 0 aidants trouvés",
-      "timestamp": "2025-10-06T11:19:59.197120",
+      "timestamp": "2025-10-06T11:25:42.654096",
       "details": {}
     },
     {
       "test": "Services Profile",
       "success": true,
       "message": "Gestion d'erreur correcte pour profil inexistant",
-      "timestamp": "2025-10-06T11:19:59.698430",
+      "timestamp": "2025-10-06T11:25:43.128290",
       "details": {}
     },
     {
       "test": "Stripe Payment Intent",
       "success": true,
-      "message": "Payment Intent créé: pi_3SFCSS2egT4ENWec0tOBbFGb",
-      "timestamp": "2025-10-06T11:20:00.341253",
+      "message": "Payment Intent créé: pi_3SFCXz2egT4ENWec1gBRo4XM",
+      "timestamp": "2025-10-06T11:25:43.779250",
       "details": {}
     },
     {
       "test": "Stripe Payment Status",
       "success": true,
       "message": "Statut récupéré: requires_payment_method",
-      "timestamp": "2025-10-06T11:20:00.912122",
+      "timestamp": "2025-10-06T11:25:44.315568",
       "details": {}
     },
     {
       "test": "Statistics Route",
       "success": true,
-      "message": "Statistiques récupérées - 16 utilisateurs | Issues: ⚠️ Nouvelles métriques manquantes: ['tauxSatisfactionGlobal', 'evolutionRevenus', 'nouveauxUtilisateurs', 'evolutionMensuelle']",
-      "timestamp": "2025-10-06T11:20:02.254951",
+      "message": "Statistiques récupérées - 17 utilisateurs | Issues: ⚠️ Nouvelles métriques manquantes: ['tauxSatisfactionGlobal', 'evolutionRevenus', 'nouveauxUtilisateurs', 'evolutionMensuelle']",
+      "timestamp": "2025-10-06T11:25:45.671559",
       "details": {
         "total_payments": 10,
         "successful_payments": 0,
         "total_amount": 0,
-        "total_users": 16,
+        "total_users": 17,
         "total_conversations": 6,
         "recent_payments": [
+          {
+            "id": "pi_3SFCXz2egT4ENWec1gBRo4XM",
+            "amount": 5000,
+            "status": "requires_payment_method",
+            "type": "deposit",
+            "created": "2025-10-06T11:25:43.000Z"
+          },
           {
             "id": "pi_3SFCSS2egT4ENWec0tOBbFGb",
             "amount": 5000,
@@ -153,13 +160,6 @@
             "status": "requires_payment_method",
             "type": "test",
             "created": "2025-10-04T15:43:15.000Z"
-          },
-          {
-            "id": "pi_3S40aT2egT4ENWec02NyRo2O",
-            "amount": 220,
-            "status": "requires_payment_method",
-            "type": "deposit",
-            "created": "2025-09-05T14:26:01.000Z"
           }
         ],
         "total_amount_formatted": "0.00€"
@@ -169,56 +169,56 @@
       "test": "Taux Satisfaction Global",
       "success": false,
       "message": "Métrique tauxSatisfactionGlobal manquante",
-      "timestamp": "2025-10-06T11:20:03.585144",
+      "timestamp": "2025-10-06T11:25:46.954895",
       "details": {}
     },
     {
       "test": "Evolution Revenus",
       "success": false,
       "message": "Métrique evolutionRevenus manquante",
-      "timestamp": "2025-10-06T11:20:03.585169",
+      "timestamp": "2025-10-06T11:25:46.954921",
       "details": {}
     },
     {
       "test": "Nouveaux Utilisateurs",
       "success": false,
       "message": "Métrique nouveauxUtilisateurs manquante",
-      "timestamp": "2025-10-06T11:20:03.585173",
+      "timestamp": "2025-10-06T11:25:46.954925",
       "details": {}
     },
     {
       "test": "Evolution Services",
       "success": false,
       "message": "Métrique evolutionMensuelle manquante",
-      "timestamp": "2025-10-06T11:20:03.585177",
+      "timestamp": "2025-10-06T11:25:46.954929",
       "details": {}
     },
     {
       "test": "Error Handling - 404",
       "success": true,
       "message": "Gestion correcte des routes inexistantes",
-      "timestamp": "2025-10-06T11:20:03.892616",
+      "timestamp": "2025-10-06T11:25:47.256594",
       "details": {}
     },
     {
       "test": "Error Handling - Invalid Data",
       "success": true,
       "message": "Gestion correcte des données invalides",
-      "timestamp": "2025-10-06T11:20:04.193884",
+      "timestamp": "2025-10-06T11:25:47.565171",
       "details": {}
     },
     {
       "test": "Error Handling - Payment",
       "success": true,
       "message": "Gestion correcte des montants invalides",
-      "timestamp": "2025-10-06T11:20:04.497395",
+      "timestamp": "2025-10-06T11:25:47.878892",
       "details": {}
     },
     {
       "test": "Environment Config",
       "success": true,
       "message": "Toutes les configurations d'environnement sont correctes",
-      "timestamp": "2025-10-06T11:20:04.965176",
+      "timestamp": "2025-10-06T11:25:48.369392",
       "details": {}
     }
   ]
