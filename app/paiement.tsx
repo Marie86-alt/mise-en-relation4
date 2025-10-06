@@ -71,7 +71,9 @@ export default function PaiementScreen() {
     setLoading(true);
     try {
       // Le service calcule lui-même 20% à partir du total
-     const result = await PaymentService.initializeDepositPayment(paymentData);
+console.log('🔄 Début initialisation paiement...');
+const result = await PaymentService.initializeDepositPayment(paymentData);
+console.log('📥 Résultat initializeDepositPayment:', result);
 
 if (result.success) {
   if (result.paymentIntentId) {
