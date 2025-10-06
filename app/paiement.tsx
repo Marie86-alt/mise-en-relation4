@@ -11,7 +11,6 @@ import {
   View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { StripeProvider } from '@stripe/stripe-react-native';
 import { Colors } from '@/constants/Colors';
 import { STRIPE_CONFIG } from '../src/config/stripe';
 import { PaymentData, PaymentService } from '../src/stripe/paymentService';
