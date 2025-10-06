@@ -150,7 +150,6 @@ if (result.success) {
   }
 
   return (
-    
       <SafeAreaView style={styles.container}>
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
