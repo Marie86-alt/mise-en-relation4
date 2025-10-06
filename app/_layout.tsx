@@ -62,16 +62,18 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <ThemeProvider value={DefaultTheme}>
-          <RootLayoutNav />
-          {/* Sur Android edge-to-edge, garde une barre lisible */}
-          <StatusBar
-            style={colorScheme === 'dark' ? 'light' : 'dark'}
-            translucent={Platform.OS === 'android'}
-          />
-        </ThemeProvider>
-      </AuthProvider>
+      <StripeProvider publishableKey={STRIPE_CONFIG.PUBLISHABLE_KEY}>
+        <AuthProvider>
+          <ThemeProvider value={DefaultTheme}>
+            <RootLayoutNav />
+            {/* Sur Android edge-to-edge, garde une barre lisible */}
+            <StatusBar
+              style={colorScheme === 'dark' ? 'light' : 'dark'}
+              translucent={Platform.OS === 'android'}
+            />
+          </ThemeProvider>
+        </AuthProvider>
+      </StripeProvider>
     </SafeAreaProvider>
   );
 }
