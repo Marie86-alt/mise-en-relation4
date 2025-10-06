@@ -76,6 +76,7 @@ const result = await PaymentService.initializeDepositPayment(paymentData);
 console.log('📥 Résultat initializeDepositPayment:', result);
 
 if (result.success) {
+  console.log('✅ Initialisation réussie, paymentIntentId:', result.paymentIntentId);
   if (result.paymentIntentId) {
     setPaymentIntentId(result.paymentIntentId);
     setPaymentReady(true);
