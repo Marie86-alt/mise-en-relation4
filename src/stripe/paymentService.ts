@@ -125,13 +125,27 @@ async function initializeFinalPayment(data: PaymentData): Promise<InitResult> {
 // ---------- PRÉSENTATION DU PAIEMENT ----------
 async function presentPayment(): Promise<SimpleResult> {
   try {
+    console.log('🎬 Appel de presentPaymentSheet() de Stripe...');
     const { error } = await presentPaymentSheet();
+    
     if (error) {
-      if (error.code === 'Canceled') return { success: false, error: 'Paiement annulé' };
+      console.error('❌ Erreur Stripe presentPaymentSheet:', { 
+        code: error.code, 
+        message: error.message,
+        type: error.type 
+      });
+      
+      if (error.code === 'Canceled') {
+        console.log('ℹ️ Paiement annulé par l\'utilisateur');
+        return { success: false, error: 'Paiement annulé' };
+      }
       return { success: false, error: error.message };
     }
+    
+    console.log('✅ presentPaymentSheet réussi !');
     return { success: true };
   } catch (e: any) {
+    console.error('❌ Exception dans presentPayment:', e);
     return { success: false, error: e?.message ?? 'Erreur de présentation du paiement' };
   }
 }
