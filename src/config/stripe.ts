@@ -82,8 +82,8 @@ export const STRIPE_CONFIG = {
   // 🔑 CLÉ PUBLIQUE STRIPE LIVE
   PUBLISHABLE_KEY: STRIPE_PK,
 
-  // 🌐 BACKEND_URL - Utilise ngrok pour les tests
-  BACKEND_URL: BACKEND_URL,
+  // 🌐 BACKEND_URL - Force la bonne URL pour debug
+  BACKEND_URL: FORCE_URL, // Temporaire : force l'URL qui fonctionne
 
   CURRENCY: 'eur',
   COUNTRY: 'FR',
