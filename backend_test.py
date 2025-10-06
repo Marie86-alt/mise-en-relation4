@@ -425,8 +425,95 @@ class BackendTester:
         
         return success_count == total_tests
     
+    def test_new_statistics_metrics(self):
+        """Test 8: Tester spécifiquement les nouvelles métriques statistiques"""
+        try:
+            response = requests.get(f"{BASE_URL}/stats", timeout=15)
+            
+            if response.status_code != 200:
+                self.log_result("New Statistics Metrics", False, 
+                              f"Impossible d'accéder aux stats: {response.status_code}")
+                return False
+            
+            data = response.json()
+            success_count = 0
+            total_tests = 4
+            
+            # Test 1: Taux de satisfaction global
+            if "tauxSatisfactionGlobal" in data:
+                taux = data["tauxSatisfactionGlobal"]
+                if isinstance(taux, (int, float)) and 0 <= taux <= 5:
+                    self.log_result("Taux Satisfaction Global", True, 
+                                  f"Taux de satisfaction: {taux}/5")
+                    success_count += 1
+                else:
+                    self.log_result("Taux Satisfaction Global", False, 
+                                  f"Valeur invalide: {taux} (doit être 0-5)")
+            else:
+                self.log_result("Taux Satisfaction Global", False, 
+                              "Métrique tauxSatisfactionGlobal manquante")
+            
+            # Test 2: Évolution des revenus (6 derniers mois)
+            if "evolutionRevenus" in data:
+                evolution = data["evolutionRevenus"]
+                if isinstance(evolution, list) and len(evolution) <= 6:
+                    # Vérifier le format des données
+                    valid_format = True
+                    for item in evolution:
+                        if not isinstance(item, dict) or "mois" not in item or "revenus" not in item:
+                            valid_format = False
+                            break
+                    
+                    if valid_format:
+                        self.log_result("Evolution Revenus", True, 
+                                      f"Données d'évolution sur {len(evolution)} mois")
+                        success_count += 1
+                    else:
+                        self.log_result("Evolution Revenus", False, 
+                                      "Format des données d'évolution incorrect")
+                else:
+                    self.log_result("Evolution Revenus", False, 
+                                  f"Format invalide: {type(evolution)} (doit être liste ≤6)")
+            else:
+                self.log_result("Evolution Revenus", False, 
+                              "Métrique evolutionRevenus manquante")
+            
+            # Test 3: Nouveaux utilisateurs ce mois
+            if "nouveauxUtilisateurs" in data:
+                nouveaux = data["nouveauxUtilisateurs"]
+                if isinstance(nouveaux, int) and nouveaux >= 0:
+                    self.log_result("Nouveaux Utilisateurs", True, 
+                                  f"Nouveaux utilisateurs ce mois: {nouveaux}")
+                    success_count += 1
+                else:
+                    self.log_result("Nouveaux Utilisateurs", False, 
+                                  f"Valeur invalide: {nouveaux} (doit être entier ≥0)")
+            else:
+                self.log_result("Nouveaux Utilisateurs", False, 
+                              "Métrique nouveauxUtilisateurs manquante")
+            
+            # Test 4: Évolution mensuelle des services
+            if "evolutionMensuelle" in data:
+                evolution_services = data["evolutionMensuelle"]
+                if isinstance(evolution_services, list):
+                    self.log_result("Evolution Services", True, 
+                                  f"Données d'évolution services: {len(evolution_services)} entrées")
+                    success_count += 1
+                else:
+                    self.log_result("Evolution Services", False, 
+                                  f"Format invalide: {type(evolution_services)} (doit être liste)")
+            else:
+                self.log_result("Evolution Services", False, 
+                              "Métrique evolutionMensuelle manquante")
+            
+            return success_count == total_tests
+            
+        except Exception as e:
+            self.log_result("New Statistics Metrics", False, f"Erreur test nouvelles métriques: {str(e)}")
+            return False
+    
     def test_environment_config(self):
-        """Test 8: Vérifier la configuration d'environnement"""
+        """Test 9: Vérifier la configuration d'environnement"""
         try:
             response = requests.get(f"{BASE_URL}/", timeout=10)
             
