@@ -562,6 +562,7 @@ class BackendTester:
             ("Services Routes", self.test_services_routes),
             ("Stripe Integration", self.test_stripe_integration),
             ("Statistics Route", self.test_statistics_route),
+            ("New Statistics Metrics", self.test_new_statistics_metrics),
             ("Error Handling", self.test_error_handling),
             ("Environment Config", self.test_environment_config)
         ]
