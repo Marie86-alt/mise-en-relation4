@@ -73,55 +73,63 @@ async function initializeFinalPayment(data: PaymentData): Promise<InitResult> {
     const total = Number(data.pricingData?.finalPrice || 0);
     if (!total || total <= 0) throw new Error('Montant invalide');
 
-    // Appel CF → la function calcule 80% elle-même (et vérifie qu’un acompte existe)
-    const fin: any = await callSecure(fnCreateFinal, {
-      amount: r2(total),                   // ⚠️ TOTAL en euros
-      conversationId: data.conversationId,
-    });
+    // Calculer le paiement final (80% du total)
+    const finalAmount = r2(total * 0.8);
 
-    // Cas limite: rien à payer (finalAmount = 0)
-    if (!fin?.clientSecret && !fin?.paymentIntentId) {
+    console.log('💳 Création paiement final:', { total, finalAmount });
+
+    // Cas limite: rien à payer
+    if (finalAmount <= 0) {
       return { success: true, paymentIntentId: undefined };
     }
 
-    if (!fin?.clientSecret || !fin?.paymentIntentId) {
+    // Appel HTTP vers votre serveur Express
+    const fin = await HttpPaymentService.createPaymentIntent(
+      finalAmount,
+      'eur',
+      {
+        type: 'final',
+        conversationId: data.conversationId,
+        totalAmount: total,
+        finalAmount,
+      }
+    );
+
+    if (!fin?.client_secret || !fin?.id) {
       return { success: false, error: 'Réponse serveur incomplète (final)' };
     }
 
     const { error } = await initPaymentSheet({
-      paymentIntentClientSecret: fin.clientSecret,
+      paymentIntentClientSecret: fin.client_secret,
       merchantDisplayName: 'Mise en Relation',
       allowsDelayedPaymentMethods: false,
       returnURL: RETURN_URL,
     });
     if (error) return { success: false, error: error.message, errorCode: error.code };
 
-    return { success: true, paymentIntentId: String(fin.paymentIntentId) };
+    return { success: true, paymentIntentId: String(fin.id) };
   } catch (e: any) {
     return { success: false, error: e?.message ?? "Erreur d'initialisation du paiement final" };
   }
 }
 
-// ---------- Payment Sheet ----------
+// ---------- PRÉSENTATION DU PAIEMENT ----------
 async function presentPayment(): Promise<SimpleResult> {
-  const { error } = await presentPaymentSheet();
-  if (error) return { success: false, error: error.message ?? 'Paiement annulé' };
-  return { success: true };
-}
-
-// ---------- Confirmation côté serveur (MAJ Firestore, commissions, etc.) ----------
-async function confirmPayment(paymentIntentId: string): Promise<SimpleResult> {
   try {
-    await callSecure(fnConfirm, { paymentIntentId });
+    const { error } = await presentPaymentSheet();
+    if (error) {
+      if (error.code === 'Canceled') return { success: false, error: 'Paiement annulé' };
+      return { success: false, error: error.message };
+    }
     return { success: true };
   } catch (e: any) {
-    return { success: false, error: e?.message ?? 'Erreur confirmation serveur' };
+    return { success: false, error: e?.message ?? 'Erreur de présentation du paiement' };
   }
 }
 
+// ---------- EXPORTS PUBLICS ----------
 export const PaymentService = {
   initializeDepositPayment,
   initializeFinalPayment,
-  presentPaymentSheet: presentPayment,
-  confirmPayment,
+  presentPayment,
 };
