@@ -45,10 +45,33 @@ export default function ContactScreen() {
   }, []);
 
   const handlePhonePress = useCallback(async () => {
-    const url = `tel:${CONTACT.phoneDial}`;
-    const can = await Linking.canOpenURL(url);
-    if (can) Linking.openURL(url);
-    else Alert.alert("Impossible d'ouvrir l'application Téléphone.");
+    try {
+      const url = `tel:${CONTACT.phoneDial}`;
+      console.log('📞 Tentative d\'ouverture téléphone:', url);
+      
+      const can = await Linking.canOpenURL(url);
+      console.log('📞 CanOpenURL result:', can);
+      
+      if (can) {
+        await Linking.openURL(url);
+        console.log('✅ Téléphone ouvert avec succès');
+      } else {
+        console.log('❌ Impossible d\'ouvrir le téléphone');
+        Alert.alert(
+          "Aucune application téléphone", 
+          "Vous pouvez nous appeler au :\n\n" + CONTACT.phoneDisplay,
+          [
+            { text: "Copier le numéro", onPress: () => {
+              Alert.alert("Téléphone", CONTACT.phoneDisplay);
+            }},
+            { text: "OK" }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('❌ Erreur handlePhonePress:', error);
+      Alert.alert("Erreur", "Impossible d'ouvrir l'application téléphone.\n\nVous pouvez nous appeler au :\n" + CONTACT.phoneDisplay);
+    }
   }, []);
 
   return (
