@@ -3,7 +3,7 @@ import {
   View, Text, ActivityIndicator, TouchableOpacity,
   StyleSheet, FlatList, Alert, TextInput, SafeAreaView, Modal, ScrollView, Dimensions
 } from 'react-native';
-import { LineChart, BarChart } from 'react-native-chart-kit';
+// import { LineChart, BarChart } from 'react-native-chart-kit'; // Temporairement commenté
 import { useAuth } from '@/src/contexts/AuthContext';
 import { Colors } from '@/constants/Colors';
 import {
