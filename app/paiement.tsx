@@ -86,7 +86,8 @@ if (result.success) {
     Alert.alert('Erreur', "Réponse serveur incomplète (acompte)");
   }
 } else {
-  Alert.alert('Erreur', result.error ?? "Impossible d'initialiser le paiement");
+  console.error('❌ Erreur initialisation:', result.error, 'Code:', result.errorCode);
+  Alert.alert('Erreur', `Détails: ${result.error} ${result.errorCode ? `(${result.errorCode})` : ''}`);
 }
     } catch {
       Alert.alert('Erreur', 'Problème de connexion');
