@@ -71,6 +71,13 @@ console.log('🐛 DEBUG - Variables env:', {
   STRIPE_PK: STRIPE_PK?.substring(0, 20) + '...',
 });
 
+console.log('🔍 URL complète pour debug:', BACKEND_URL);
+console.log('📱 Est-ce que buffy est dans l\'URL ?', BACKEND_URL?.includes('buffy'));
+
+// Force la bonne URL en dur pour test
+const FORCE_URL = 'https://buffy-previsible-cooingly.ngrok-free.dev';
+console.log('🚨 FORCE URL pour test:', FORCE_URL);
+
 export const STRIPE_CONFIG = {
   // 🔑 CLÉ PUBLIQUE STRIPE LIVE
   PUBLISHABLE_KEY: STRIPE_PK,
