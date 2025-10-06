@@ -792,7 +792,7 @@ app.get('/stats', async (req, res) => {
     console.log('📊 Requête de statistiques complètes...');
     
     // Utilise le service statistiques complet
-    const stats = await statisticsService.calculateStats();
+    const stats = await statisticsService.calculateStats(db);
     
     // Ajouter quelques statistiques Stripe de base si disponibles
     try {
