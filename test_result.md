@@ -94,16 +94,19 @@ backend:
         comment: "❌ CRITICAL: Backend /stats endpoint missing new metrics requested in review. Current endpoint only provides basic Stripe/Firebase stats (total_payments, total_users, total_conversations). Missing required metrics: tauxSatisfactionGlobal, evolutionRevenus, nouveauxUtilisateurs, evolutionMensuelle. Frontend statisticsService.ts contains these metrics but backend doesn't use it. Backend needs enhancement to include comprehensive statistics calculations."
 
   - task: "Enhanced Statistics Metrics"
-    implemented: false
-    working: false
-    file: "backend/server.js"
+    implemented: true
+    working: true
+    file: "backend/statisticsService.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "❌ CRITICAL: New statistics metrics NOT IMPLEMENTED in backend Express.js. Review request specifically asks for: 1) tauxSatisfactionGlobal (global satisfaction rate), 2) evolutionRevenus (revenue evolution 6 months), 3) nouveauxUtilisateurs (new users this month), 4) evolutionMensuelle (services evolution 6 months). Frontend statisticsService.ts already contains comprehensive logic for these calculations. Backend /stats route needs to be enhanced to include these metrics or call the frontend service logic."
+      - working: true
+        agent: "testing"
+        comment: "✅ FIXED & VERIFIED: All 4 new statistics metrics successfully implemented and working: 1) tauxSatisfactionGlobal: 3.8/5 (global satisfaction rate from avis collection), 2) evolutionRevenus: 6 months revenue evolution data with proper format [{mois, revenus}], 3) nouveauxUtilisateurs: 3 new users this month, 4) evolutionMensuelle: 6 months services evolution [{mois, services, revenue}]. Fixed Firebase initialization issue in statisticsService.js by passing db instance as parameter. Backend /stats endpoint now returns comprehensive statistics from Firebase collections (users, services, avis, conversations, transactions) with proper calculations and data formatting for frontend graphs."
 
   - task: "Error Handling"
     implemented: true
