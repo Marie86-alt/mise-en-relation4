@@ -230,6 +230,12 @@ const transactions = transactionsSnap.docs.map(
       conversationsActives,
       secteursPopulaires,
       evolutionMensuelle,
+      // 📊 Nouvelles métriques ajoutées
+      tauxSatisfactionGlobal: r1(evaluationMoyenne), // Note sur 5 convertie en pourcentage
+      evolutionRevenus: evolutionMensuelle.map(m => ({ 
+        mois: m.mois, 
+        revenus: m.revenue 
+      })),
 
       lastUpdate: new Date().toISOString(),
     };
