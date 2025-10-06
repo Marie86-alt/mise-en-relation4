@@ -784,41 +784,63 @@ app.post('/process-refund', async (req, res) => {
 // 📊 STATISTIQUES
 // ===========================================
 
+// Service statistiques complet
+const statisticsService = require('./statisticsService');
+
 app.get('/stats', async (req, res) => {
   try {
-    const payments = await stripe.paymentIntents.list({ limit: 10 });
-
-    // Statistiques Firebase
-    const [usersSnapshot, conversationsSnapshot] = await Promise.all([
-      db.collection('users').count().get(),
-      db.collection('conversations').count().get()
-    ]);
-
-    const stats = {
-      total_payments: payments.data.length,
-      successful_payments: payments.data.filter(p => p.status === 'succeeded').length,
-      total_amount: payments.data
-        .filter(p => p.status === 'succeeded')
-        .reduce((sum, p) => sum + p.amount, 0),
-      
-      total_users: usersSnapshot.data().count,
-      total_conversations: conversationsSnapshot.data().count,
-      
-      recent_payments: payments.data.map(p => ({
-        id: p.id,
-        amount: p.amount,
-        status: p.status,
-        type: p.metadata.type || 'standard',
-        created: new Date(p.created * 1000).toISOString(),
-      }))
-    };
-
-    stats.total_amount_formatted = `${(stats.total_amount/100).toFixed(2)}€`;
+    console.log('📊 Requête de statistiques complètes...');
+    
+    // Utilise le service statistiques complet
+    const stats = await statisticsService.calculateStats();
+    
+    // Ajouter quelques statistiques Stripe de base si disponibles
+    try {
+      const payments = await stripe.paymentIntents.list({ limit: 10 });
+      stats.stripe_payments = {
+        total: payments.data.length,
+        successful: payments.data.filter(p => p.status === 'succeeded').length,
+        recent: payments.data.slice(0, 3).map(p => ({
+          id: p.id,
+          amount: p.amount,
+          status: p.status,
+          created: new Date(p.created * 1000).toISOString(),
+        }))
+      };
+    } catch (stripeError) {
+      console.warn('⚠️ Stripe non disponible pour stats:', stripeError.message);
+      stats.stripe_payments = { error: 'Stripe non disponible' };
+    }
 
     res.json(stats);
   } catch (error) {
-    console.error('❌ Erreur stats:', error.message);
-    res.status(500).json({ error: 'Erreur lors de la récupération des statistiques' });
+    console.error('❌ Erreur stats complètes:', error.message);
+    
+    // Fallback : statistiques de base
+    try {
+      const [usersSnapshot, conversationsSnapshot] = await Promise.all([
+        db.collection('users').count().get(),
+        db.collection('conversations').count().get()
+      ]);
+
+      const fallbackStats = {
+        error: 'Calcul complet échoué - données de base',
+        total_users: usersSnapshot.data().count,
+        total_conversations: conversationsSnapshot.data().count,
+        totalAidants: 0,
+        totalClients: 0,
+        nouveauxUtilisateurs: 0,
+        tauxSatisfactionGlobal: 0,
+        evolutionMensuelle: [],
+        evolutionRevenus: [],
+        lastUpdate: new Date().toISOString()
+      };
+      
+      res.json(fallbackStats);
+    } catch (fallbackError) {
+      console.error('❌ Erreur fallback stats:', fallbackError.message);
+      res.status(500).json({ error: 'Erreur lors de la récupération des statistiques' });
+    }
   }
 });
 
