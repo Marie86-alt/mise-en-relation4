@@ -1,0 +1,118 @@
+{
+  "summary": {
+    "passed": 8,
+    "total": 8,
+    "success_rate": 1.0
+  },
+  "timestamp": "2025-10-06T10:48:12.001522",
+  "results": [
+    {
+      "test": "Server Startup",
+      "success": true,
+      "message": "Serveur démarré - Status: running",
+      "timestamp": "2025-10-06T10:48:07.478712",
+      "details": {
+        "message": "🚀 API Mise en Relation",
+        "status": "running",
+        "timestamp": "2025-10-06T10:48:07.477Z",
+        "stripe_configured": true,
+        "firebase_configured": true,
+        "firebase_connected": true,
+        "endpoints": [
+          "POST /api/auth/register - Inscription",
+          "POST /api/auth/login - Connexion",
+          "POST /api/services/search - Rechercher aidants",
+          "GET /api/services/profile/:id - Profil aidant",
+          "POST /create-payment-intent - Créer Payment Intent",
+          "POST /confirm-payment - Confirmer paiement",
+          "GET /payment-status/:id - Statut paiement",
+          "GET /stats - Statistiques"
+        ]
+      }
+    },
+    {
+      "test": "Firebase Integration",
+      "success": true,
+      "message": "Firebase Admin SDK connecté et fonctionnel",
+      "timestamp": "2025-10-06T10:48:08.013742",
+      "details": {}
+    },
+    {
+      "test": "Auth Registration",
+      "success": true,
+      "message": "Inscription réussie pour test_2584eec1@example.com",
+      "timestamp": "2025-10-06T10:48:09.292287",
+      "details": {}
+    },
+    {
+      "test": "Auth Login",
+      "success": true,
+      "message": "Connexion réussie avec token",
+      "timestamp": "2025-10-06T10:48:09.718407",
+      "details": {}
+    },
+    {
+      "test": "Services Search",
+      "success": true,
+      "message": "Recherche réussie - 0 aidants trouvés",
+      "timestamp": "2025-10-06T10:48:10.009937",
+      "details": {}
+    },
+    {
+      "test": "Services Profile",
+      "success": true,
+      "message": "Gestion d'erreur correcte pour profil inexistant",
+      "timestamp": "2025-10-06T10:48:10.384116",
+      "details": {}
+    },
+    {
+      "test": "Stripe Payment Intent",
+      "success": true,
+      "message": "Payment Intent créé: pi_3SFBxe2egT4ENWec0mTMuVZr",
+      "timestamp": "2025-10-06T10:48:10.697654",
+      "details": {}
+    },
+    {
+      "test": "Stripe Payment Status",
+      "success": true,
+      "message": "Statut récupéré: requires_payment_method",
+      "timestamp": "2025-10-06T10:48:10.883198",
+      "details": {}
+    },
+    {
+      "test": "Statistics Route",
+      "success": true,
+      "message": "Statistiques récupérées - 4 utilisateurs",
+      "timestamp": "2025-10-06T10:48:11.840729",
+      "details": {}
+    },
+    {
+      "test": "Error Handling - 404",
+      "success": true,
+      "message": "Gestion correcte des routes inexistantes",
+      "timestamp": "2025-10-06T10:48:11.843024",
+      "details": {}
+    },
+    {
+      "test": "Error Handling - Invalid Data",
+      "success": true,
+      "message": "Gestion correcte des données invalides",
+      "timestamp": "2025-10-06T10:48:11.844608",
+      "details": {}
+    },
+    {
+      "test": "Error Handling - Payment",
+      "success": true,
+      "message": "Gestion correcte des montants invalides",
+      "timestamp": "2025-10-06T10:48:11.845974",
+      "details": {}
+    },
+    {
+      "test": "Environment Config",
+      "success": true,
+      "message": "Toutes les configurations d'environnement sont correctes",
+      "timestamp": "2025-10-06T10:48:12.001346",
+      "details": {}
+    }
+  ]
+}
