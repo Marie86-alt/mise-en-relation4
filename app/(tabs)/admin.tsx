@@ -684,7 +684,7 @@ export default function AdminScreen() {
                 </View>
               </View>
 
-              {/* 📍 Secteurs populaires */}
+              {/* Section retirée : Top 5 secteurs par revenus */}
               <View style={s.sectorsSection}>
                 <Text style={s.subsectionTitle}>📍 Top 5 Secteurs par revenus</Text>
                 {stats.secteursPopulaires.length > 0 ? (
