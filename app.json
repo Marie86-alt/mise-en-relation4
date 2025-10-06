@@ -58,7 +58,7 @@
       "eas": {
         "projectId": "9405dede-40c8-4c9d-a6e6-4fa8f7992c05"
       },
-      "EXPO_PUBLIC_BACKEND_URL": "https://buffy-previsible-cooingly.ngrok-free.dev",
+      "EXPO_PUBLIC_BACKEND_URL": "https://NOUVELLE_URL_NGROK",
       "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_live_51Rw4TC2egT4ENWecEsH5CKF9lfqH4MvW2YOYqDuikwRRTnCmu0hdvbIzW0YVNn9RAljc8KMiOPEIf2yQj7yYoSSh00XyQ4JX09"
     }
   }
