@@ -80,6 +80,7 @@ if (result.success) {
   if (result.paymentIntentId) {
     setPaymentIntentId(result.paymentIntentId);
     setPaymentReady(true);
+    console.log('✅ Payment Sheet prêt !');
   } else {
     // succès mais pas d’ID: cas inattendu → on traite comme erreur
     Alert.alert('Erreur', "Réponse serveur incomplète (acompte)");
