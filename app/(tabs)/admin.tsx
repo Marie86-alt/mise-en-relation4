@@ -720,10 +720,9 @@ export default function AdminScreen() {
                 </View>
               </View>
 
-              {/* 📈 Évolution des services - Version simplifiée */}
+              {/* 📈 Graphique d'évolution des services */}
               <View style={s.chartSection}>
                 <Text style={s.subsectionTitle}>📈 Évolution des services (6 derniers mois)</Text>
-                <Text style={s.debugText}>Données evolution: {JSON.stringify(stats.evolutionMensuelle?.slice(0, 2) || [])}</Text>
                 {stats.evolutionMensuelle && stats.evolutionMensuelle.length > 0 ? (
                   <View>
                     {stats.evolutionMensuelle.slice(-6).map((month, index) => (
