@@ -234,13 +234,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Server Startup"
-    - "Firebase Integration"
-    - "Authentication Routes"
-    - "Services Routes"
-    - "Stripe Integration"
+    - "Enhanced Statistics Metrics"
     - "Statistics Route"
-  stuck_tasks: []
+  stuck_tasks: 
+    - "Enhanced Statistics Metrics"
   test_all: false
   test_priority: "high_first"
 
