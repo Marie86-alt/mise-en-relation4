@@ -24,8 +24,12 @@ const r2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 const r1 = (n) => Math.round((Number(n) || 0) * 10) / 10;
 const r0 = (n) => Math.round(Number(n) || 0);
 
-const calculateStats = async () => {
+const calculateStats = async (db) => {
   console.log('📊 Calcul des statistiques RÉELLES depuis Firebase...');
+
+  if (!db) {
+    throw new Error('Database instance is required');
+  }
 
   try {
     // Charge toutes les collections
