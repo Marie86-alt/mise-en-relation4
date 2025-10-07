@@ -261,12 +261,14 @@ metadata:
 
 test_plan:
   current_focus: 
+    - "Application Launch"
     - "Live Application Access"
   stuck_tasks: 
     - "Application Launch"
     - "Live Application Access"
   test_all: false
   test_priority: "high_first"
+  system_limitations: "ENOSPC file watcher limits prevent Expo development server startup in container environment"
 
 agent_communication:
   - agent: "testing"
