@@ -195,22 +195,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   if (!user?.uid) return;
 
   const ref = doc(db, 'users', user.uid);
-  const unsub = onSnapshot(ref, (snap) => {
-    const data = snap.data() as Partial<User> | undefined;
-    if (!data) return;
+  const unsub = onSnapshot(
+    ref, 
+    (snap) => {
+      const data = snap.data() as Partial<User> | undefined;
+      if (!data) return;
 
-    setUser((prev) =>
-      prev
-        ? {
-            ...prev,
-            role: (data.role as User['role']) ?? prev.role,
-            isAdmin: data.isAdmin === true || data.role === 'admin',
-            isSuspended: typeof data.isSuspended === 'boolean' ? data.isSuspended : prev.isSuspended,
-            isDeleted: typeof data.isDeleted === 'boolean' ? data.isDeleted : prev.isDeleted,
-          }
-        : prev
-    );
-  });
+      setUser((prev) =>
+        prev
+          ? {
+              ...prev,
+              role: (data.role as User['role']) ?? prev.role,
+              isAdmin: data.isAdmin === true || data.role === 'admin',
+              isSuspended: typeof data.isSuspended === 'boolean' ? data.isSuspended : prev.isSuspended,
+              isDeleted: typeof data.isDeleted === 'boolean' ? data.isDeleted : prev.isDeleted,
+            }
+          : prev
+      );
+    },
+    (error) => {
+      // Gestion silencieuse des erreurs de déconnexion Firebase
+      if (error.code !== 'permission-denied' && error.code !== 'unavailable') {
+        console.warn('Firebase listener error:', error);
+      }
+    }
+  );
 
   return unsub;
 }, [user?.uid]); // ✅ dépend de l’uid actuel
