@@ -293,6 +293,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         await fbSignOut(auth);
         setUser(null);
+        // Navigation vers la page d'accueil après déconnexion
+        if (typeof window !== 'undefined') {
+          // Pour éviter l'erreur POP_TO_TOP, on navigue explicitement vers l'accueil
+          const { router } = require('expo-router');
+          router.replace('/');
+        }
       } catch (e: any) {
         setError(e?.message ?? 'Erreur déconnexion');
         throw e;
