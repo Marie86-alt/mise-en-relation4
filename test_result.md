@@ -235,6 +235,18 @@ frontend:
         agent: "testing"
         comment: "✅ VERIFIED: Admin authentication properly implemented with isAdmin checks, role-based access control, and proper error handling. AuthContext includes admin role detection (isAdmin boolean and role === 'admin'), suspended/deleted account handling with user alerts, and Firebase integration for real-time user state updates."
 
+  - task: "Live Application Access"
+    implemented: true
+    working: false
+    file: "app.json"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL: Live application at https://r3x0kmq-mariemeng-8082.exp.direct is offline (ERR_NGROK_3200). Expo development server or ngrok tunnel not running. Cannot test: 1) App startup without Reanimated errors, 2) Navigation between tabs (Accueil, Recherche, Messages, Contact, Admin), 3) Admin statistics dashboard with new features (📅 Activité récente, 📈 Évolution des services, 💰 Évolution des revenus, 💰 Résumé financier), 4) 🔄 Actualiser button functionality, 5) Firebase connectivity with real data (5 clients, 220€ CA). App needs to be restarted for client presentation."
+
 metadata:
   created_by: "testing_agent"
   version: "1.1"
