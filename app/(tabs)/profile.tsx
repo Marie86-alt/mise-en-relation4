@@ -78,7 +78,7 @@ export default function ProfileScreen() {
   };
 
   const handleSaveChanges = async () => {
-    if (!genre || !secteur || !experience || !tarif || !description) {
+    if (!genre || !secteur || !experience || !description) {
       Alert.alert('Champs requis', 'Veuillez remplir tous les champs du profil aidant.');
       return;
     }
