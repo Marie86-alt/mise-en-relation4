@@ -239,7 +239,7 @@ const handleJourChange = (text: string) => {
             <Text style={styles.logoutButtonText}>Déconnexion</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.title}>Mise en relation</Text>
+        <Text style={styles.title}>A La Case Nout Gramoun</Text>
         <Text style={styles.subtitle}>Trouvez l&apos;aide qu&apos;il vous faut</Text>
       </View>
 
