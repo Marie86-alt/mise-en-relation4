@@ -145,7 +145,7 @@ export class PricingService {
 
       // 🛡️ Vérification que l'heure de fin est après le début
       if (end <= start) {
-        console.error('L\'heure de fin doit être après l\'heure de début');
+        console.log('🔍 L\'heure de fin doit être après l\'heure de début');
         return {
           hours: 0,
           basePrice: 0,
