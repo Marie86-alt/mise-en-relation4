@@ -72,7 +72,7 @@ export default function ConversationScreen() {
       
       if ('error' in result) {
         // Gestion de l'erreur sans exception
-        console.log('❌ Erreur calcul tarification:', result.error);
+        // Erreur gérée silencieusement - affichage dans l'interface uniquement
         setPricingError(result.error);
         setPricingData(null);
       } else {
