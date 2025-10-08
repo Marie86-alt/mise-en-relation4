@@ -47,7 +47,7 @@ const ConversationCard = ({ item, onPress }: { item: Conversation; onPress: () =
   return (
     <TouchableOpacity style={styles.serviceCard} onPress={onPress}>
       <View style={styles.serviceHeader}>
-        <View style={[styles.avatar, { backgroundColor: statutInfo.couleur }]}>
+        <View style={styles.avatar}>
           <Text style={styles.avatarText}>{(otherUser?.displayName || '?').charAt(0).toUpperCase()}</Text>
         </View>
         <View style={styles.serviceInfo}>
