@@ -167,7 +167,7 @@ export class PricingService {
 
       // 🛡️ Validation du résultat
       if (isNaN(hours) || hours <= 0) {
-        console.error(`Durée invalide calculée: ${hours}h`);
+        console.log(`🔍 Durée invalide calculée: ${hours}h`);
         return {
           hours: 0,
           basePrice: 0,
