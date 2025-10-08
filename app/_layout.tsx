@@ -39,6 +39,18 @@ function RootLayoutNav() {
     }
   }, [user, loading, segments, router]);
 
+  // Écran de chargement pendant l'initialisation
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff' }}>
+        <ActivityIndicator size="large" color="#247ba0" />
+        <Text style={{ marginTop: 16, fontSize: 16, color: '#666', textAlign: 'center' }}>
+          Chargement...
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
