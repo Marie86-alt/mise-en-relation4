@@ -58,7 +58,7 @@ export class PricingService {
     const date = new Date(`2000-01-01T${cleanTime}:00`);
     
     if (isNaN(date.getTime())) {
-      console.error(`Impossible de parser l'heure: "${timeString}"`);
+      console.log(`🔍 Impossible de parser l'heure: "${timeString}"`);
       return null;
     }
     
