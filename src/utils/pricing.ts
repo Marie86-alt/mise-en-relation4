@@ -200,11 +200,6 @@ export class PricingService {
       }
       
       return result;
-
-    } catch (error) {
-      console.error('❌ Erreur dans calculatePriceFromTimeRange:', error);
-      return { error: error instanceof Error ? error.message : 'Erreur de calcul de tarification' };
-    }
   }
 
   /**
