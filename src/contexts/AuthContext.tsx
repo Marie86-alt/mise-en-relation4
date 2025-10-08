@@ -177,6 +177,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(null);
           setError('Votre compte est suspendu. Contactez le support.');
           await fbSignOut(auth);
+          setLoading(false);
           return;
         }
 
