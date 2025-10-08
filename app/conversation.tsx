@@ -784,6 +784,32 @@ const styles = StyleSheet.create({
   tarificationTitle: { fontSize: 16, fontWeight: 'bold', color: '#212529', marginBottom: 10 },
   tarificationDetails: {},
   tarificationRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 },
+  
+  // Styles pour l'erreur de tarification
+  errorContainer: {
+    backgroundColor: '#fff5f5',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+  },
+  errorTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#dc2626',
+    marginBottom: 8,
+  },
+  errorMessage: {
+    fontSize: 14,
+    color: '#dc2626',
+    marginBottom: 8,
+  },
+  errorHint: {
+    fontSize: 13,
+    color: '#6b7280',
+    fontStyle: 'italic',
+  },
   tarificationLabel: { fontSize: 14, color: '#495057' },
   tarificationValue: { fontSize: 14, fontWeight: '500', color: '#212529' },
   prixBarre: { textDecorationLine: 'line-through', color: '#6c757d' },
