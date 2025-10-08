@@ -130,7 +130,13 @@ export default function ProfileListScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <TouchableOpacity style={styles.backButton} onPress={() => {
+              try {
+                router.replace('/(tabs)');
+              } catch (error) {
+                console.error('Erreur navigation nouvelle recherche:', error);
+              }
+            }}>
                 <Text style={styles.backButtonText}>← Nouvelle recherche</Text>
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Aidants disponibles</Text>
@@ -161,7 +167,13 @@ export default function ProfileListScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backButton} onPress={() => {
+              try {
+                router.replace('/(tabs)');
+              } catch (error) {
+                console.error('Erreur navigation nouvelle recherche:', error);
+              }
+            }}>
           <Text style={styles.backButtonText}>← Nouvelle recherche</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Aidants disponibles</Text>
