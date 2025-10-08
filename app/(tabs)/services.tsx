@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
-  avatarText: { color: '#ffffff', fontSize: 18, fontWeight: 'bold' },
+  avatarText: { color: Colors.light.primary, fontSize: 18, fontWeight: '900', letterSpacing: 0.5 },
   serviceInfo: { flex: 1 },
   profileName: { fontSize: 16, fontWeight: 'bold', color: '#2c3e50' },
   serviceSecteur: { fontSize: 14, color: Colors.light.primary, fontWeight: '500' },
