@@ -510,8 +510,14 @@ export default function ConversationScreen() {
             />
             {renderTarificationInfo()}
             
-            <TouchableOpacity style={styles.confirmerButton} onPress={() => setShowConfirmationModal(true)}>
-              <Text style={styles.confirmerButtonText}>✅ Confirmer le service</Text>
+            <TouchableOpacity 
+              style={[styles.confirmerButton, pricingError && styles.buttonDisabled]} 
+              onPress={() => setShowConfirmationModal(true)}
+              disabled={!!pricingError}
+            >
+              <Text style={[styles.confirmerButtonText, pricingError && styles.buttonTextDisabled]}>
+                {pricingError ? '⚠️ Service non disponible' : '✅ Confirmer le service'}
+              </Text>
             </TouchableOpacity>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
               <View style={styles.inputContainer}>
