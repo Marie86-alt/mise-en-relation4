@@ -197,7 +197,7 @@ export class PricingService {
 
     } catch (error) {
       console.error('❌ Erreur dans calculatePriceFromTimeRange:', error);
-      throw error; // Re-lancer l'erreur pour qu'elle soit gérée par l'appelant
+      return { error: error instanceof Error ? error.message : 'Erreur de calcul de tarification' };
     }
   }
 
