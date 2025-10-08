@@ -170,7 +170,7 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Tarif horaire (€/heure)</Text>
+            <Text style={styles.label}>Tarif horaire</Text>
             <TextInput
               style={styles.input}
               placeholder="Ex: 15"
