@@ -92,6 +92,11 @@ export default function ProfileListScreen() {
     });
   };
 
+  // Fonction pour obtenir les initiales
+  const getInitials = (name: string) => {
+    if (!name) return '?';
+    return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('').slice(0, 2);
+  };
   const renderProfile = ({ item }: { item: Profile }) => (
     <TouchableOpacity 
       style={styles.profileCard}
