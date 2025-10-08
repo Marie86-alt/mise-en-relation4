@@ -96,7 +96,7 @@ export default function ProfileScreen() {
         genre,
         secteur,
         experience: expNum,
-        tarifHeure: tarifNum,
+        tarifHeure: 22, // Tarif fixe
         description,
         isAidant: true,
       };
