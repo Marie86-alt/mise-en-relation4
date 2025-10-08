@@ -185,8 +185,18 @@ export default function ConversationScreen() {
   };
 
   const retournerEnArriere = () => {
-    if (router.canGoBack()) router.back();
-    else router.replace('/');
+    try {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        // Retour vers la page de recherche (onglet principal)
+        router.replace('/(tabs)');
+      }
+    } catch (error) {
+      console.error('Erreur navigation retour:', error);
+      // Fallback vers l'accueil
+      router.replace('/(tabs)');
+    }
   };
 
   const confirmerService = () => {
