@@ -499,9 +499,6 @@ export default function ConversationScreen() {
                   <Text style={styles.sendButtonText}>{loading ? '…' : '📤'}</Text>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity style={styles.confirmerButton} onPress={() => setShowConfirmationModal(true)}>
-                <Text style={styles.confirmerButtonText}>✅ Confirmer le service</Text>
-              </TouchableOpacity>
             </KeyboardAvoidingView>
           </>
         );
