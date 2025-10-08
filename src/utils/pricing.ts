@@ -167,16 +167,14 @@ export class PricingService {
   /**
    * 🛡️ Version fallback qui retourne un prix par défaut en cas d'erreur
    */
-  static calculatePriceFromTimeRangeSafe(
-    startTime: string, 
-    endTime: string, 
-    fallbackHours: number = 1
-  ): PricingResult {
+  static calculatePriceFromTimeRangeSafe(startTime: string, endTime: string, minimalHours = 1): PricingResult | { error: string } {
     try {
-      return this.calculatePriceFromTimeRange(startTime, endTime);
-    } catch (error) {
-      console.warn('⚠️ Utilisation du fallback pricing:', error);
-      return this.calculatePrice(fallbackHours);
+      const result = this.calculatePriceFromTimeRange(startTime, endTime);
+      return result;
+    } catch (error: any) {
+      console.warn('⚠️ Erreur dans calculatePriceFromTimeRange:', error);
+      // Retourne un objet d'erreur au lieu d'une exception
+      return { error: error.message || 'Erreur de calcul de tarification' };
     }
   }
 
