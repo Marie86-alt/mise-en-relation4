@@ -15,7 +15,7 @@ const CONTACT = {
 export default function ContactScreen() {
   const handleEmailPress = useCallback(async () => {
     try {
-      const url = `mailto:${CONTACT.email}?subject=Contact depuis l'app Mise en Relation`;
+      const url = `mailto:${CONTACT.email}?subject=Contact depuis l'app A La Case Nout Gramoun`;
       console.log('📧 Tentative d\'ouverture email:', url);
       
       const can = await Linking.canOpenURL(url);
