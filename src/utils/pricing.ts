@@ -42,9 +42,10 @@ export class PricingService {
   /**
    * 🛡️ Convertit une chaîne d'heure en objet Date sécurisé
    */
-  private static parseTimeToDate(timeString: string): Date {
+  private static parseTimeToDate(timeString: string): Date | null {
     if (!this.isValidTimeFormat(timeString)) {
-      throw new Error(`Format d'heure invalide: "${timeString}". Attendu: HH:MM ou HHhMM`);
+      console.error(`Format d'heure invalide: "${timeString}". Attendu: HH:MM ou HHhMM`);
+      return null;
     }
     
     let cleanTime = timeString.trim();
@@ -57,7 +58,8 @@ export class PricingService {
     const date = new Date(`2000-01-01T${cleanTime}:00`);
     
     if (isNaN(date.getTime())) {
-      throw new Error(`Impossible de parser l'heure: "${timeString}"`);
+      console.error(`Impossible de parser l'heure: "${timeString}"`);
+      return null;
     }
     
     return date;
