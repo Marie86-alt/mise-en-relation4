@@ -57,6 +57,7 @@ export default function ConversationScreen() {
   const [loading, setLoading] = useState<boolean>(false);
   const [pricingData, setPricingData] = useState<PricingResult | null>(null);
   const [isConversationReady, setIsConversationReady] = useState<boolean>(false);
+  const [pricingError, setPricingError] = useState<string | null>(null);
 
   const conversationId =
     user && stableParams.profileId
