@@ -423,6 +423,19 @@ export default function ConversationScreen() {
   );
 
   const renderTarificationInfo = () => {
+    // Afficher l'erreur de pricing si elle existe
+    if (pricingError) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorTitle}>⚠️ Erreur de tarification</Text>
+          <Text style={styles.errorMessage}>{pricingError}</Text>
+          <Text style={styles.errorHint}>
+            Veuillez sélectionner un créneau d'au moins 2 heures pour continuer.
+          </Text>
+        </View>
+      );
+    }
+    
     if (!pricingData) return null;
     return (
       <View style={styles.tarificationContainer}>
