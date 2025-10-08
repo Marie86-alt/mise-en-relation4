@@ -199,12 +199,7 @@ const handleJourChange = (text: string) => {
         onPress: async () => { 
           try { 
             await (logout as any)(); 
-            // Navigation immédiate vers l'accueil après déconnexion réussie
-            const { router } = require('expo-router');
-            setTimeout(() => {
-              router.dismissAll?.();
-              router.replace('/');
-            }, 100);
+            // Pas de navigation manuelle - laisse AuthContext._layout.tsx gérer
           } catch (error) { 
             console.error('Erreur de déconnexion:', error); 
           } 
