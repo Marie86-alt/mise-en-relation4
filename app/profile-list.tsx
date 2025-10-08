@@ -103,10 +103,9 @@ export default function ProfileListScreen() {
       onPress={() => handleContactPress(item)}
     >
       <View style={styles.profileHeader}>
-        <Image 
-          source={{ uri: item.photo || 'https://via.placeholder.com/150' }} 
-          style={styles.profilePhoto}
-        />
+        <View style={styles.profileAvatar}>
+          <Text style={styles.profileAvatarText}>{getInitials(item.displayName)}</Text>
+        </View>
         <View style={styles.profileInfo}>
           <Text style={styles.profileName}>{item.displayName}</Text>
           <Text style={styles.profileSector}>{item.secteur}</Text>
