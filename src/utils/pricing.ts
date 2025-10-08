@@ -116,7 +116,7 @@ export class PricingService {
   static calculatePriceFromTimeRange(startTime: string, endTime: string): PricingResult | { error: string } {
       // 🛡️ Validation des entrées
       if (!startTime || !endTime) {
-        console.error('Heures de début et de fin requises');
+        console.log('🔍 Heures de début et de fin requises');
         return {
           hours: 0,
           basePrice: 0,
