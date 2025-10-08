@@ -171,15 +171,10 @@ export default function ProfileScreen() {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Tarif horaire</Text>
-            <TextInput
-              style={styles.input}
+            <View style={[styles.input, styles.tarifFixe]}>
               <Text style={styles.tarifFixeText}>22€/heure</Text>
               <Text style={styles.tarifFixeNote}>Tarif fixe de la plateforme</Text>
-              placeholderTextColor="#9CA3AF"
-              keyboardType="numeric"
-              value={tarif}
-              onChangeText={setTarif}
-            />
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
