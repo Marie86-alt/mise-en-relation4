@@ -97,6 +97,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         if (!firebaseUser) {
           setUser(null);
+          setLoading(false);
           return;
         }
 
