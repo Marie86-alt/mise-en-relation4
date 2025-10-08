@@ -248,8 +248,9 @@ export class PricingService {
     
     const tests = [
       { start: '14:00', end: '17:00', expected: 3 },
-      { start: '09:30', end: '11:00', expected: 1.5 },
+      { start: '09:30', end: '11:00', expected: 1.5 }, // Devrait échouer (< 2h)
       { start: '10:00', end: '12:00', expected: 2 },
+      { start: '10:00', end: '10:30', expected: 0.5 }, // Test durée minimum
     ];
 
     tests.forEach(({ start, end, expected }) => {
