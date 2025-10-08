@@ -179,7 +179,7 @@ export class PricingService {
       }
       // 🛡️ Validation durée minimum (2 heures)
       if (hours < 2) {
-        console.error(`Durée minimum de 2 heures requise. Durée actuelle: ${hours.toFixed(2)}h`);
+        console.log(`🔍 Durée minimum de 2 heures requise. Durée actuelle: ${hours.toFixed(2)}h`);
         return {
           hours: 0,
           basePrice: 0,
