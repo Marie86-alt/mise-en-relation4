@@ -131,7 +131,15 @@ export class PricingService {
 
       // 🛡️ Vérification que l'heure de fin est après le début
       if (end <= start) {
-        throw new Error('L\'heure de fin doit être après l\'heure de début');
+        console.error('L\'heure de fin doit être après l\'heure de début');
+        return {
+          hours: 0,
+          basePrice: 0,
+          finalPrice: 0,
+          discount: 0,
+          discountPercentage: 0,
+          hourlyRate: this.HOURLY_RATE
+        };
       }
 
       // 🧮 Calcul de la durée en heures
