@@ -173,7 +173,15 @@ export class PricingService {
       }
       // 🛡️ Validation durée minimum (2 heures)
       if (hours < 2) {
-        throw new Error(`Durée minimum de 2 heures requise. Durée actuelle: ${hours.toFixed(2)}h`);
+        console.error(`Durée minimum de 2 heures requise. Durée actuelle: ${hours.toFixed(2)}h`);
+        return {
+          hours: 0,
+          basePrice: 0,
+          finalPrice: 0,
+          discount: 0,
+          discountPercentage: 0,
+          hourlyRate: this.HOURLY_RATE
+        };
       }
 
       const result = this.calculatePrice(hours);
