@@ -870,6 +870,8 @@ const styles = StyleSheet.create({
   evaluerButton: { backgroundColor: Colors.light.primary, borderRadius: 8, paddingVertical: 15, paddingHorizontal: 30 },
   confirmerButton: { backgroundColor: Colors.light.primary, borderRadius: 8, paddingVertical: 15, paddingHorizontal: 24, margin: 15, alignItems: 'center' },
   confirmerButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
+  buttonDisabled: { backgroundColor: '#e5e7eb' },
+  buttonTextDisabled: { color: '#9ca3af' },
   terminerButton: { backgroundColor: Colors.light.success, borderRadius: 8, paddingVertical: 15, paddingHorizontal: 30, marginBottom: 20 },
 
   buttonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
