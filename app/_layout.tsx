@@ -28,30 +28,14 @@ function RootLayoutNav() {
     const inTabs = seg0 === '(tabs)';
     const atLanding = seg0 === undefined;
 
-    // LOGIQUE DE REDIRECTION FIABLE avec gestion d'erreurs
-    try {
-      // Déconnecté → va sur la landing
-      if (!user && inTabs) {
-        // Utilisation d'un setTimeout pour éviter les conflits de navigation
-        setTimeout(() => {
-          try {
-            if (router.dismissAll) {
-              router.dismissAll(); // Vide la pile navigation si disponible
-            }
-            router.replace('/');
-          } catch (navError) {
-            // Fallback silencieux
-            console.log('Navigation fallback après déconnexion');
-          }
-        }, 50);
-      }
-      // Connecté → onglets principaux
-      else if (user && (inAuth || atLanding)) {
-        router.replace('/(tabs)');
-      }
-    } catch (error) {
-      // Gestion silencieuse des erreurs de navigation
-      console.log('Erreur navigation globale:', error);
+    // LOGIQUE DE REDIRECTION SIMPLE ET FIABLE
+    // Déconnecté → va sur la landing  
+    if (!user && inTabs) {
+      router.replace('/');
+    }
+    // Connecté → onglets principaux
+    else if (user && (inAuth || atLanding)) {
+      router.replace('/(tabs)');
     }
   }, [user, loading, segments, router]);
 
