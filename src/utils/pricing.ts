@@ -72,6 +72,11 @@ export class PricingService {
       throw new Error(`Durée invalide: ${hours}. Doit être un nombre positif.`);
     }
 
+    // 🛡️ Validation durée minimum de 2 heures
+    if (hours < 2) {
+      throw new Error(`Durée minimum de 2 heures requise. Durée actuelle: ${hours}h`);
+    }
+
     const basePrice = hours * this.HOURLY_RATE;
    
     // Vérifier s'il y a une offre spéciale (seulement pour les heures entières)
