@@ -115,7 +115,15 @@ export class PricingService {
     try {
       // 🛡️ Validation des entrées
       if (!startTime || !endTime) {
-        throw new Error('Heures de début et de fin requises');
+        console.error('Heures de début et de fin requises');
+        return {
+          hours: 0,
+          basePrice: 0,
+          finalPrice: 0,
+          discount: 0,
+          discountPercentage: 0,
+          hourlyRate: this.HOURLY_RATE
+        };
       }
 
       console.log('🔍 Calcul pricing pour:', { startTime, endTime });
