@@ -66,16 +66,19 @@ export default function ConversationScreen() {
 
   // --- tarification initiale (si on a les heures dans les params)
   useEffect(() => {
-    const { heureDebut, heureFin } = stableParams;
-    if (heureDebut && heureFin) {
-      try {
-        const pricing = PricingService.calculatePriceFromTimeRangeSafe(heureDebut, heureFin, 1);
-        setPricingData(pricing);
-        setPricingError(null); // Réinitialise l'erreur si succès
-      } catch (error) {
-        console.error('❌ Erreur calcul tarification:', error);
-        setPricingError(error instanceof Error ? error.message : 'Erreur de calcul de tarification');
+    if (stableParams.heureDebut && stableParams.heureFin) {
+      const { heureDebut, heureFin } = stableParams;
+      const result = PricingService.calculatePriceFromTimeRangeSafe(heureDebut, heureFin, 1);
+      
+      if ('error' in result) {
+        // Gestion de l'erreur sans exception
+        console.log('❌ Erreur calcul tarification:', result.error);
+        setPricingError(result.error);
         setPricingData(null);
+      } else {
+        // Succès
+        setPricingData(result);
+        setPricingError(null);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
