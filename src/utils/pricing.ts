@@ -66,15 +66,15 @@ export class PricingService {
   /**
    * Calcule le prix total selon la durée
    */
-  static calculatePrice(hours: number): PricingResult {
+  static calculatePrice(hours: number): PricingResult | { error: string } {
     // 🛡️ Validation de l'entrée
     if (typeof hours !== 'number' || isNaN(hours) || hours <= 0) {
-      throw new Error(`Durée invalide: ${hours}. Doit être un nombre positif.`);
+      return { error: `Durée invalide: ${hours}. Doit être un nombre positif.` };
     }
 
     // 🛡️ Validation durée minimum de 2 heures
     if (hours < 2) {
-      throw new Error(`Durée minimum de 2 heures requise. Durée actuelle: ${hours}h`);
+      return { error: `Durée minimum de 2 heures requise. Durée actuelle: ${hours}h` };
     }
 
     const basePrice = hours * this.HOURLY_RATE;
