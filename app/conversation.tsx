@@ -71,8 +71,11 @@ export default function ConversationScreen() {
       try {
         const pricing = PricingService.calculatePriceFromTimeRangeSafe(heureDebut, heureFin, 1);
         setPricingData(pricing);
+        setPricingError(null); // Réinitialise l'erreur si succès
       } catch (error) {
         console.error('❌ Erreur calcul tarification:', error);
+        setPricingError(error instanceof Error ? error.message : 'Erreur de calcul de tarification');
+        setPricingData(null);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
