@@ -302,22 +302,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         await fbSignOut(auth);
         setUser(null);
-        // Utilisation d'un setTimeout pour s'assurer que le state est mis à jour avant navigation
-        setTimeout(() => {
-          try {
-            // Import dynamique du router pour éviter les erreurs
-            import('expo-router').then(({ router }) => {
-              router.dismissAll(); // Ferme toutes les modales/screens
-              router.replace('/'); // Navigation vers l'accueil
-            }).catch(() => {
-              // Fallback silencieux si l'import échoue
-              console.log('Navigation fallback après déconnexion');
-            });
-          } catch (navError) {
-            // Gestion silencieuse des erreurs de navigation
-            console.log('Erreur navigation après déconnexion:', navError);
-          }
-        }, 100);
+        // Navigation gérée par RootLayoutNav dans _layout.tsx
       } catch (e: any) {
         setError(e?.message ?? 'Erreur déconnexion');
         throw e;
