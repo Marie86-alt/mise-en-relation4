@@ -191,7 +191,13 @@ export default function ProfileListScreen() {
             <Text style={styles.emptyText}>
               Aucun aidant ne correspond à vos critères. Essayez d&apos;élargir votre recherche.
             </Text>
-            <TouchableOpacity style={styles.newSearchButton} onPress={() => router.back()}>
+            <TouchableOpacity style={styles.newSearchButton} onPress={() => {
+              try {
+                router.replace('/(tabs)');
+              } catch (error) {
+                console.error('Erreur navigation nouvelle recherche:', error);
+              }
+            }}>
               <Text style={styles.newSearchButtonText}>Modifier la recherche</Text>
             </TouchableOpacity>
           </View>
