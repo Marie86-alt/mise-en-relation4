@@ -171,6 +171,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
   
   await fbSignOut(auth);
+  setLoading(false);
   return;
 }
         if (finalUser.isSuspended) {
