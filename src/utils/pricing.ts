@@ -44,7 +44,7 @@ export class PricingService {
    */
   private static parseTimeToDate(timeString: string): Date | null {
     if (!this.isValidTimeFormat(timeString)) {
-      console.error(`Format d'heure invalide: "${timeString}". Attendu: HH:MM ou HHhMM`);
+      console.log(`🔍 Format d'heure invalide: "${timeString}". Attendu: HH:MM ou HHhMM`);
       return null;
     }
     
