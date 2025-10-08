@@ -86,7 +86,7 @@ export default function ProfileScreen() {
     const expNum = parseInt(experience, 10);
     // Tarif fixe utilisé plus bas
     if (Number.isNaN(expNum)) {
-      Alert.alert('Format invalide', "Vérifiez l'expérience et le tarif.");
+      Alert.alert('Format invalide', "Vérifiez l'expérience.");
       return;
     }
 
