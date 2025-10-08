@@ -68,6 +68,12 @@ export default function ProfileScreen() {
         onPress: async () => {
           try {
             await logout();
+            // Navigation immédiate vers l'accueil après déconnexion réussie
+            const { router } = require('expo-router');
+            setTimeout(() => {
+              router.dismissAll?.();
+              router.replace('/');
+            }, 100);
           } catch (error) {
             console.error('Erreur déconnexion:', error);
           }
