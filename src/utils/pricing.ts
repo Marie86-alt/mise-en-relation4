@@ -294,7 +294,7 @@ export class PricingService {
         const result = this.calculatePriceFromTimeRange(start, end);
         console.log(`✅ ${start}-${end}: ${result.hours}h (attendu: ${expected}h)`);
       } catch (error) {
-        console.error(`❌ ${start}-${end}:`, error);
+        console.log(`🔍 ${start}-${end}:`, error);
       }
     });
   }
