@@ -212,14 +212,9 @@ export class PricingService {
    * 🛡️ Version fallback qui retourne un prix par défaut en cas d'erreur
    */
   static calculatePriceFromTimeRangeSafe(startTime: string, endTime: string, minimalHours = 1): PricingResult | { error: string } {
-    try {
-      const result = this.calculatePriceFromTimeRange(startTime, endTime);
-      return result;
-    } catch (error: any) {
-      console.warn('⚠️ Erreur dans calculatePriceFromTimeRange:', error);
-      // Retourne un objet d'erreur au lieu d'une exception
-      return { error: error.message || 'Erreur de calcul de tarification' };
-    }
+    // Plus besoin de try/catch car calculatePriceFromTimeRange ne lance plus d'exceptions
+    const result = this.calculatePriceFromTimeRange(startTime, endTime);
+    return result;
   }
 
   /**
