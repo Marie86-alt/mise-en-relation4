@@ -482,6 +482,10 @@ export default function ConversationScreen() {
               onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
             />
             {renderTarificationInfo()}
+            
+            <TouchableOpacity style={styles.confirmerButton} onPress={() => setShowConfirmationModal(true)}>
+              <Text style={styles.confirmerButtonText}>✅ Confirmer le service</Text>
+            </TouchableOpacity>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
               <View style={styles.inputContainer}>
                 <TextInput
