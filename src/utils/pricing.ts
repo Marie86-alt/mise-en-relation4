@@ -134,7 +134,7 @@ export class PricingService {
       const end = this.parseTimeToDate(endTime);
 
       if (!start || !end) {
-        console.error('Erreur parsing des heures');
+        console.log('🔍 Erreur parsing des heures');
         return { error: 'Format d\'heure invalide' };
       }
 
