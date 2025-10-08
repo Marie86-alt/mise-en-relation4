@@ -242,7 +242,7 @@ export class PricingService {
    
       return `${hours}h → ${this.formatPrice(finalPrice)}`;
     } catch (error) {
-      console.error('❌ Erreur dans getPricingSummary:', error);
+      console.log('🔍 Erreur dans getPricingSummary:', error);
       return 'Prix non disponible';
     }
   }
