@@ -143,11 +143,18 @@ const styles = StyleSheet.create({
 
   avatar: {
     width: R, height: R, borderRadius: R / 2,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: '#f0f8ff', // Couleur de fond claire
     alignItems: 'center', justifyContent: 'center',
     marginBottom: 8,
+    borderWidth: 2,
+    borderColor: Colors.light.primary,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  avatarText: { color: '#fff', fontWeight: '800', fontSize: 18, letterSpacing: 1 },
+  avatarText: { color: Colors.light.primary, fontWeight: '900', fontSize: 18, letterSpacing: 1 },
 
   title: { fontSize: 22, fontWeight: '800', color: '#1f2d3d', marginTop: 4 },
   name: { fontSize: 16, fontWeight: '600', color: '#5b6b7b', marginBottom: 16, marginTop: 2 },
