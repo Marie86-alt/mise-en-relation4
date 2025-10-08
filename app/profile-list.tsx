@@ -226,7 +226,20 @@ const styles = StyleSheet.create({
   listContainer: { padding: 15 },
   profileCard: { backgroundColor: '#ffffff', borderRadius: 12, padding: 15, marginBottom: 15, borderWidth: 1, borderColor: '#f0f0f0' },
   profileHeader: { flexDirection: 'row', marginBottom: 10 },
-  profilePhoto: { width: 60, height: 60, borderRadius: 30, marginRight: 15, backgroundColor: '#e0e0e0' },
+  profileAvatar: { 
+    width: 60, 
+    height: 60, 
+    borderRadius: 30, 
+    marginRight: 15, 
+    backgroundColor: Colors.light.primary, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  profileAvatarText: { 
+    color: '#ffffff', 
+    fontSize: 20, 
+    fontWeight: 'bold' 
+  },
   profileInfo: { flex: 1, justifyContent: 'center' },
   profileName: { fontSize: 18, fontWeight: 'bold', color: '#2c3e50' },
   profileSector: { fontSize: 14, color: Colors.light.primary, fontWeight: '500' },
