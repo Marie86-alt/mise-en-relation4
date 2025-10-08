@@ -188,6 +188,11 @@ export class PricingService {
       
       console.log('💰 Pricing final:', result);
       
+      // Check if calculatePrice returned an error
+      if ('error' in result) {
+        return result;
+      }
+      
       return result;
 
     } catch (error) {
