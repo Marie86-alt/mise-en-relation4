@@ -161,7 +161,15 @@ export class PricingService {
 
       // 🛡️ Validation du résultat
       if (isNaN(hours) || hours <= 0) {
-        throw new Error(`Durée invalide calculée: ${hours}h`);
+        console.error(`Durée invalide calculée: ${hours}h`);
+        return {
+          hours: 0,
+          basePrice: 0,
+          finalPrice: 0,
+          discount: 0,
+          discountPercentage: 0,
+          hourlyRate: this.HOURLY_RATE
+        };
       }
       // 🛡️ Validation durée minimum (2 heures)
       if (hours < 2) {
