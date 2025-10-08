@@ -295,6 +295,23 @@ const styles = StyleSheet.create({
     color: '#11181C'
   },
   textArea: { minHeight: 100, textAlignVertical: 'top' },
+  tarifFixe: { 
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    paddingVertical: 15,
+  },
+  tarifFixeText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.light.primary,
+    marginBottom: 2,
+  },
+  tarifFixeNote: {
+    fontSize: 12,
+    color: '#6c757d',
+    fontStyle: 'italic',
+  },
 
   saveButton: { backgroundColor: Colors.light.primary, padding: 15, borderRadius: 8, alignItems: 'center', marginTop: 10 },
   buttonDisabled: { backgroundColor: Colors.light.grey },
