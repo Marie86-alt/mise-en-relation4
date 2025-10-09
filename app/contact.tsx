@@ -1,7 +1,7 @@
 // app/contact.tsx
 import React, { useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking, Platform } from 'react-native';
-import * as Clipboard from 'expo-clipboard';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
