@@ -33,6 +33,76 @@ console.error = (...args) => {
 
 applyTextInputDefaults();
 
+// Composant pour l'écran de chargement personnalisé
+function CustomLoadingScreen() {
+  return (
+    <View style={{ 
+      flex: 1, 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      backgroundColor: '#f8f9fa',
+      paddingHorizontal: 20
+    }}>
+      {/* Logo de l'application */}
+      <View style={{
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        backgroundColor: '#247ba0',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 30,
+        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      }}>
+        <Text style={{
+          color: '#ffffff',
+          fontSize: 36,
+          fontWeight: '900',
+          letterSpacing: 2
+        }}>ACG</Text>
+      </View>
+
+      {/* Nom de l'application */}
+      <Text style={{
+        fontSize: 28,
+        fontWeight: '700',
+        color: '#2c3e50',
+        textAlign: 'center',
+        marginBottom: 8,
+        letterSpacing: 1
+      }}>
+        A La Case Nout Gramoun
+      </Text>
+      
+      <Text style={{
+        fontSize: 16,
+        color: '#6c757d',
+        textAlign: 'center',
+        marginBottom: 40,
+        fontStyle: 'italic'
+      }}>
+        Votre plateforme de services à domicile
+      </Text>
+
+      <ActivityIndicator size="large" color="#247ba0" />
+      
+      <Text style={{ 
+        marginTop: 16, 
+        fontSize: 16, 
+        color: '#6c757d', 
+        textAlign: 'center',
+        fontWeight: '500'
+      }}>
+        Chargement...
+      </Text>
+    </View>
+  );
+}
+
 function RootLayoutNav() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -56,74 +126,9 @@ function RootLayoutNav() {
     }
   }, [user, loading, segments, router]);
 
-  // Écran de chargement pendant l'initialisation
+  // Utilisation du composant d'écran de chargement personnalisé
   if (loading) {
-    return (
-      <View style={{ 
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        backgroundColor: '#f8f9fa',
-        paddingHorizontal: 20
-      }}>
-        {/* Logo de l'application */}
-        <View style={{
-          width: 120,
-          height: 120,
-          borderRadius: 60,
-          backgroundColor: '#247ba0',
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginBottom: 30,
-          elevation: 8,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-        }}>
-          <Text style={{
-            color: '#ffffff',
-            fontSize: 36,
-            fontWeight: '900',
-            letterSpacing: 2
-          }}>ACG</Text>
-        </View>
-
-        {/* Nom de l'application */}
-        <Text style={{
-          fontSize: 28,
-          fontWeight: '700',
-          color: '#2c3e50',
-          textAlign: 'center',
-          marginBottom: 8,
-          letterSpacing: 1
-        }}>
-          A La Case Nout Gramoun
-        </Text>
-        
-        <Text style={{
-          fontSize: 16,
-          color: '#6c757d',
-          textAlign: 'center',
-          marginBottom: 40,
-          fontStyle: 'italic'
-        }}>
-          Votre plateforme de services à domicile
-        </Text>
-
-        <ActivityIndicator size="large" color="#247ba0" />
-        
-        <Text style={{ 
-          marginTop: 16, 
-          fontSize: 16, 
-          color: '#6c757d', 
-          textAlign: 'center',
-          fontWeight: '500'
-        }}>
-          Chargement...
-        </Text>
-      </View>
-    );
+    return <CustomLoadingScreen />;
   }
 
   return (
