@@ -275,6 +275,7 @@ test_plan:
   current_focus: 
     - "Application Launch"
     - "Live Application Access"
+    - "Custom Loading Screen Implementation"
   stuck_tasks: 
     - "Application Launch"
     - "Live Application Access"
