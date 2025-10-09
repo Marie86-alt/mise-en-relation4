@@ -14,6 +14,24 @@ const CONTACT = {
 };
 
 export default function ContactScreen() {
+  // Diagnostic des URL schemes au chargement
+  useEffect(() => {
+    const checkSchemes = async () => {
+      const schemes = ['tel:', 'mailto:', 'tel:+262693464676', 'mailto:test@example.com'];
+      console.log('🔍 Diagnostic des URL schemes:');
+      
+      for (const scheme of schemes) {
+        try {
+          const can = await Linking.canOpenURL(scheme);
+          console.log(`  ${scheme} -> ${can ? '✅ Supporté' : '❌ Non supporté'}`);
+        } catch (error) {
+          console.log(`  ${scheme} -> ❌ Erreur: ${error.message}`);
+        }
+      }
+    };
+    
+    checkSchemes();
+  }, []);
   const handleEmailPress = useCallback(async () => {
     try {
       const url = `mailto:${CONTACT.email}?subject=Contact depuis l'app A La Case Nout Gramoun`;
