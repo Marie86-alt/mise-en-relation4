@@ -78,9 +78,8 @@ export default function ContactScreen() {
         "Erreur", 
         "Impossible d'ouvrir l'application e-mail.\n\nVous pouvez nous contacter à :\n" + CONTACT.email,
         [
-          { text: "Copier l'email", onPress: () => {
-            Clipboard.setString(CONTACT.email);
-            Alert.alert("✅ Email copié", "L'adresse email a été copiée dans le presse-papiers");
+          { text: "Voir l'email", onPress: () => {
+            Alert.alert("📧 Email de contact", CONTACT.email + "\n\n(Appuyez longuement pour copier)");
           }},
           { text: "OK" }
         ]
