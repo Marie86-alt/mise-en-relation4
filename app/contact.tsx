@@ -11,6 +11,12 @@ const CONTACT = {
   email: 'mounoussamyeva672@gmail.com',
   phoneDisplay: '+262 693 46 46 76',
   phoneDial: '+262693464676', // pour le lien "tel:"
+  phoneDialAlternatives: [
+    '+262693464676',
+    '0262693464676', 
+    '693464676',
+    '262693464676'
+  ]
 };
 
 export default function ContactScreen() {
