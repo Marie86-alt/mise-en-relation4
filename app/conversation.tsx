@@ -427,8 +427,15 @@ export default function ConversationScreen() {
   );
 
   const renderTarificationInfo = () => {
+    console.log('🔍 Debug renderTarificationInfo:', { 
+      pricingError, 
+      pricingData: !!pricingData,
+      hasError: !!pricingError 
+    });
+    
     // Afficher l'erreur de pricing si elle existe
     if (pricingError) {
+      console.log('🚨 Affichage du message d\'erreur:', pricingError);
       return (
         <View style={styles.errorContainer}>
           <Text style={styles.errorTitle}>⚠️ Erreur de tarification</Text>
@@ -440,7 +447,10 @@ export default function ConversationScreen() {
       );
     }
     
-    if (!pricingData) return null;
+    if (!pricingData) {
+      console.log('🔍 Pas de pricingData, pas d\'affichage');
+      return null;
+    }
     return (
       <View style={styles.tarificationContainer}>
         <Text style={styles.tarificationTitle}>💰 Tarification</Text>
