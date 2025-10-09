@@ -19,6 +19,19 @@ import * as SplashScreen from 'expo-splash-screen';
 // Cacher immédiatement le splash screen par défaut
 SplashScreen.hideAsync();
 
+// Intercepter les erreurs de calculatePriceFromTimeRange pour éviter les notifications
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  const message = args.join(' ');
+  if (message.includes('calculatePriceFromTimeRange') || 
+      message.includes('Durée minimum') ||
+      message.includes('Duration minimum')) {
+    // Ignore silencieusement ces erreurs spécifiques
+    return;
+  }
+  originalConsoleError(...args);
+};
+
 applyTextInputDefaults();
 
 function RootLayoutNav() {
