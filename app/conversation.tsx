@@ -555,23 +555,22 @@ export default function ConversationScreen() {
             {renderTarificationInfo()}
             
             <TouchableOpacity 
-              style={[styles.confirmerButton, (pricingError || isServiceUnavailable()) && styles.buttonDisabled]} 
+              style={[styles.confirmerButton, (pricingError || isServiceUnavailable) && styles.buttonDisabled]} 
               onPress={() => {
-                const unavailable = isServiceUnavailable();
-                console.log('🔍 Bouton cliqué:', { pricingError, unavailable });
-                if (!pricingError && !unavailable) {
+                console.log('🔍 Bouton cliqué:', { pricingError, unavailable: isServiceUnavailable });
+                if (!pricingError && !isServiceUnavailable) {
                   setShowConfirmationModal(true);
                 }
               }}
-              disabled={!!(pricingError || isServiceUnavailable())}
+              disabled={!!(pricingError || isServiceUnavailable)}
             >
-              <Text style={[styles.confirmerButtonText, (pricingError || isServiceUnavailable()) && styles.buttonTextDisabled]}>
-                {(pricingError || isServiceUnavailable()) ? '⚠️ Service non disponible' : '✅ Confirmer le service'}
+              <Text style={[styles.confirmerButtonText, (pricingError || isServiceUnavailable) && styles.buttonTextDisabled]}>
+                {(pricingError || isServiceUnavailable) ? '⚠️ Service non disponible' : '✅ Confirmer le service'}
               </Text>
             </TouchableOpacity>
             {/* Debug info */}
             <Text style={{ fontSize: 10, color: '#666', textAlign: 'center', marginTop: 5 }}>
-              Debug: Durée moins de 2h = {isServiceUnavailable() ? 'OUI' : 'NON'}
+              Debug: Durée moins de 2h = {isServiceUnavailable ? 'OUI' : 'NON'}
             </Text>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
               <View style={styles.inputContainer}>
