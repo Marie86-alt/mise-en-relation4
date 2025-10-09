@@ -14,6 +14,11 @@ import '../firebase.config';
 import { AuthProvider, useAuth } from '@/src/contexts/AuthContext';
 import { applyTextInputDefaults } from '@/src/ui/applyTextInputDefaults';
 import { STRIPE_CONFIG } from '@/src/config/stripe';
+import * as SplashScreen from 'expo-splash-screen';
+
+// Cacher immédiatement le splash screen par défaut
+SplashScreen.hideAsync();
+
 applyTextInputDefaults();
 
 function RootLayoutNav() {
