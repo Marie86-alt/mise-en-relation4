@@ -70,20 +70,31 @@ export default function ContactScreen() {
       const url = `tel:${CONTACT.phoneDial}`;
       console.log('📞 Tentative d\'ouverture téléphone:', url);
       
+      // Essayer d'ouvrir directement d'abord 
+      try {
+        await Linking.openURL(url);
+        console.log('✅ Téléphone ouvert avec succès');
+        return;
+      } catch (directError) {
+        console.log('❌ Ouverture directe échouée, vérification canOpenURL...');
+      }
+      
+      // Fallback avec canOpenURL
       const can = await Linking.canOpenURL(url);
       console.log('📞 CanOpenURL result:', can);
       
       if (can) {
         await Linking.openURL(url);
-        console.log('✅ Téléphone ouvert avec succès');
+        console.log('✅ Téléphone ouvert avec succès (fallback)');
       } else {
         console.log('❌ Impossible d\'ouvrir le téléphone');
         Alert.alert(
           "Aucune application téléphone", 
           "Vous pouvez nous appeler au :\n\n" + CONTACT.phoneDisplay,
           [
-            { text: "Copier le numéro", onPress: () => {
-              Alert.alert("Téléphone", CONTACT.phoneDisplay);
+            { text: "Copier le numéro", onPress: async () => {
+              await Clipboard.setStringAsync(CONTACT.phoneDisplay);
+              Alert.alert("✅ Numéro copié", "Le numéro de téléphone a été copié dans le presse-papiers");
             }},
             { text: "OK" }
           ]
@@ -91,7 +102,17 @@ export default function ContactScreen() {
       }
     } catch (error) {
       console.error('❌ Erreur handlePhonePress:', error);
-      Alert.alert("Erreur", "Impossible d'ouvrir l'application téléphone.\n\nVous pouvez nous appeler au :\n" + CONTACT.phoneDisplay);
+      Alert.alert(
+        "Erreur", 
+        "Impossible d'ouvrir l'application téléphone.\n\nVous pouvez nous appeler au :\n" + CONTACT.phoneDisplay,
+        [
+          { text: "Copier le numéro", onPress: async () => {
+            await Clipboard.setStringAsync(CONTACT.phoneDisplay);
+            Alert.alert("✅ Numéro copié", "Le numéro de téléphone a été copié dans le presse-papiers");
+          }},
+          { text: "OK" }
+        ]
+      );
     }
   }, []);
 
