@@ -315,11 +315,9 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "Conversation Screen Input Container Layout Fixes"
     - "Contact Page URL Linking"
     - "Application Launch"
     - "Live Application Access"
-    - "Custom Loading Screen Implementation"
   stuck_tasks: 
     - "Application Launch"
     - "Live Application Access"
