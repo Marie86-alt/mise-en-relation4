@@ -426,23 +426,28 @@ export default function ConversationScreen() {
     </View>
   );
 
-  // Vérification directe si la durée est < 2h
-  const isServiceUnavailable = () => {
+  // Vérification directe si la durée est < 2h avec useMemo
+  const isServiceUnavailable = useMemo(() => {
     if (stableParams.heureDebut && stableParams.heureFin) {
       const start = stableParams.heureDebut;
       const end = stableParams.heureFin;
       
-      // Calcul simple de la durée
-      const startHour = parseInt(start.replace(/[h:]/g, '').substring(0, 2));
-      const startMin = parseInt(start.replace(/[h:]/g, '').substring(2, 4) || '0');
-      const endHour = parseInt(end.replace(/[h:]/g, '').substring(0, 2));
-      const endMin = parseInt(end.replace(/[h:]/g, '').substring(2, 4) || '0');
-      
-      const durationHours = (endHour + endMin/60) - (startHour + startMin/60);
-      return durationHours < 2;
+      try {
+        // Calcul simple de la durée
+        const startHour = parseInt(start.replace(/[h:]/g, '').substring(0, 2));
+        const startMin = parseInt(start.replace(/[h:]/g, '').substring(2, 4) || '0');
+        const endHour = parseInt(end.replace(/[h:]/g, '').substring(0, 2));
+        const endMin = parseInt(end.replace(/[h:]/g, '').substring(2, 4) || '0');
+        
+        const durationHours = (endHour + endMin/60) - (startHour + startMin/60);
+        return durationHours < 2;
+      } catch (error) {
+        console.log('Erreur calcul durée:', error);
+        return false;
+      }
     }
     return false;
-  };
+  }, [stableParams.heureDebut, stableParams.heureFin]);
 
   const renderTarificationInfo = () => {
     const serviceUnavailable = isServiceUnavailable();
