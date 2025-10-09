@@ -23,7 +23,23 @@
       },
       "package": "com.miseenrelation.app",
       "versionCode": 1,
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "category": ["DEFAULT", "BROWSABLE"],
+          "data": {
+            "scheme": "tel"
+          }
+        },
+        {
+          "action": "VIEW", 
+          "category": ["DEFAULT", "BROWSABLE"],
+          "data": {
+            "scheme": "mailto"
+          }
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
