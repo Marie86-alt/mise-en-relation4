@@ -65,9 +65,9 @@ export default function ContactScreen() {
           "Aucune application e-mail", 
           "Vous pouvez nous contacter directement à :\n\n" + CONTACT.email,
           [
-            { text: "Copier l'email", onPress: () => {
-              // Simplification : juste afficher l'email pour que l'utilisateur puisse le copier manuellement
-              Alert.alert("📧 Email de contact", CONTACT.email + "\n\n(Appuyez longuement pour copier)");
+            { text: "Copier l'email", onPress: async () => {
+              await Clipboard.setStringAsync(CONTACT.email);
+              Alert.alert("✅ Email copié", "L'adresse email a été copiée dans le presse-papiers");
             }},
             { text: "OK" }
           ]
