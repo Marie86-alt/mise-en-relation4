@@ -19,21 +19,31 @@ export default function ContactScreen() {
       const url = `mailto:${CONTACT.email}?subject=Contact depuis l'app A La Case Nout Gramoun`;
       console.log('📧 Tentative d\'ouverture email:', url);
       
+      // Essayer d'ouvrir directement d'abord
+      try {
+        await Linking.openURL(url);
+        console.log('✅ Email ouvert avec succès');
+        return;
+      } catch (directError) {
+        console.log('❌ Ouverture directe échouée, vérification canOpenURL...');
+      }
+      
+      // Fallback avec canOpenURL
       const can = await Linking.canOpenURL(url);
       console.log('📧 CanOpenURL result:', can);
       
       if (can) {
         await Linking.openURL(url);
-        console.log('✅ Email ouvert avec succès');
+        console.log('✅ Email ouvert avec succès (fallback)');
       } else {
         console.log('❌ Impossible d\'ouvrir l\'email');
         Alert.alert(
           "Aucune application e-mail", 
           "Vous pouvez nous contacter directement à :\n\n" + CONTACT.email,
           [
-            { text: "Copier l'email", onPress: () => {
-              // On pourrait ajouter Clipboard.setString(CONTACT.email) ici
-              Alert.alert("Email", CONTACT.email);
+            { text: "Copier l'email", onPress: async () => {
+              await Clipboard.setStringAsync(CONTACT.email);
+              Alert.alert("✅ Email copié", "L'adresse email a été copiée dans le presse-papiers");
             }},
             { text: "OK" }
           ]
@@ -41,7 +51,17 @@ export default function ContactScreen() {
       }
     } catch (error) {
       console.error('❌ Erreur handleEmailPress:', error);
-      Alert.alert("Erreur", "Impossible d'ouvrir l'application e-mail.\n\nVous pouvez nous contacter à :\n" + CONTACT.email);
+      Alert.alert(
+        "Erreur", 
+        "Impossible d'ouvrir l'application e-mail.\n\nVous pouvez nous contacter à :\n" + CONTACT.email,
+        [
+          { text: "Copier l'email", onPress: async () => {
+            await Clipboard.setStringAsync(CONTACT.email);
+            Alert.alert("✅ Email copié", "L'adresse email a été copiée dans le presse-papiers");
+          }},
+          { text: "OK" }
+        ]
+      );
     }
   }, []);
 
