@@ -8,10 +8,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "miseenrelationapp",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "backgroundColor": "#247ba0",
-      "resizeMode": "contain"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.miseenrelation.app",
