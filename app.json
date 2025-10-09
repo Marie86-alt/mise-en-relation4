@@ -39,6 +39,13 @@
           "merchantCountryCode": "FR",
           "androidPayMode": "test"
         }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#f8f9fa",
+          "resizeMode": "contain"
+        }
       ]
     ],
     "experiments": {
