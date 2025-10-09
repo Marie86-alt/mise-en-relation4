@@ -674,7 +674,7 @@ export default function ConversationScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingBottom: Platform.OS === 'android' ? 15 : 0 }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={retournerEnArriere}>
           <Text style={styles.backButton}>← Retour</Text>
