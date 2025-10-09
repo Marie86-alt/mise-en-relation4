@@ -294,6 +294,7 @@ metadata:
 
 test_plan:
   current_focus: 
+    - "Contact Page URL Linking"
     - "Application Launch"
     - "Live Application Access"
     - "Custom Loading Screen Implementation"
@@ -302,7 +303,7 @@ test_plan:
     - "Live Application Access"
   test_all: false
   test_priority: "high_first"
-  system_limitations: "ENOSPC file watcher limits prevent Expo development server startup in container environment"
+  system_limitations: "ENOSPC file watcher limits prevent Expo development server startup in container environment. Ngrok endpoint offline (ERR_NGROK_3200) prevents runtime testing."
 
 agent_communication:
   - agent: "testing"
