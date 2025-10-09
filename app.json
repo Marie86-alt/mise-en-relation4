@@ -29,25 +29,8 @@
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "splash": {
-      "image": "./assets/images/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#f8f9fa"
-    },
     "plugins": [
       "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#f8f9fa",
-          "image": "./assets/images/splash-icon.png",
-          "dark": {
-            "image": "./assets/images/splash-icon.png",
-            "backgroundColor": "#f8f9fa"
-          },
-          "imageWidth": 200
-        }
-      ],
       [
         "@stripe/stripe-react-native",
         {
