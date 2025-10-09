@@ -572,7 +572,10 @@ export default function ConversationScreen() {
             <Text style={{ fontSize: 10, color: '#666', textAlign: 'center', marginTop: 5 }}>
               Debug: Durée moins de 2h = {isServiceUnavailable ? 'OUI' : 'NON'}
             </Text>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <KeyboardAvoidingView 
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+            >
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.messageInput}
@@ -580,6 +583,7 @@ export default function ConversationScreen() {
                   onChangeText={setNouveauMessage}
                   placeholder="Tapez votre message…"
                   multiline
+                  maxLength={500}
                 />
                 <TouchableOpacity onPress={envoyerMessage} style={styles.sendButton} disabled={loading}>
                   <Text style={styles.sendButtonText}>{loading ? '…' : '📤'}</Text>
