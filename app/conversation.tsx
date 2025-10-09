@@ -450,18 +450,16 @@ export default function ConversationScreen() {
   }, [stableParams.heureDebut, stableParams.heureFin]);
 
   const renderTarificationInfo = () => {
-    const serviceUnavailable = isServiceUnavailable();
-    
     console.log('🔍 Debug renderTarificationInfo:', { 
       pricingError, 
       pricingData: !!pricingData,
-      serviceUnavailable,
+      serviceUnavailable: isServiceUnavailable,
       heureDebut: stableParams.heureDebut,
       heureFin: stableParams.heureFin
     });
     
     // Afficher l'erreur si service indisponible (< 2h)
-    if (serviceUnavailable || pricingError) {
+    if (isServiceUnavailable || pricingError) {
       console.log('🚨 Service indisponible - durée < 2h');
       return (
         <View style={styles.errorContainer}>
