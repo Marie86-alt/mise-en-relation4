@@ -5,7 +5,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 // import 'react-native-reanimated'; // Temporairement commenté pour éviter les erreurs
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform, View, ActivityIndicator, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StripeProvider } from '@stripe/stripe-react-native';
