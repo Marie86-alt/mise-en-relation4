@@ -807,7 +807,11 @@ export default function ConversationScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.light.background },
+  container: { 
+    flex: 1, 
+    backgroundColor: Colors.light.background,
+    marginBottom: Platform.OS === 'android' ? 0 : 0, // Marge en bas si nécessaire
+  },
   header: {
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
