@@ -568,7 +568,7 @@ export default function ConversationScreen() {
             </TouchableOpacity>
             {/* Debug info */}
             <Text style={{ fontSize: 10, color: '#666', textAlign: 'center', marginTop: 5 }}>
-              Debug: Durée < 2h = {isServiceUnavailable() ? 'OUI' : 'NON'}
+              Debug: Durée moins de 2h = {isServiceUnavailable() ? 'OUI' : 'NON'}
             </Text>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
               <View style={styles.inputContainer}>
