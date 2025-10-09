@@ -1,5 +1,5 @@
 // app/conversation.tsx
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, SafeAreaView,
   Alert, Modal, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator,
