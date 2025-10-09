@@ -526,13 +526,22 @@ export default function ConversationScreen() {
             
             <TouchableOpacity 
               style={[styles.confirmerButton, pricingError && styles.buttonDisabled]} 
-              onPress={() => setShowConfirmationModal(true)}
+              onPress={() => {
+                console.log('🔍 Bouton cliqué avec pricingError:', pricingError);
+                if (!pricingError) {
+                  setShowConfirmationModal(true);
+                }
+              }}
               disabled={!!pricingError}
             >
               <Text style={[styles.confirmerButtonText, pricingError && styles.buttonTextDisabled]}>
                 {pricingError ? '⚠️ Service non disponible' : '✅ Confirmer le service'}
               </Text>
             </TouchableOpacity>
+            {/* Debug info */}
+            <Text style={{ fontSize: 10, color: '#666', textAlign: 'center', marginTop: 5 }}>
+              Debug: pricingError = {pricingError ? 'OUI' : 'NON'}
+            </Text>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
               <View style={styles.inputContainer}>
                 <TextInput
