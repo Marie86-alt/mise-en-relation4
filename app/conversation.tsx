@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, SafeAreaView,
   Alert, Modal, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@/src/contexts/AuthContext';
