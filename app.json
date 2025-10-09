@@ -43,9 +43,8 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#f8f9fa",
-          "resizeMode": "contain",
-          "hideAsync": true
+          "backgroundColor": "#247ba0",
+          "resizeMode": "contain"
         }
       ]
     ],
