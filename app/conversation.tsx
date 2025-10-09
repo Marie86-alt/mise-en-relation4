@@ -911,10 +911,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
-    alignItems: 'center',
+    alignItems: 'flex-end', // Alignement en bas pour éviter le chevauchement
     color: '#11181C',
-    paddingBottom: Platform.OS === 'android' ? 15 : 10, // Plus d'espace en bas sur Android
-    minHeight: 60, // Hauteur minimum pour éviter le chevauchement
+    paddingBottom: Platform.OS === 'android' ? 20 : 10, // Plus d'espace en bas sur Android
+    minHeight: 70, // Hauteur minimum augmentée
+    marginBottom: Platform.OS === 'android' ? 10 : 0, // Marge de sécurité supplémentaire
   },
   messageInput: {
     flex: 1,
