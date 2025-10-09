@@ -897,6 +897,8 @@ const styles = StyleSheet.create({
     borderTopColor: '#f0f0f0',
     alignItems: 'center',
     color: '#11181C',
+    paddingBottom: Platform.OS === 'android' ? 15 : 10, // Plus d'espace en bas sur Android
+    minHeight: 60, // Hauteur minimum pour éviter le chevauchement
   },
   messageInput: {
     flex: 1,
