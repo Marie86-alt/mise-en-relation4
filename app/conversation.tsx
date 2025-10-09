@@ -426,22 +426,49 @@ export default function ConversationScreen() {
     </View>
   );
 
+  // Vérification directe si la durée est < 2h
+  const isServiceUnavailable = () => {
+    if (stableParams.heureDebut && stableParams.heureFin) {
+      const start = stableParams.heureDebut;
+      const end = stableParams.heureFin;
+      
+      // Calcul simple de la durée
+      const startHour = parseInt(start.replace(/[h:]/g, '').substring(0, 2));
+      const startMin = parseInt(start.replace(/[h:]/g, '').substring(2, 4) || '0');
+      const endHour = parseInt(end.replace(/[h:]/g, '').substring(0, 2));
+      const endMin = parseInt(end.replace(/[h:]/g, '').substring(2, 4) || '0');
+      
+      const durationHours = (endHour + endMin/60) - (startHour + startMin/60);
+      return durationHours < 2;
+    }
+    return false;
+  };
+
   const renderTarificationInfo = () => {
+    const serviceUnavailable = isServiceUnavailable();
+    
     console.log('🔍 Debug renderTarificationInfo:', { 
       pricingError, 
       pricingData: !!pricingData,
-      hasError: !!pricingError 
+      serviceUnavailable,
+      heureDebut: stableParams.heureDebut,
+      heureFin: stableParams.heureFin
     });
     
-    // Afficher l'erreur de pricing si elle existe
-    if (pricingError) {
-      console.log('🚨 Affichage du message d\'erreur:', pricingError);
+    // Afficher l'erreur si service indisponible (< 2h)
+    if (serviceUnavailable || pricingError) {
+      console.log('🚨 Service indisponible - durée < 2h');
       return (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>⚠️ Erreur de tarification</Text>
-          <Text style={styles.errorMessage}>{pricingError}</Text>
+          <Text style={styles.errorTitle}>⚠️ Service indisponible</Text>
+          <Text style={styles.errorMessage}>
+            Durée minimum de 2 heures requise pour nos services.
+          </Text>
           <Text style={styles.errorHint}>
-            Veuillez sélectionner un créneau d'au moins 2 heures pour continuer.
+            Créneau actuel : {stableParams.heureDebut} - {stableParams.heureFin}
+          </Text>
+          <Text style={styles.errorHint}>
+            Veuillez sélectionner un créneau d'au moins 2 heures consécutives.
           </Text>
         </View>
       );
