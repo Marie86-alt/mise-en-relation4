@@ -90,54 +90,65 @@ export default function ContactScreen() {
   }, []);
 
   const handlePhonePress = useCallback(async () => {
-    try {
-      const url = `tel:${CONTACT.phoneDial}`;
-      console.log('📞 Tentative d\'ouverture téléphone:', url);
+    console.log('🔍 Tentative d\'ouverture téléphone avec différents formats...');
+    
+    // Essayer différents formats de numéros
+    for (const phoneNumber of CONTACT.phoneDialAlternatives) {
+      const url = `tel:${phoneNumber}`;
+      console.log(`📞 Test format: ${url}`);
       
-      // Essayer d'ouvrir directement d'abord 
       try {
-        await Linking.openURL(url);
-        console.log('✅ Téléphone ouvert avec succès');
-        return;
-      } catch (directError) {
-        console.log('❌ Ouverture directe échouée, vérification canOpenURL...');
+        // Test direct d'abord
+        const can = await Linking.canOpenURL(url);
+        console.log(`📞 CanOpenURL pour ${phoneNumber}: ${can}`);
+        
+        if (can) {
+          await Linking.openURL(url);
+          console.log(`✅ Téléphone ouvert avec succès (format: ${phoneNumber})`);
+          return;
+        }
+      } catch (error) {
+        console.log(`❌ Échec format ${phoneNumber}:`, error.message);
       }
-      
-      // Fallback avec canOpenURL
-      const can = await Linking.canOpenURL(url);
-      console.log('📞 CanOpenURL result:', can);
-      
-      if (can) {
-        await Linking.openURL(url);
-        console.log('✅ Téléphone ouvert avec succès (fallback)');
-      } else {
-        console.log('❌ Impossible d\'ouvrir le téléphone');
-        Alert.alert(
-          "Aucune application téléphone", 
-          "Vous pouvez nous appeler au :\n\n" + CONTACT.phoneDisplay,
-          [
-            { text: "Copier le numéro", onPress: async () => {
-              await Clipboard.setStringAsync(CONTACT.phoneDisplay);
-              Alert.alert("✅ Numéro copié", "Le numéro de téléphone a été copié dans le presse-papiers");
-            }},
-            { text: "OK" }
-          ]
-        );
-      }
-    } catch (error) {
-      console.error('❌ Erreur handlePhonePress:', error);
-      Alert.alert(
-        "Erreur", 
-        "Impossible d'ouvrir l'application téléphone.\n\nVous pouvez nous appeler au :\n" + CONTACT.phoneDisplay,
-        [
-          { text: "Copier le numéro", onPress: async () => {
+    }
+    
+    // Si aucun format ne fonctionne, essayer avec action DIAL au lieu de CALL
+    console.log('🔄 Tentative avec action DIAL...');
+    try {
+      const dialUrl = `tel:${CONTACT.phoneDial}`;
+      // Force l'ouverture du dialer sans vérification préalable
+      await Linking.openURL(dialUrl);
+      console.log('✅ Dialer ouvert avec succès');
+      return;
+    } catch (dialError) {
+      console.log('❌ Échec ouverture dialer:', dialError.message);
+    }
+    
+    // Fallback final avec message et copie
+    console.log('❌ Impossible d\'ouvrir le téléphone avec tous les formats');
+    Alert.alert(
+      "Application téléphone indisponible", 
+      "Le système ne peut pas ouvrir l'application téléphone.\n\nVous pouvez nous appeler au :\n" + CONTACT.phoneDisplay,
+      [
+        { 
+          text: "Copier le numéro", 
+          onPress: async () => {
             await Clipboard.setStringAsync(CONTACT.phoneDisplay);
             Alert.alert("✅ Numéro copié", "Le numéro de téléphone a été copié dans le presse-papiers");
-          }},
-          { text: "OK" }
-        ]
-      );
-    }
+          }
+        },
+        { 
+          text: "Réessayer", 
+          onPress: () => {
+            // Tentative de force avec l'URL système
+            Linking.openURL(`tel:${CONTACT.phoneDial}`).catch(() => {
+              console.log('❌ Réessai échoué');
+            });
+          }
+        },
+        { text: "OK" }
+      ]
+    );
   }, []);
 
   return (
