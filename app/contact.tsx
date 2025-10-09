@@ -131,9 +131,10 @@ export default function ContactScreen() {
       "Le système ne peut pas ouvrir l'application téléphone.\n\nVous pouvez nous appeler au :\n" + CONTACT.phoneDisplay,
       [
         { 
-          text: "Voir le numéro", 
-          onPress: () => {
-            Alert.alert("📞 Numéro de téléphone", CONTACT.phoneDisplay + "\n\n(Appuyez longuement pour copier)");
+          text: "Copier le numéro", 
+          onPress: async () => {
+            await Clipboard.setStringAsync(CONTACT.phoneDisplay);
+            Alert.alert("✅ Numéro copié", "Le numéro de téléphone a été copié dans le presse-papiers");
           }
         },
         { 
