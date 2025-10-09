@@ -16,8 +16,10 @@ import { applyTextInputDefaults } from '@/src/ui/applyTextInputDefaults';
 import { STRIPE_CONFIG } from '@/src/config/stripe';
 import * as SplashScreen from 'expo-splash-screen';
 
-// Cacher immédiatement le splash screen par défaut
-SplashScreen.hideAsync();
+// Cacher immédiatement le splash screen par défaut dès le chargement
+SplashScreen.hideAsync().catch(() => {
+  // Ignore les erreurs si le splash screen est déjà caché
+});
 
 // Intercepter les erreurs de calculatePriceFromTimeRange pour éviter les notifications
 const originalConsoleError = console.error;
