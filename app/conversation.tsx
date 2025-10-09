@@ -29,6 +29,17 @@ export default function ConversationScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const flatListRef = useRef<FlatList<Message>>(null);
+  
+  // Détection des dimensions d'écran pour ajuster l'interface
+  const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  
+  useEffect(() => {
+    const onChange = (result: any) => {
+      setScreenData(result.window);
+    };
+    const subscription = Dimensions.addEventListener('change', onChange);
+    return () => subscription?.remove();
+  }, []);
 
   // --- params stables (depuis la navigation)
   const rawParams = useLocalSearchParams();
