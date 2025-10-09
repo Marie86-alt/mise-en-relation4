@@ -132,8 +132,8 @@ export default function ContactScreen() {
       [
         { 
           text: "Copier le numéro", 
-          onPress: async () => {
-            await Clipboard.setStringAsync(CONTACT.phoneDisplay);
+          onPress: () => {
+            Clipboard.setString(CONTACT.phoneDisplay);
             Alert.alert("✅ Numéro copié", "Le numéro de téléphone a été copié dans le presse-papiers");
           }
         },
