@@ -111,7 +111,7 @@ export default function PaiementFinalScreen() {
         setPaymentIntentId(result.paymentIntentId);
         setPaymentReady(true);
       } else {
-        Alert.alert("Erreur d'initialisation", result.error ?? "Impossible d'initialiser le paiement");
+        Alert.alert("Erreur d'initialisation", "Impossible d'initialiser le paiement. Veuillez réessayer.");
       }
     } catch {
       Alert.alert('Erreur', 'Problème de connexion au service de paiement');
