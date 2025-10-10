@@ -152,7 +152,7 @@ if (result.success) {
       }
     } catch (error) {
       console.error('❌ Exception dans handlePayment:', error);
-      Alert.alert('Erreur', `Problème lors du paiement: ${error?.message || error}`);
+      Alert.alert('Erreur', 'Une erreur technique s\'est produite. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }
