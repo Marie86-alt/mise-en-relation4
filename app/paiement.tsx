@@ -87,7 +87,7 @@ if (result.success) {
   }
 } else {
   console.error('❌ Erreur initialisation:', result.error, 'Code:', result.errorCode);
-  Alert.alert('Erreur', `Détails: ${result.error} ${result.errorCode ? `(${result.errorCode})` : ''}`);
+  Alert.alert('Erreur de paiement', 'Impossible de traiter votre paiement. Veuillez réessayer.');
 }
     } catch {
       Alert.alert('Erreur', 'Problème de connexion');
