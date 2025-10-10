@@ -273,7 +273,7 @@ export default function ConversationScreen() {
         },
       });
     } catch (e) {
-      console.error('Erreur navigation paiement:', e);
+      console.log('Erreur navigation paiement:', e);
       Alert.alert('Erreur', 'Impossible d\'accéder au paiement');
       setLoading(false);
     }
