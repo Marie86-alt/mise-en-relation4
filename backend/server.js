@@ -1,19 +1,19 @@
 // backend/server.js - VERSION CORRIGÉE
 
 // Configuration dotenv avec chemin explicite
-require('dotenv').config({ path: require('path').join(__dirname, '.env') });
-
-// 🔑 SOLUTION TEMPORAIRE : Définir les variables directement si .env ne fonctionne pas
-if (!process.env.STRIPE_SECRET_KEY) {
-    console.log('⚠️ .env non lu, définition directe des variables...');
-    process.env.STRIPE_SECRET_KEY = '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';
-    process.env.FIREBASE_PROJECT_ID = 'mise-en-relation-app-prod';
-    process.env.PORT = '3000';
-    process.env.NODE_ENV = 'production';
-}
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const express = require('express');
 const cors = require('cors');
+
+// 🔑 Vérification de la clé Stripe
+if (!process.env.STRIPE_SECRET_KEY) {
+    console.error('❌ ERREUR: STRIPE_SECRET_KEY manquante dans .env');
+    console.log('📝 Ajoutez cette ligne dans backend/.env :');
+    console.log('STRIPE_SECRET_KEY=sk_live_votre_cle_stripe_ici');
+    process.exit(1);
+}
 
 // 🔑 Initialiser Stripe avec la clé secrète
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
