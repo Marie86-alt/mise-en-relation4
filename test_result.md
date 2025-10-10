@@ -86,6 +86,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: Stripe integration fully functional. Payment Intent creation works with proper validation (minimum amount 50 cents). Payment status retrieval returns correct data. Live Stripe keys are configured and working. Commission calculation logic implemented correctly."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-VERIFIED: Stripe integration fully operational after resolving initialization error. POST /create-payment-intent successfully creates Payment Intents with live Stripe keys (sk_live_51Rw4TC2egT4ENWec...). Proper validation for minimum amounts (50 cents), currency requirements, and metadata handling. GET /payment-status/:id retrieves payment information correctly. Commission calculation logic (40% app commission) working properly. No 'Neither apiKey nor config.authenticator provided' errors detected."
 
   - task: "Statistics Route"
     implemented: true
