@@ -145,7 +145,7 @@ async function presentPayment(): Promise<SimpleResult> {
     console.log('✅ presentPaymentSheet réussi !');
     return { success: true };
   } catch (e: any) {
-    console.error('❌ Exception dans presentPayment:', e);
+    console.log('❌ Exception dans presentPayment:', e);
     return { success: false, error: e?.message ?? 'Erreur de présentation du paiement' };
   }
 }
