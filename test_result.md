@@ -50,6 +50,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: Authentication routes working perfectly. Registration creates users in Firebase Auth and Firestore with proper data structure. Login validates credentials, checks account status (suspended/deleted), and returns custom tokens. Error handling for invalid data works correctly."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-VERIFIED: Authentication system fully functional. POST /api/auth/register successfully creates new users in Firebase Auth and Firestore with proper data structure (email, displayName, role, isAidant, etc.). POST /api/auth/login validates credentials, checks account status (suspended/deleted), and returns custom tokens. Comprehensive error handling for invalid data, missing fields, and account status validation working correctly."
 
   - task: "Services Routes"
     implemented: true
