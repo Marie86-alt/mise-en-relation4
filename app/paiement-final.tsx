@@ -153,7 +153,7 @@ export default function PaiementFinalScreen() {
           ]);
         }
       } else if (result.error) {
-        Alert.alert('Erreur de paiement', result.error);
+        Alert.alert('Erreur de paiement', 'Le paiement n\'a pas pu être traité. Veuillez réessayer.');
       }
     } catch {
       Alert.alert('Erreur', 'Problème lors du paiement');
