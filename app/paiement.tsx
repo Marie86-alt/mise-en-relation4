@@ -145,7 +145,7 @@ if (result.success) {
         }
       } else if (result.error) {
         console.error('❌ Erreur result.error:', result.error);
-        Alert.alert('Erreur de paiement', result.error);
+        Alert.alert('Erreur de paiement', 'Le paiement n\'a pas pu être finalisé. Veuillez réessayer.');
       } else {
         console.error('❌ Résultat inconnu:', result);
         Alert.alert('Erreur de paiement', 'Résultat inconnu');
