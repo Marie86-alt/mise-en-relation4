@@ -64,7 +64,7 @@ async function initializeDepositPayment(data: PaymentData): Promise<InitResult> 
     });
     
     if (error) {
-      console.error('❌ Erreur initPaymentSheet:', error);
+      console.log('❌ Erreur initPaymentSheet:', error);
       return { success: false, error: error.message, errorCode: error.code };
     }
     
