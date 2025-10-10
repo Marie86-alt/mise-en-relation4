@@ -347,7 +347,7 @@ export default function ConversationScreen() {
         clientName: user.displayName || 'Client anonyme',
       });
     } catch (error) {
-      console.error('❌ Erreur sauvegarde avis:', error);
+      console.log('❌ Erreur sauvegarde avis:', error);
       Alert.alert('Info', 'Avis non sauvegardé, le paiement va continuer.');
     } finally {
       setLoading(false);
