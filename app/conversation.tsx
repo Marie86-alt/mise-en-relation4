@@ -112,7 +112,7 @@ export default function ConversationScreen() {
         );
         setIsConversationReady(true);
       } catch (error) {
-        console.error("❌ Échec de la configuration de la conversation", error);
+        console.log("❌ Échec de la configuration de la conversation", error);
         Alert.alert("Erreur", "Impossible de charger la conversation.");
       }
     };
