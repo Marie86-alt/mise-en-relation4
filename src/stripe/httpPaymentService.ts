@@ -34,8 +34,8 @@ export class HttpPaymentService {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Erreur HTTP:', errorText);
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
+      console.log('❌ Erreur HTTP:', errorText);
+      throw new Error(`Impossible de traiter le paiement`);
     }
 
     const result = await response.json();
