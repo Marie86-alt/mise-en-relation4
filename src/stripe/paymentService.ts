@@ -129,7 +129,7 @@ async function presentPayment(): Promise<SimpleResult> {
     const { error } = await presentPaymentSheet();
     
     if (error) {
-      console.error('❌ Erreur Stripe presentPaymentSheet:', { 
+      console.log('❌ Erreur Stripe presentPaymentSheet:', { 
         code: error.code, 
         message: error.message,
         type: error.type 
