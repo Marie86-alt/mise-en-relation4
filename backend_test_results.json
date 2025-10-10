@@ -4,97 +4,97 @@
     "total": 9,
     "success_rate": 0.0
   },
-  "timestamp": "2025-10-10T08:43:28.405037",
+  "timestamp": "2025-10-10T08:46:13.963022",
   "results": [
     {
       "test": "Server Startup",
       "success": false,
-      "message": "Code de réponse incorrect: 404",
-      "timestamp": "2025-10-10T08:43:27.512701",
+      "message": "Erreur de connexion: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))",
+      "timestamp": "2025-10-10T08:46:13.956465",
       "details": {}
     },
     {
       "test": "Firebase Integration",
       "success": false,
-      "message": "Impossible de vérifier Firebase: 404",
-      "timestamp": "2025-10-10T08:43:27.591774",
+      "message": "Erreur Firebase: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfc70eed8e650>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:46:13.957172",
       "details": {}
     },
     {
       "test": "Auth Registration",
       "success": false,
-      "message": "Échec inscription: 404 - <!DOCTYPE html>\n<html class=\"h-full\" lang=\"en-US\" dir=\"ltr\">\n  <head>\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-Regular-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-RegularItalic-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-Medium-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-Semibold-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-MediumItalic-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-Text.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-TextItalic.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-SemiBold.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-SemiBoldItalic.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <meta charset=\"utf-8\">\n    <meta name=\"author\" content=\"ngrok\">\n    <meta name=\"description\" content=\"ngrok is the fastest way to put anything on the internet with a single command.\">\n    <meta name=\"robots\" content=\"noindex, nofollow\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link id=\"style\" rel=\"stylesheet\" href=\"https://cdn.ngrok.com/static/css/error.css\">\n    <noscript>The endpoint buffy-previsible-cooingly.ngrok-free.dev is offline. (ERR_NGROK_3200)</noscript>\n    <script id=\"script\" src=\"https://cdn.ngrok.com/static/js/error.js\" type=\"text/javascript\"></script>\n  </head>\n  <body class=\"h-full\" id=\"ngrok\">\n    <div id=\"root\" data-payload=\"eyJjZG5CYXNlIjoiaHR0cHM6Ly9jZG4ubmdyb2suY29tLyIsImNvZGUiOiIzMjAwIiwibWVzc2FnZSI6IlRoZSBlbmRwb2ludCBidWZmeS1wcmV2aXNpYmxlLWNvb2luZ2x5Lm5ncm9rLWZyZWUuZGV2IGlzIG9mZmxpbmUuIiwidGl0bGUiOiJOb3QgRm91bmQifQ==\"></div>\n  </body>\n</html>\n",
-      "timestamp": "2025-10-10T08:43:27.672693",
+      "message": "Erreur inscription: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/auth/register (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfc70eed8ead0>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:46:13.958030",
       "details": {}
     },
     {
       "test": "Auth Login",
       "success": false,
       "message": "Test ignoré - inscription échouée",
-      "timestamp": "2025-10-10T08:43:27.672714",
+      "timestamp": "2025-10-10T08:46:13.958047",
       "details": {}
     },
     {
       "test": "Services Search",
       "success": false,
-      "message": "Échec recherche: 404 - <!DOCTYPE html>\n<html class=\"h-full\" lang=\"en-US\" dir=\"ltr\">\n  <head>\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-Regular-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-RegularItalic-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-Medium-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-Semibold-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-MediumItalic-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-Text.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-TextItalic.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-SemiBold.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-SemiBoldItalic.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <meta charset=\"utf-8\">\n    <meta name=\"author\" content=\"ngrok\">\n    <meta name=\"description\" content=\"ngrok is the fastest way to put anything on the internet with a single command.\">\n    <meta name=\"robots\" content=\"noindex, nofollow\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link id=\"style\" rel=\"stylesheet\" href=\"https://cdn.ngrok.com/static/css/error.css\">\n    <noscript>The endpoint buffy-previsible-cooingly.ngrok-free.dev is offline. (ERR_NGROK_3200)</noscript>\n    <script id=\"script\" src=\"https://cdn.ngrok.com/static/js/error.js\" type=\"text/javascript\"></script>\n  </head>\n  <body class=\"h-full\" id=\"ngrok\">\n    <div id=\"root\" data-payload=\"eyJjZG5CYXNlIjoiaHR0cHM6Ly9jZG4ubmdyb2suY29tLyIsImNvZGUiOiIzMjAwIiwibWVzc2FnZSI6IlRoZSBlbmRwb2ludCBidWZmeS1wcmV2aXNpYmxlLWNvb2luZ2x5Lm5ncm9rLWZyZWUuZGV2IGlzIG9mZmxpbmUuIiwidGl0bGUiOiJOb3QgRm91bmQifQ==\"></div>\n  </body>\n</html>\n",
-      "timestamp": "2025-10-10T08:43:27.754821",
+      "message": "Erreur recherche: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/services/search (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfc70eed8c490>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:46:13.958638",
       "details": {}
     },
     {
       "test": "Services Profile",
       "success": false,
-      "message": "Erreur profil: Expecting value: line 1 column 1 (char 0)",
-      "timestamp": "2025-10-10T08:43:27.836090",
+      "message": "Erreur profil: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/services/profile/test_aidant_id_123 (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfc70eeda50d0>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:46:13.959186",
       "details": {}
     },
     {
       "test": "Stripe Payment Intent",
       "success": false,
-      "message": "Échec création Payment Intent: 404 - <!DOCTYPE html>\n<html class=\"h-full\" lang=\"en-US\" dir=\"ltr\">\n  <head>\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-Regular-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-RegularItalic-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-Medium-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-Semibold-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-MediumItalic-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-Text.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-TextItalic.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-SemiBold.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-SemiBoldItalic.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <meta charset=\"utf-8\">\n    <meta name=\"author\" content=\"ngrok\">\n    <meta name=\"description\" content=\"ngrok is the fastest way to put anything on the internet with a single command.\">\n    <meta name=\"robots\" content=\"noindex, nofollow\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link id=\"style\" rel=\"stylesheet\" href=\"https://cdn.ngrok.com/static/css/error.css\">\n    <noscript>The endpoint buffy-previsible-cooingly.ngrok-free.dev is offline. (ERR_NGROK_3200)</noscript>\n    <script id=\"script\" src=\"https://cdn.ngrok.com/static/js/error.js\" type=\"text/javascript\"></script>\n  </head>\n  <body class=\"h-full\" id=\"ngrok\">\n    <div id=\"root\" data-payload=\"eyJjZG5CYXNlIjoiaHR0cHM6Ly9jZG4ubmdyb2suY29tLyIsImNvZGUiOiIzMjAwIiwibWVzc2FnZSI6IlRoZSBlbmRwb2ludCBidWZmeS1wcmV2aXNpYmxlLWNvb2luZ2x5Lm5ncm9rLWZyZWUuZGV2IGlzIG9mZmxpbmUuIiwidGl0bGUiOiJOb3QgRm91bmQifQ==\"></div>\n  </body>\n</html>\n",
-      "timestamp": "2025-10-10T08:43:27.918021",
+      "message": "Erreur Stripe: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /create-payment-intent (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfc70eeda7610>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:46:13.959719",
       "details": {}
     },
     {
       "test": "Statistics Route",
       "success": false,
-      "message": "Échec récupération stats: 404 - <!DOCTYPE html>\n<html class=\"h-full\" lang=\"en-US\" dir=\"ltr\">\n  <head>\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-Regular-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-RegularItalic-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-Medium-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-Semibold-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/euclid-square/EuclidSquare-MediumItalic-WebS.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-Text.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-TextItalic.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-SemiBold.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <link rel=\"preload\" href=\"https://cdn.ngrok.com/static/fonts/ibm-plex-mono/IBMPlexMono-SemiBoldItalic.woff\" as=\"font\" type=\"font/woff\" crossorigin=\"anonymous\" />\n    <meta charset=\"utf-8\">\n    <meta name=\"author\" content=\"ngrok\">\n    <meta name=\"description\" content=\"ngrok is the fastest way to put anything on the internet with a single command.\">\n    <meta name=\"robots\" content=\"noindex, nofollow\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link id=\"style\" rel=\"stylesheet\" href=\"https://cdn.ngrok.com/static/css/error.css\">\n    <noscript>The endpoint buffy-previsible-cooingly.ngrok-free.dev is offline. (ERR_NGROK_3200)</noscript>\n    <script id=\"script\" src=\"https://cdn.ngrok.com/static/js/error.js\" type=\"text/javascript\"></script>\n  </head>\n  <body class=\"h-full\" id=\"ngrok\">\n    <div id=\"root\" data-payload=\"eyJjZG5CYXNlIjoiaHR0cHM6Ly9jZG4ubmdyb2suY29tLyIsImNvZGUiOiIzMjAwIiwibWVzc2FnZSI6IlRoZSBlbmRwb2ludCBidWZmeS1wcmV2aXNpYmxlLWNvb2luZ2x5Lm5ncm9rLWZyZWUuZGV2IGlzIG9mZmxpbmUuIiwidGl0bGUiOiJOb3QgRm91bmQifQ==\"></div>\n  </body>\n</html>\n",
-      "timestamp": "2025-10-10T08:43:28.000280",
+      "message": "Erreur statistiques: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /stats (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfc70eeda9910>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:46:13.960241",
       "details": {}
     },
     {
       "test": "New Statistics Metrics",
       "success": false,
-      "message": "Impossible d'accéder aux stats: 404",
-      "timestamp": "2025-10-10T08:43:28.081365",
+      "message": "Erreur test nouvelles métriques: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /stats (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfc70eeda7fd0>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:46:13.960976",
       "details": {}
     },
     {
       "test": "Error Handling - 404",
-      "success": true,
-      "message": "Gestion correcte des routes inexistantes",
-      "timestamp": "2025-10-10T08:43:28.162688",
+      "success": false,
+      "message": "Erreur test 404: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/nonexistent (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfc70eeda63d0>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:46:13.961463",
       "details": {}
     },
     {
       "test": "Error Handling - Invalid Data",
       "success": false,
-      "message": "Code de réponse inattendu: 404",
-      "timestamp": "2025-10-10T08:43:28.241777",
+      "message": "Erreur test données invalides: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/auth/register (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfc70eeda4d90>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:46:13.961948",
       "details": {}
     },
     {
       "test": "Error Handling - Payment",
       "success": false,
-      "message": "Code de réponse inattendu: 404",
-      "timestamp": "2025-10-10T08:43:28.323328",
+      "message": "Erreur test paiement invalide: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /create-payment-intent (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfc70eed8d1d0>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:46:13.962403",
       "details": {}
     },
     {
       "test": "Environment Config",
       "success": false,
-      "message": "Impossible de vérifier la configuration: 404",
-      "timestamp": "2025-10-10T08:43:28.404421",
+      "message": "Erreur configuration: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfc70eedab450>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:46:13.962927",
       "details": {}
     }
   ]
