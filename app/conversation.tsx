@@ -197,7 +197,7 @@ export default function ConversationScreen() {
       setNouveauMessage('');
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
     } catch (e) {
-      console.error('Erreur envoi message', e);
+      console.log('Erreur envoi message', e);
       Alert.alert('Erreur', "Le message n'a pas pu être envoyé.");
     } finally {
       setLoading(false);
