@@ -213,7 +213,7 @@ export default function ConversationScreen() {
         router.replace('/(tabs)');
       }
     } catch (error) {
-      console.error('Erreur navigation retour:', error);
+      console.log('Erreur navigation retour:', error);
       // Fallback vers l'accueil
       router.replace('/(tabs)');
     }
