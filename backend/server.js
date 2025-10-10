@@ -1,6 +1,7 @@
 // backend/server.js - VERSION CORRIGÉE
 
-require('dotenv').config();
+// Configuration dotenv avec chemin explicite
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 
