@@ -1,0 +1,101 @@
+{
+  "summary": {
+    "passed": 0,
+    "total": 9,
+    "success_rate": 0.0
+  },
+  "timestamp": "2025-10-10T08:49:05.174488",
+  "results": [
+    {
+      "test": "Server Startup",
+      "success": false,
+      "message": "Erreur de connexion: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))",
+      "timestamp": "2025-10-10T08:49:05.168161",
+      "details": {}
+    },
+    {
+      "test": "Firebase Integration",
+      "success": false,
+      "message": "Erreur Firebase: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfa494ccfe650>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:49:05.168852",
+      "details": {}
+    },
+    {
+      "test": "Auth Registration",
+      "success": false,
+      "message": "Erreur inscription: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/auth/register (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfa494ccfead0>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:49:05.169622",
+      "details": {}
+    },
+    {
+      "test": "Auth Login",
+      "success": false,
+      "message": "Test ignoré - inscription échouée",
+      "timestamp": "2025-10-10T08:49:05.169638",
+      "details": {}
+    },
+    {
+      "test": "Services Search",
+      "success": false,
+      "message": "Erreur recherche: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/services/search (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfa494ccfc490>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:49:05.170233",
+      "details": {}
+    },
+    {
+      "test": "Services Profile",
+      "success": false,
+      "message": "Erreur profil: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/services/profile/test_aidant_id_123 (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfa494cd150d0>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:49:05.170775",
+      "details": {}
+    },
+    {
+      "test": "Stripe Payment Intent",
+      "success": false,
+      "message": "Erreur Stripe: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /create-payment-intent (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfa494cd17610>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:49:05.171294",
+      "details": {}
+    },
+    {
+      "test": "Statistics Route",
+      "success": false,
+      "message": "Erreur statistiques: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /stats (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfa494cd19910>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:49:05.171793",
+      "details": {}
+    },
+    {
+      "test": "New Statistics Metrics",
+      "success": false,
+      "message": "Erreur test nouvelles métriques: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /stats (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfa494cd17fd0>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:49:05.172484",
+      "details": {}
+    },
+    {
+      "test": "Error Handling - 404",
+      "success": false,
+      "message": "Erreur test 404: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/nonexistent (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfa494cd163d0>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:49:05.173018",
+      "details": {}
+    },
+    {
+      "test": "Error Handling - Invalid Data",
+      "success": false,
+      "message": "Erreur test données invalides: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/auth/register (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfa494cd14d90>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:49:05.173476",
+      "details": {}
+    },
+    {
+      "test": "Error Handling - Payment",
+      "success": false,
+      "message": "Erreur test paiement invalide: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /create-payment-intent (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfa494ccfd1d0>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:49:05.173957",
+      "details": {}
+    },
+    {
+      "test": "Environment Config",
+      "success": false,
+      "message": "Erreur configuration: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xfa494cd1b450>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+      "timestamp": "2025-10-10T08:49:05.174402",
+      "details": {}
+    }
+  ]
+}
