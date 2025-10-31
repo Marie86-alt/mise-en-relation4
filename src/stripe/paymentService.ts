@@ -1,8 +1,18 @@
 // src/services/stripe/paymentService.ts
-import { initPaymentSheet, presentPaymentSheet } from '@stripe/stripe-react-native';
+import { Platform } from 'react-native';
 import * as Linking from 'expo-linking';
 import { PricingResult } from '../utils/pricing';
 import { HttpPaymentService } from './httpPaymentService';
+
+// Import conditionnel de Stripe (uniquement sur mobile)
+let initPaymentSheet: any;
+let presentPaymentSheet: any;
+
+if (Platform.OS !== 'web') {
+  const stripe = require('@stripe/stripe-react-native');
+  initPaymentSheet = stripe.initPaymentSheet;
+  presentPaymentSheet = stripe.presentPaymentSheet;
+}
 
 // --- Types alignés avec tes écrans ---
 export interface PaymentData {
