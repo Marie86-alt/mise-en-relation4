@@ -170,13 +170,9 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      {Platform.OS === 'web' ? (
+      <StripeWrapper publishableKey={STRIPE_CONFIG.PUBLISHABLE_KEY}>
         <AppContent />
-      ) : (
-        <StripeProvider publishableKey={STRIPE_CONFIG.PUBLISHABLE_KEY}>
-          <AppContent />
-        </StripeProvider>
-      )}
+      </StripeWrapper>
     </SafeAreaProvider>
   );
 }
