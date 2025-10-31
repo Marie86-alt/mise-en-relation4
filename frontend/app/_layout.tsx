@@ -154,20 +154,29 @@ export default function RootLayout() {
     return <CustomLoadingScreen />;
   }
 
+  // Wrapper pour Stripe - seulement sur plateformes natives
+  const AppContent = () => (
+    <AuthProvider>
+      <ThemeProvider value={DefaultTheme}>
+        <RootLayoutNav />
+        {/* Sur Android edge-to-edge, garde une barre lisible */}
+        <StatusBar
+          style={colorScheme === 'dark' ? 'light' : 'dark'}
+          translucent={Platform.OS === 'android'}
+        />
+      </ThemeProvider>
+    </AuthProvider>
+  );
+
   return (
     <SafeAreaProvider>
-      <StripeProvider publishableKey={STRIPE_CONFIG.PUBLISHABLE_KEY}>
-        <AuthProvider>
-          <ThemeProvider value={DefaultTheme}>
-            <RootLayoutNav />
-            {/* Sur Android edge-to-edge, garde une barre lisible */}
-            <StatusBar
-              style={colorScheme === 'dark' ? 'light' : 'dark'}
-              translucent={Platform.OS === 'android'}
-            />
-          </ThemeProvider>
-        </AuthProvider>
-      </StripeProvider>
+      {Platform.OS === 'web' ? (
+        <AppContent />
+      ) : (
+        <StripeProvider publishableKey={STRIPE_CONFIG.PUBLISHABLE_KEY}>
+          <AppContent />
+        </StripeProvider>
+      )}
     </SafeAreaProvider>
   );
 }
