@@ -8,7 +8,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { Platform, View, ActivityIndicator, Text, Image } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StripeProvider } from '@stripe/stripe-react-native';
+import { StripeWrapper } from '@/src/components/StripeWrapper';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import '../firebase.config';
 import { AuthProvider, useAuth } from '@/src/contexts/AuthContext';
