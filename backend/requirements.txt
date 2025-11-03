@@ -2,9 +2,8 @@
 fastapi~=0.110.1
 uvicorn~=0.25.0
 
-# Base de données
-motor~=3.3.1
-pymongo~=4.5.0
+# Firebase Admin SDK (remplace MongoDB)
+firebase-admin~=6.5.0
 
 # Validation et sérialisation
 pydantic~=2.6.4
@@ -34,6 +33,3 @@ black~=24.1.1
 isort~=5.13.2
 flake8~=7.0.0
 mypy~=1.8.0
-
-# Note: pandas et numpy retirés (non utilisés dans server.py)
-# Note: jq retiré (ce n'est pas un package Python)
