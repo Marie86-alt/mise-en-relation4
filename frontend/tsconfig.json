@@ -1,18 +1,6 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true,
-    "paths": {
-      "@/*": [
-        "./*"
-      ]
-    }
-  },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-, "src/services/firebase/profile.js", "src/screens/ProfileListScreen.js", "app/profile-list.js", "src/config/firebase-configs.js"  ],
-  "exclude": ["node_modules", "android", "ios", "functions", "dist"]
+    "strict": true
+  }
 }
